@@ -1,24 +1,33 @@
 {
   "expo": {
-    "name": "my-expo-app",
-    "slug": "my-expo-app",
-    "version": "1.0.0",
-
+    "name": "SDCE",
+    "slug": "SDCE",
+    "version": "1.0.1",
+    "newArchEnabled": false,
     "web": {
       "favicon": "./assets/favicon.png"
     },
-
     "experiments": {
       "tsconfigPaths": true
     },
-
-    "plugins": [],
-
+    "plugins": [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow app to Use location"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to Access Your Camera"
+        }
+      ]
+    ],
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-
+    "icon": "./assets/appLOGO.png",
     "userInterfaceStyle": "light",
-
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -30,8 +39,23 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/miniLogo.png",
         "backgroundColor": "#ffffff"
+      },
+      "package": "com.anonymous.myexpoapp",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDYEVaykg8N-3xtlOqvGw9nbKoqqyRvVzg"
+        }
+      },
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "e9d20b03-d279-4a1b-b03d-3063070c1bc4"
       }
     }
   }

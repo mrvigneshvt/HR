@@ -1,0 +1,65 @@
+import React, { useState } from 'react';
+import { View, Text, Pressable } from 'react-native';
+import { format, addMonths, subMonths } from 'date-fns';
+import AntDesign from '@expo/vector-icons/AntDesign';
+import { configFile } from '../config';
+
+type Props = {
+  onChange: (data: { year: number; month: number }) => void;
+};
+
+export default function MonthYearPickerHeader({ onChange }: Props) {
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  const handlePrev = () => {
+    const newDate = subMonths(currentDate, 1);
+    setCurrentDate(newDate);
+
+    onChange({
+      year: newDate.getFullYear(),
+      month: newDate.getMonth(),
+    });
+  };
+
+  const handleNext = () => {
+    const newDate = addMonths(currentDate, 1);
+    setCurrentDate(newDate);
+
+    onChange({
+      year: newDate.getFullYear(),
+      month: newDate.getMonth(),
+    });
+  };
+
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 16,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 8,
+      }}>
+      <Pressable onPress={handlePrev}>
+        <AntDesign name="leftcircleo" size={24} color="black" />
+      </Pressable>
+
+      <Text
+        className="rounded-xl"
+        style={{
+          fontSize: 18,
+          fontWeight: 'bold',
+          backgroundColor: configFile.colorGreen,
+          padding: 8,
+          color: 'white',
+        }}>
+        {format(currentDate, 'MMMM yyyy')}
+      </Text>
+
+      <Pressable onPress={handleNext}>
+        <AntDesign name="rightcircleo" size={24} color={configFile.colorGreen} />
+      </Pressable>
+    </View>
+  );
+}
