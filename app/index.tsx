@@ -27,8 +27,9 @@ export default function LoginPage() {
   const router = useRouter();
   const [empId, setEmpId] = useState('');
   const [apiRes, setApiRes] = useState(false);
-  const [apiData, setApiData] = useState({});
+  const [apiData, setApiData]: any = useState({});
   const [popup, setPopUp] = useState(false);
+  const [popupdata, setPopUpData] = useState('');
 
   const triggerPopup = () => {
     setPopUp(true);
@@ -38,27 +39,43 @@ export default function LoginPage() {
   function handleEmpId(text: string) {
     setEmpId(() => text.toLocaleUpperCase());
   }
+
   // const [password, setPassword] = useState('');
   const handleLogin = async () => {
     const url = configFile.api.fetchEmpData(empId);
-    console.log(url);
     try {
-      let getData = await fetch(configFile.api.fetchEmpData(empId), { method: 'GET' });
+      let getData: Record<string, any> | any = await fetch(url, { method: 'GET' });
 
       if (getData.ok) {
         getData = await getData.json();
 
-        console.log('refub', getData);
-
         setApiRes(true);
-        setApiData(getData);
+        setApiData(getData.data);
+
+        console.log(apiData, '////');
+
+        if (apiData.inAppRole === 'employee') {
+          if (apiData.status === 'Active') {
+            router.replace({
+              pathname: '/dashboard',
+              params: {
+                status: 'Active',
+              },
+            });
+          }
+          router.replace({
+            pathname: '/inactive',
+            params: {
+              status: 'Active',
+            },
+          });
+        }
       }
       if (getData.status === 404) {
         triggerPopup();
       }
-      console.log(getData.status, '////', getData.statusText, 'normieee');
 
-      console.log(getData);
+      console.log(apiData);
     } catch (error) {
       console.log('error in loginPage:', error);
     }
@@ -82,7 +99,7 @@ export default function LoginPage() {
               contentFit="contain"
             />
           </View>
-          <Text style={styles.title}>Employeee L0gin</Text>
+          <Text style={styles.title}>Employeee Login</Text>
 
           <TextInput
             style={styles.input}
@@ -98,34 +115,10 @@ export default function LoginPage() {
             onPress={() => {
               handleLogin();
             }}>
-            <Text style={styles.buttonText}>Login</Text>
+            <Text style={styles.buttonText}>Logein</Text>
           </Pressable>
         </Pressable>
       </Pressable>
-      {/* <Pressable
-        onPress={() => {
-          try {
-            // handlelogin('emp');
-            router.replace('/dashboard');
-          } catch (error) {
-            console.log('error in navigating..::', error);
-          }
-        }}>
-        <View style={styles.dashboardButton}>
-          <Text style={styles.buttonText}>Dashboard Secio (Employee)</Text>
-        </View>
-      </Pressable>
-
-      <Pressable
-        onPress={() => {
-          // handlelogin('exe');
-
-          router.push('/dashboard');
-        }}>
-        <View style={[styles.dashboardButton, { backgroundColor: '#dc2626' }]}>
-          <Text style={styles.buttonText}>Dashboard Secion (Executive)</Text>
-        </View>
-      </Pressable> */}
     </>
   );
 }

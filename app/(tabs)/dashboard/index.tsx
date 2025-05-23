@@ -12,6 +12,7 @@ import ProfileStack from 'Stacks/HeaderStack';
 import { verticalScale } from 'react-native-size-matters';
 import { DashMemory } from 'Memory/DashMem';
 import DataBase from 'components/DataBaseComp';
+import InActive from 'components/InActive';
 
 const greenColor = configFile.colorGreen;
 
@@ -42,6 +43,11 @@ const styles = StyleSheet.create({
 });
 
 const index = () => {
+  const { status } = useLocalSearchParams();
+  console.log(status, 'stattt');
+  if (status == 'Active') {
+    return <InActive />;
+  }
   const dashboard = DashMemory((state) => state.dashboard);
   console.log(dashboard, 'das');
   if (dashboard?.user) {
