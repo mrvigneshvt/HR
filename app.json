@@ -24,6 +24,12 @@
           "cameraPermission": "Allow $(PRODUCT_NAME) to Access Your Camera"
         }
       ]
+      // [
+      //   "react-native-vision-camera",
+      //   {
+      //     "cameraPermissionText": "$(PRODUCT_NAME) needs to Access Your Camera"
+      //   }
+      // ]
     ],
     "orientation": "portrait",
     "icon": "./assets/appLOGO.png",
@@ -48,7 +54,12 @@
           "apiKey": "AIzaSyDYEVaykg8N-3xtlOqvGw9nbKoqqyRvVzg"
         }
       },
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "extra": {
       "router": {

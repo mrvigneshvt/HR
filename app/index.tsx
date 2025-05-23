@@ -16,6 +16,8 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import '../global.css';
 import { Dashboard, DashMemory, DashMemoryType } from 'Memory/DashMem';
 import { customPlugins } from 'plugins/plug';
+import { configFile } from 'config';
+import PopupMessage from 'components/Popup';
 
 const logo = require('../assets/logo.jpg');
 
@@ -24,46 +26,54 @@ export default function LoginPage() {
 
   const router = useRouter();
   const [empId, setEmpId] = useState('');
-  const [password, setPassword] = useState('');
-  const handleLogin = () => {};
+  const [apiRes, setApiRes] = useState(false);
+  const [apiData, setApiData] = useState({});
+  const [popup, setPopUp] = useState(false);
 
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(null);
-  const [items, setItems] = useState([
-    { label: 'Company 1', value: 'COM1' },
-    { label: 'Company 2', value: 'COM2' },
-  ]);
+  const triggerPopup = () => {
+    setPopUp(true);
+    setTimeout(() => setPopUp(false), 2000); // hide manually if needed
+  };
 
-  const [open1, setOpen1] = useState(false);
-  const [value1, setValue1] = useState(null);
-  const [items1, setItems1] = useState([
-    { label: 'Engineer', value: 'ROL1' },
-    { label: 'SuperVisor', value: 'ROL2' },
-    { label: 'TL', value: 'ROL3' },
-  ]);
+  function handleEmpId(text: string) {
+    setEmpId(() => text.toLocaleUpperCase());
+  }
+  // const [password, setPassword] = useState('');
+  const handleLogin = async () => {
+    const url = configFile.api.fetchEmpData(empId);
+    console.log(url);
+    try {
+      let getData = await fetch(configFile.api.fetchEmpData(empId), { method: 'GET' });
+
+      if (getData.ok) {
+        getData = await getData.json();
+
+        console.log('refub', getData);
+
+        setApiRes(true);
+        setApiData(getData);
+      }
+      if (getData.status === 404) {
+        triggerPopup();
+      }
+      console.log(getData.status, '////', getData.statusText, 'normieee');
+
+      console.log(getData);
+    } catch (error) {
+      console.log('error in loginPage:', error);
+    }
+  };
 
   useEffect(() => {
-    const time = setTimeout(() => {
-      router.push({ pathname: '/dashboard/attendance' });
-    }, 10);
-
-    return () => clearTimeout(time);
-  }, []);
-
-  function handlelogin(employee: 'emp' | 'exe') {
-    const employeeData = customPlugins.getExampleDatas(employee);
-    if (employee === 'emp') {
-      setDashboard(employeeData);
-    } else {
-      console.log(employeeData);
-      setDashboard(employeeData);
-    }
-  }
+    // if(apiData && apiData.data)
+  }, [apiData]);
 
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <Pressable onPress={Keyboard.dismiss} style={styles.container}>
+        {popup && <PopupMessage text="Employee ID not Found" duration={3000} />}
+
         <Pressable onPress={Keyboard.dismiss} style={styles.formContainer}>
           <View style={styles.logoContainer}>
             <Image
@@ -72,97 +82,50 @@ export default function LoginPage() {
               contentFit="contain"
             />
           </View>
-          <Text style={styles.title}>Employee Login</Text>
+          <Text style={styles.title}>Employeee L0gin</Text>
 
           <TextInput
             style={styles.input}
-            keyboardType="numeric"
+            keyboardType="default"
             placeholder="Employee ID"
             placeholderTextColor="#888"
-            value={empId}
-            onChangeText={setEmpId}
+            value={empId.toLocaleUpperCase()}
+            onChangeText={handleEmpId}
           />
-
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#888"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-          />
-
-          <View style={styles.dropdownContainer}>
-            <DropDownPicker
-              placeholder="Select Company"
-              disabled={!password || !empId}
-              open={open}
-              value={value}
-              items={items}
-              setOpen={setOpen}
-              setValue={setValue}
-              setItems={setItems}
-              style={styles.dropdown}
-              dropDownContainerStyle={styles.dropdownMenu}
-            />
-          </View>
-
-          {value && (
-            <View style={[styles.dropdownContainer, { zIndex: 999 }]}>
-              <DropDownPicker
-                placeholder="Select Role"
-                disabled={!password || !empId}
-                open={open1}
-                value={value1}
-                items={items1}
-                setOpen={setOpen1}
-                setValue={setValue1}
-                setItems={setItems1}
-                style={styles.dropdown}
-                dropDownContainerStyle={styles.dropdownMenu}
-              />
-            </View>
-          )}
 
           <Pressable
             style={styles.loginButton}
             onPress={() => {
               handleLogin();
-              console.log('Logging in with:', empId, password);
             }}>
             <Text style={styles.buttonText}>Login</Text>
           </Pressable>
-
-          <Pressable onPress={() => router.replace('/profile')}>
-            <Text style={styles.linkText}>Create an Account</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => {
-              try {
-                handlelogin('emp');
-                router.replace('/dashboard');
-              } catch (error) {
-                console.log('error in navigating..::', error);
-              }
-            }}>
-            <View style={styles.dashboardButton}>
-              <Text style={styles.buttonText}>Dashboard Secion (Employee)</Text>
-            </View>
-          </Pressable>
-
-          <Pressable
-            onPress={() => {
-              handlelogin('exe');
-
-              router.push('/dashboard');
-            }}>
-            <View style={[styles.dashboardButton, { backgroundColor: '#dc2626' }]}>
-              <Text style={styles.buttonText}>Dashboard Secion (Executive)</Text>
-            </View>
-          </Pressable>
         </Pressable>
       </Pressable>
+      {/* <Pressable
+        onPress={() => {
+          try {
+            // handlelogin('emp');
+            router.replace('/dashboard');
+          } catch (error) {
+            console.log('error in navigating..::', error);
+          }
+        }}>
+        <View style={styles.dashboardButton}>
+          <Text style={styles.buttonText}>Dashboard Secio (Employee)</Text>
+        </View>
+      </Pressable>
+
+      <Pressable
+        onPress={() => {
+          // handlelogin('exe');
+
+          router.push('/dashboard');
+        }}>
+        <View style={[styles.dashboardButton, { backgroundColor: '#dc2626' }]}>
+          <Text style={styles.buttonText}>Dashboard Secion (Executive)</Text>
+        </View>
+      </Pressable> */}
     </>
   );
 }
