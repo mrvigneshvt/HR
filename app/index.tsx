@@ -18,6 +18,8 @@ import { Dashboard, DashMemory, DashMemoryType } from 'Memory/DashMem';
 import { customPlugins } from 'plugins/plug';
 import { configFile } from 'config';
 import PopupMessage from 'components/Popup';
+import LoadingScreen from 'components/LoadingScreen';
+import { Flow } from 'class/HandleRoleFlow';
 
 const logo = require('../assets/logo.jpg');
 
@@ -27,7 +29,8 @@ export default function LoginPage() {
   const router = useRouter();
   const [empId, setEmpId] = useState('');
   const [apiRes, setApiRes] = useState(false);
-  const [apiData, setApiData]: any = useState({});
+  const [apiLoading, setApiLoading] = useState(false);
+  const [apiData, setApiData]: any = useState(undefined);
   const [popup, setPopUp] = useState(false);
   const [popupdata, setPopUpData] = useState('');
 
@@ -44,42 +47,31 @@ export default function LoginPage() {
   const handleLogin = async () => {
     const url = configFile.api.fetchEmpData(empId);
     try {
+      setApiLoading(true);
+      console.log('url:::', url);
       let getData: Record<string, any> | any = await fetch(url, { method: 'GET' });
-
+      console.log(getData.status);
       if (getData.ok) {
         getData = await getData.json();
-
+        console.log(getData, 'gettttttttttttt');
         setApiRes(true);
-        setApiData(getData.data);
+        console.log(apiData, '/////');
 
-        console.log(apiData, '////');
-
-        if (apiData.inAppRole === 'employee') {
-          if (apiData.status === 'Active') {
-            router.replace({
-              pathname: '/dashboard',
-              params: {
-                status: 'Active',
-              },
-            });
-          }
-          router.replace({
-            pathname: '/inactive',
-            params: {
-              status: 'Active',
-            },
-          });
-        }
+        Flow.dynamicRole(getData.data);
       }
       if (getData.status === 404) {
         triggerPopup();
       }
-
-      console.log(apiData);
     } catch (error) {
       console.log('error in loginPage:', error);
     }
   };
+
+  useEffect(() => {
+    setTimeout(() => {
+      router.replace('/quarantine');
+    }, 500);
+  }, []);
 
   useEffect(() => {
     // if(apiData && apiData.data)
@@ -112,10 +104,15 @@ export default function LoginPage() {
 
           <Pressable
             style={styles.loginButton}
+            disabled={apiLoading ? true : false}
             onPress={() => {
               handleLogin();
             }}>
-            <Text style={styles.buttonText}>Logein</Text>
+            {apiLoading ? (
+              <LoadingScreen loaderOnly={true} />
+            ) : (
+              <Text style={styles.buttonText}>Logein</Text>
+            )}
           </Pressable>
         </Pressable>
       </Pressable>
