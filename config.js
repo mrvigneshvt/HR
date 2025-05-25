@@ -9,5 +9,8 @@ export const configFile = {
     fetchEmpData(id) {
       return `${this.baseUrl}/api/v1/get/getEmpDetails/${id}/${this.credentials.key}`;
     },
+    postOtp() {
+      return `${this.baseUrl}/api/v1/post/otpGen/${this.credentials.key}`;
+    },
   },
 };

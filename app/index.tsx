@@ -20,21 +20,27 @@ import { configFile } from 'config';
 import PopupMessage from 'components/Popup';
 import LoadingScreen from 'components/LoadingScreen';
 import { Flow } from 'class/HandleRoleFlow';
-
+import { Api } from 'class/HandleApi';
 const logo = require('../assets/logo.jpg');
+
+export type PopUpTypes = 'EmployeeId not Found' | 'Invalid Employee ID';
 
 export default function LoginPage() {
   const setDashboard = DashMemory((state) => state.setDashboard);
 
   const router = useRouter();
   const [empId, setEmpId] = useState('');
-  const [apiRes, setApiRes] = useState(false);
   const [apiLoading, setApiLoading] = useState(false);
-  const [apiData, setApiData]: any = useState(undefined);
   const [popup, setPopUp] = useState(false);
-  const [popupdata, setPopUpData] = useState('');
+  const [popMsg, setPopMsg] = useState('');
+  const [popUpMessages] = useState({
+    notFound: 'EmployeeId not Found',
+    invalid: 'Invalid Employee ID',
+  });
+  const [isOtp, setIsOtp] = useState(false);
 
-  const triggerPopup = () => {
+  const triggerPopup = (data: PopUpTypes) => {
+    setPopMsg(data);
     setPopUp(true);
     setTimeout(() => setPopUp(false), 2000); // hide manually if needed
   };
@@ -45,43 +51,41 @@ export default function LoginPage() {
 
   // const [password, setPassword] = useState('');
   const handleLogin = async () => {
-    const url = configFile.api.fetchEmpData(empId);
+    console.log(empId.length, '//////////');
+    if (empId.length < 4) {
+      triggerPopup('Invalid Employee ID');
+      return;
+    }
     try {
-      setApiLoading(true);
-      console.log('url:::', url);
-      let getData: Record<string, any> | any = await fetch(url, { method: 'GET' });
-      console.log(getData.status);
-      if (getData.ok) {
-        getData = await getData.json();
-        console.log(getData, 'gettttttttttttt');
-        setApiRes(true);
-        console.log(apiData, '/////');
+      Api.handleAuth({ empId, setApiLoading, triggerPopup });
+      // if (getData.ok) {
+      //   getData = await getData.json();
+      //   console.log(getData, 'gettttttttttttt');
+      //   setApiRes(true);
 
-        Flow.dynamicRole(getData.data);
-      }
-      if (getData.status === 404) {
-        triggerPopup();
-      }
+      //   Flow.dynamicRole(getData.data);
+      // }
+      // if (getData.status === 404) {
+      //   triggerPopup();
+      // }
     } catch (error) {
       console.log('error in loginPage:', error);
     }
   };
 
-  useEffect(() => {
-    setTimeout(() => {
-      router.replace('/quarantine');
-    }, 500);
-  }, []);
+  const handleOtp = async () => {};
 
-  useEffect(() => {
-    // if(apiData && apiData.data)
-  }, [apiData]);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     router.replace('/quarantine');
+  //   }, 50);
+  // }, []);
 
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <Pressable onPress={Keyboard.dismiss} style={styles.container}>
-        {popup && <PopupMessage text="Employee ID not Found" duration={3000} />}
+        {popup && <PopupMessage text={popMsg} duration={3000} />}
 
         <Pressable onPress={Keyboard.dismiss} style={styles.formContainer}>
           <View style={styles.logoContainer}>
@@ -91,7 +95,7 @@ export default function LoginPage() {
               contentFit="contain"
             />
           </View>
-          <Text style={styles.title}>Employeee Login</Text>
+          <Text style={styles.title}>{!isOtp ? 'Employeee Login' : 'Verify Otp'}</Text>
 
           <TextInput
             style={styles.input}
@@ -104,15 +108,12 @@ export default function LoginPage() {
 
           <Pressable
             style={styles.loginButton}
+            className={`${apiLoading ? 'bg-black' : `bg-[${configFile.colorGreen}]`}`}
             disabled={apiLoading ? true : false}
             onPress={() => {
-              handleLogin();
+              !isOtp ? handleLogin() : handleOtp();
             }}>
-            {apiLoading ? (
-              <LoadingScreen loaderOnly={true} />
-            ) : (
-              <Text style={styles.buttonText}>Logein</Text>
-            )}
+            <Text style={styles.buttonText}>LogIn</Text>
           </Pressable>
         </Pressable>
       </Pressable>
