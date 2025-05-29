@@ -14,15 +14,27 @@ export class Api {
     try {
       const url = configFile.api.fetchEmpData(options.empId);
       options.setApiLoading(true);
-      let getData: Record<string, any> | any = await axios.get(url);
+      let getData = await axios.get(url);
+
+      // console.log(getData, '//////////gettttttttttDataaaaaaaaaaa');
+
+      if (getData.status === 404) {
+        return options.triggerPopup('EmployeeId not Found');
+      }
       console.log(getData.data);
       const data = getData.data.data;
       const role = data.inAppRole;
-      if (role === 'Employee') {
-        router.replace('/(tabs)/dashboard/index');
+      options.setApiLoading(false);
+      if (role === 'Employee' && getData) {
+        router.replace({
+          pathname: '/ApiContex/fetchNparse',
+          params: {
+            data: getData,
+          },
+        });
         return;
       }
-      await this.handleMainUsers();
+      // await this.handleMainUsers(data.);
     } catch (error: any) {
       const resData = error.response.data;
       if (resData.message === 'not-found') {

@@ -57,7 +57,8 @@ export default function LoginPage() {
       return;
     }
     try {
-      Api.handleAuth({ empId, setApiLoading, triggerPopup });
+      console.log('going udner handleAuth');
+      await Api.handleAuth({ empId, setApiLoading, triggerPopup });
       // if (getData.ok) {
       //   getData = await getData.json();
       //   console.log(getData, 'gettttttttttttt');
@@ -75,11 +76,34 @@ export default function LoginPage() {
 
   const handleOtp = async () => {};
 
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     router.replace('/quarantine');
-  //   }, 50);
-  // }, []);
+  useEffect(() => {
+    setTimeout(() => {
+      router.replace({
+        pathname: '/(admin)/Announcement',
+        // params: {
+        //   data: JSON.stringify({
+        //     __v: 0,
+        //     _id: '6836d2fb5412bdf9177fc475',
+        //     createdAt: '2025-05-28T09:10:19.743Z',
+        //     department: 'Engineering',
+        //     designation: 'Junior',
+        //     dob: '1970-01-01T00:00:37.272Z',
+        //     doj: '1970-01-01T00:00:45.800Z',
+        //     email: 'ajay@gmail.com',
+        //     empId: 'EMP105',
+        //     gender: 'Male',
+        //     guardianName: 'Selva',
+        //     inAppRole: 'Employee',
+        //     mobile: '8348346334',
+        //     name: 'Ajay',
+        //     role: 'Supervisor',
+        //     status: 'Active',
+        //     updatedAt: '2025-05-28T09:10:19.743Z',
+        //   }),
+        // },
+      });
+    }, 50);
+  }, []);
 
   return (
     <>
