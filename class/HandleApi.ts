@@ -10,13 +10,14 @@ export class Api {
     empId: string;
     setApiLoading: React.Dispatch<React.SetStateAction<boolean>>;
     triggerPopup: (data: PopUpTypes) => void;
+    setIsOtp: React.Dispatch<React.SetStateAction<boolean>>;
+    setOtpHash: React.Dispatch<React.SetStateAction<string>>;
+    setOtpToNumber: React.Dispatch<React.SetStateAction<string>>;
   }) {
     try {
       const url = configFile.api.fetchEmpData(options.empId);
       options.setApiLoading(true);
       let getData = await axios.get(url);
-
-      // console.log(getData, '//////////gettttttttttDataaaaaaaaaaa');
 
       if (getData.status === 404) {
         return options.triggerPopup('EmployeeId not Found');
@@ -24,7 +25,7 @@ export class Api {
       console.log(getData.data);
       const data = getData.data.data;
       const role = data.inAppRole;
-      options.setApiLoading(false);
+      console.log(getData, 'getDataaaaaa');
       if (role === 'Employee' && getData) {
         router.replace({
           pathname: '/ApiContex/fetchNparse',
@@ -33,6 +34,23 @@ export class Api {
           },
         });
         return;
+      } else {
+        const url = configFile.api.postOtp();
+        try {
+          options.setApiLoading(true);
+          const request = await axios.post(url, { number: data.mobile });
+          if (request.status === 201) {
+            const hash = request.data.data.hash;
+            options.setOtpHash(hash);
+            console.log('\nOtpHash');
+            options.setOtpToNumber(String(data.mobile));
+            options.setIsOtp(true);
+            options.setApiLoading(false);
+          }
+        } catch (error: any) {
+          const resData = error.response.data;
+          console.log('error in Api/handleAuthOtp::', error);
+        }
       }
       // await this.handleMainUsers(data.);
     } catch (error: any) {
@@ -43,6 +61,22 @@ export class Api {
       }
       console.log(error.response.data, '////', error.response, '/////', error.response.config.data);
       console.log('error in Api/handleAuth', error);
+    }
+  }
+
+  public static async verifyOtp(options: { otp: string; hash: string }) {
+    try {
+      const url = configFile.api.verifyOtp();
+
+      const request = await axios.post(url, { hash: options.hash, otp: options.otp });
+
+      console.log('\n\n', request.status, '//////verifyyyyyyyyOtppp/////////', request.data);
+
+      if (request.status === 200 && request.data.data.message === 'Success Login') {
+      }
+    } catch (error: any) {
+      const resData = error.response.data;
+      console.log('error in Api/verifyOtp', error);
     }
   }
 

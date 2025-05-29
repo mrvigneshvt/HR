@@ -11,6 +11,7 @@ const fetchNparse = () => {
   return (
     <View className="flex-1 items-center justify-center bg-white">
       <LoadingScreen />
+      <Text>{`Welcome ${data.designation}`}</Text>
     </View>
   );
 };

@@ -14,5 +14,8 @@ export const configFile = {
     postOtp() {
       return `${this.baseUrl}/api/v1/post/otpGen/${this.credentials.key}`;
     },
+    verifyOtp() {
+      return `${this.baseUrl}/api/v1/post/verifyOtp/${this.credentials.key}`;
+    },
   },
 };

@@ -38,6 +38,9 @@ export default function LoginPage() {
     invalid: 'Invalid Employee ID',
   });
   const [isOtp, setIsOtp] = useState(false);
+  const [otp, setOtp] = useState<string>('');
+  const [otpHash, setOtpHash] = useState<string>('');
+  const [otpToNumber, setOtpToNumber] = useState('');
 
   const triggerPopup = (data: PopUpTypes) => {
     setPopMsg(data);
@@ -46,7 +49,16 @@ export default function LoginPage() {
   };
 
   function handleEmpId(text: string) {
+    console.log(empId);
     setEmpId(() => text.toLocaleUpperCase());
+  }
+
+  function handleOtp(text: string) {
+    setOtp(text);
+  }
+
+  async function verifyOtp() {
+    await Api.verifyOtp({ otp, hash: otpHash });
   }
 
   // const [password, setPassword] = useState('');
@@ -58,52 +70,47 @@ export default function LoginPage() {
     }
     try {
       console.log('going udner handleAuth');
-      await Api.handleAuth({ empId, setApiLoading, triggerPopup });
-      // if (getData.ok) {
-      //   getData = await getData.json();
-      //   console.log(getData, 'gettttttttttttt');
-      //   setApiRes(true);
-
-      //   Flow.dynamicRole(getData.data);
-      // }
-      // if (getData.status === 404) {
-      //   triggerPopup();
-      // }
+      await Api.handleAuth({
+        empId,
+        setApiLoading,
+        triggerPopup,
+        setIsOtp,
+        setOtpHash,
+        setOtpToNumber,
+      });
     } catch (error) {
       console.log('error in loginPage:', error);
     }
   };
 
-  const handleOtp = async () => {};
-
-  useEffect(() => {
-    setTimeout(() => {
-      router.replace({
-        pathname: '/(admin)/Announcement',
-        // params: {
-        //   data: JSON.stringify({
-        //     __v: 0,
-        //     _id: '6836d2fb5412bdf9177fc475',
-        //     createdAt: '2025-05-28T09:10:19.743Z',
-        //     department: 'Engineering',
-        //     designation: 'Junior',
-        //     dob: '1970-01-01T00:00:37.272Z',
-        //     doj: '1970-01-01T00:00:45.800Z',
-        //     email: 'ajay@gmail.com',
-        //     empId: 'EMP105',
-        //     gender: 'Male',
-        //     guardianName: 'Selva',
-        //     inAppRole: 'Employee',
-        //     mobile: '8348346334',
-        //     name: 'Ajay',
-        //     role: 'Supervisor',
-        //     status: 'Active',
-        //     updatedAt: '2025-05-28T09:10:19.743Z',
-        //   }),
-        // },
-      });
-    }, 50);
-  }, []);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     router.replace({
+  //       pathname: '/(admin)/Announcement',
+  //       // params: {
+  //       //   data: JSON.stringify({
+  //       //     __v: 0,
+  //       //     _id: '6836d2fb5412bdf9177fc475',
+  //       //     createdAt: '2025-05-28T09:10:19.743Z',
+  //       //     department: 'Engineering',
+  //       //     designation: 'Junior',
+  //       //     dob: '1970-01-01T00:00:37.272Z',
+  //       //     doj: '1970-01-01T00:00:45.800Z',
+  //       //     email: 'ajay@gmail.com',
+  //       //     empId: 'EMP105',
+  //       //     gender: 'Male',
+  //       //     guardianName: 'Selva',
+  //       //     inAppRole: 'Employee',
+  //       //     mobile: '8348346334',
+  //       //     name: 'Ajay',
+  //       //     role: 'Supervisor',
+  //       //     status: 'Active',
+  //       //     updatedAt: '2025-05-28T09:10:19.743Z',
+  //       //   }),
+  //       // },
+  //     });
+  //   }, 50);
+  // }, []);
 
   return (
     <>
@@ -119,15 +126,15 @@ export default function LoginPage() {
               contentFit="contain"
             />
           </View>
-          <Text style={styles.title}>{!isOtp ? 'Employeee Login' : 'Verify Otp'}</Text>
+          <Text style={styles.title}>{!isOtp ? 'Employeee Login' : `Verify Otp - ${otpHash}`}</Text>
 
           <TextInput
             style={styles.input}
-            keyboardType="default"
-            placeholder="Employee ID"
+            keyboardType={!isOtp ? 'default' : 'number-pad'}
+            placeholder={!isOtp ? 'Employee ID' : `OTP Sent to ${otpToNumber}`}
             placeholderTextColor="#888"
-            value={empId.toLocaleUpperCase()}
-            onChangeText={handleEmpId}
+            value={!isOtp ? empId.toLocaleUpperCase() : otp}
+            onChangeText={!isOtp ? handleEmpId : handleOtp}
           />
 
           <Pressable
@@ -135,9 +142,13 @@ export default function LoginPage() {
             className={`${apiLoading ? 'bg-black' : `bg-[${configFile.colorGreen}]`}`}
             disabled={apiLoading ? true : false}
             onPress={() => {
-              !isOtp ? handleLogin() : handleOtp();
+              if (!isOtp) {
+                handleLogin();
+              } else {
+                verifyOtp();
+              }
             }}>
-            <Text style={styles.buttonText}>LogIn</Text>
+            <Text style={styles.buttonText}>{!isOtp ? 'LogsIn' : 'Verify Otp'}</Text>
           </Pressable>
         </Pressable>
       </Pressable>

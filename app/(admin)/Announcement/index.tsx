@@ -6,7 +6,7 @@ const index = () => {
   return (
     <View>
       <Stack.Screen options={{ headerShown: false }} />
-      <Text>indesssx</Text>
+      <Text>index</Text>
     </View>
   );
 };
