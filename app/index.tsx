@@ -23,7 +23,11 @@ import { Flow } from 'class/HandleRoleFlow';
 import { Api } from 'class/HandleApi';
 const logo = require('../assets/logo.jpg');
 
-export type PopUpTypes = 'EmployeeId not Found' | 'Invalid Employee ID';
+export type PopUpTypes =
+  | 'EmployeeId not Found'
+  | 'Invalid Employee ID'
+  | 'Incorrect OTP'
+  | 'Too Late Try Again From First !';
 
 export default function LoginPage() {
   const setDashboard = DashMemory((state) => state.setDashboard);
@@ -41,6 +45,7 @@ export default function LoginPage() {
   const [otp, setOtp] = useState<string>('');
   const [otpHash, setOtpHash] = useState<string>('');
   const [otpToNumber, setOtpToNumber] = useState('');
+  const [apiData, setApiData] = useState(null);
 
   const triggerPopup = (data: PopUpTypes) => {
     setPopMsg(data);
@@ -58,7 +63,7 @@ export default function LoginPage() {
   }
 
   async function verifyOtp() {
-    await Api.verifyOtp({ otp, hash: otpHash });
+    await Api.verifyOtp({ otp, hash: otpHash, apiData, triggerPopup });
   }
 
   // const [password, setPassword] = useState('');
@@ -77,6 +82,7 @@ export default function LoginPage() {
         setIsOtp,
         setOtpHash,
         setOtpToNumber,
+        setApiData,
       });
     } catch (error) {
       console.log('error in loginPage:', error);
@@ -126,7 +132,7 @@ export default function LoginPage() {
               contentFit="contain"
             />
           </View>
-          <Text style={styles.title}>{!isOtp ? 'Employeee Login' : `Verify Otp - ${otpHash}`}</Text>
+          <Text style={styles.title}>{!isOtp ? 'Employeee Login' : `Verify OTP`}</Text>
 
           <TextInput
             style={styles.input}

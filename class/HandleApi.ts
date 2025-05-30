@@ -4,6 +4,7 @@ import useState from 'react';
 import axios from 'axios';
 import { PopUpTypes } from '../app/index';
 import { router } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 
 export class Api {
   public static async handleAuth(options: {
@@ -13,24 +14,24 @@ export class Api {
     setIsOtp: React.Dispatch<React.SetStateAction<boolean>>;
     setOtpHash: React.Dispatch<React.SetStateAction<string>>;
     setOtpToNumber: React.Dispatch<React.SetStateAction<string>>;
+    setApiData: React.Dispatch<React.SetStateAction<any>>;
   }) {
     try {
       const url = configFile.api.fetchEmpData(options.empId);
       options.setApiLoading(true);
       let getData = await axios.get(url);
-
-      if (getData.status === 404) {
-        return options.triggerPopup('EmployeeId not Found');
-      }
       console.log(getData.data);
       const data = getData.data.data;
+      const token = getData.data.token;
+      options.setApiData(data);
       const role = data.inAppRole;
-      console.log(getData, 'getDataaaaaa');
-      if (role === 'Employee' && getData) {
+      console.log(token, 'tokkkkken');
+      if (role === 'Employee' && token) {
+        await SecureStore.setItemAsync('STOKEN', token);
         router.replace({
           pathname: '/ApiContex/fetchNparse',
           params: {
-            data: getData,
+            data,
           },
         });
         return;
@@ -49,6 +50,7 @@ export class Api {
           }
         } catch (error: any) {
           const resData = error.response.data;
+          console.log(resData, 'resSSSSDARATTA');
           console.log('error in Api/handleAuthOtp::', error);
         }
       }
@@ -64,18 +66,55 @@ export class Api {
     }
   }
 
-  public static async verifyOtp(options: { otp: string; hash: string }) {
+  public static async verifyOtp(options: {
+    otp: string;
+    hash: string;
+    apiData: any;
+    triggerPopup: (data: PopUpTypes) => void;
+    setApiLoading: React.Dispatch<React.SetStateAction<boolean>>;
+    setIsOtp: React.Dispatch<React.SetStateAction<boolean>>;
+    setOtpHash: React.Dispatch<React.SetStateAction<string>>;
+    setOtpToNumber: React.Dispatch<React.SetStateAction<string>>;
+    setApiData: React.Dispatch<React.SetStateAction<any>>;
+  }) {
     try {
+      console.log();
       const url = configFile.api.verifyOtp();
 
       const request = await axios.post(url, { hash: options.hash, otp: options.otp });
 
-      console.log('\n\n', request.status, '//////verifyyyyyyyyOtppp/////////', request.data);
+      //console.log('\n\n', request.status, '//////verifyyyyyyyyOtppp/////////', request.data);
 
-      if (request.status === 200 && request.data.data.message === 'Success Login') {
+      // if (request.status === 400 && request.data.data.message === 'Incorrect Otp') {
+      //   options.triggerPopup('Incorrect OTP');
+      //   return;
+      // }
+
+      console.log(request.data, 'reqqqqqqqqqqq');
+
+      if (request.status === 200 && request.data.message === 'Success Login') {
+        await SecureStore.setItemAsync('STOKEN', request.data.data);
+
+        router.replace({
+          pathname: 'ApiContex/fetchNparse',
+          params: {
+            data: JSON.stringify(options.apiData),
+          },
+        });
+
+        return;
       }
     } catch (error: any) {
       const resData = error.response.data;
+      if (resData.message === 'Incorrect Otp' && !resData.success) {
+        options.triggerPopup('Incorrect OTP');
+        return;
+      } else if (resData.message === 'Timeout') {
+        options.triggerPopup('Too Late Try Again From First !');
+
+        router.replace('/');
+      }
+      console.log(resData, 'ressssssssssssssSSdata');
       console.log('error in Api/verifyOtp', error);
     }
   }
@@ -91,6 +130,7 @@ export class Api {
     } catch (error: any) {
       console.log('Api/HandleMainUsers', error);
       const resData = error.response.data;
+
       return false;
       //   if(resData.message === '')
     }
