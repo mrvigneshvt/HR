@@ -119,6 +119,27 @@ export class Api {
     }
   }
 
+  public static async verifyToken(token: string): Promise<Record<string, any> | false> {
+    try {
+      console.log('Invoking Verify Token');
+      const url = configFile.api.verifyToken();
+      console.log(url, 'urllllllllllllllllll');
+      const req = await axios.get(url + '/' + token);
+
+      console.log(req.data, '///', req.status);
+      return { data: req.data.data };
+    } catch (error: any) {
+      const response = error.response;
+      if (response.data.message === 'UnAuthorized') {
+        // await SecureStore.deleteItemAsync('STOKEN');
+        return false;
+      }
+      console.log(response.data);
+      console.log('Api/verifyToken', error);
+      return false;
+    }
+  }
+
   private static async handleMainUsers(number: string): Promise<string | false> {
     try {
       const url = configFile.api.postOtp();

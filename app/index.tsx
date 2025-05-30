@@ -21,6 +21,7 @@ import PopupMessage from 'components/Popup';
 import LoadingScreen from 'components/LoadingScreen';
 import { Flow } from 'class/HandleRoleFlow';
 import { Api } from 'class/HandleApi';
+import * as SecureStore from 'expo-secure-store';
 const logo = require('../assets/logo.jpg');
 
 export type PopUpTypes =
@@ -63,7 +64,17 @@ export default function LoginPage() {
   }
 
   async function verifyOtp() {
-    await Api.verifyOtp({ otp, hash: otpHash, apiData, triggerPopup });
+    await Api.verifyOtp({
+      otp,
+      hash: otpHash,
+      apiData,
+      triggerPopup,
+      setApiLoading,
+      setIsOtp,
+      setOtpHash,
+      setOtpToNumber,
+      setApiData,
+    });
   }
 
   // const [password, setPassword] = useState('');
@@ -88,6 +99,33 @@ export default function LoginPage() {
       console.log('error in loginPage:', error);
     }
   };
+
+  const checkToken = async () => {
+    const token = await SecureStore.getItemAsync('STOKEN');
+    console.log(token, 'tokennnnnn');
+    if (!token) {
+      return;
+    }
+    let isVerified = await Api.verifyToken(token);
+    console.log(isVerified);
+
+    if (!isVerified) {
+      //await SecureStore.deleteItemAsync('STOKEN');
+      return;
+    }
+
+    console.log('IsVerifiedddd', isVerified);
+    router.replace({
+      pathname: '/ApiContex/fetchNparse',
+      params: {
+        data: JSON.stringify(isVerified.data),
+      },
+    });
+  };
+
+  useEffect(() => {
+    checkToken();
+  }, []);
 
   // useEffect(() => {
   //   setTimeout(() => {
