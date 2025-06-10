@@ -6,7 +6,7 @@ export const configFile = {
       key: 'iaus787sadfsdf837asdsad8223e',
     },
     get baseUrl() {
-      return 'http://192.168.0.121:5656';
+      return 'http://192.168.1.4:5000';
     },
     fetchEmpData(id) {
       return `${this.baseUrl}/api/v1/get/getEmpDetails/${id}/${this.credentials.key}`;

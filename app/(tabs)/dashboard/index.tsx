@@ -49,7 +49,6 @@ const index = () => {
     return <InActive />;
   }
   const dashboard = DashMemory((state) => state.dashboard);
-  console.log(dashboard, 'das');
   if (dashboard?.user) {
     //const dashBottomdata = dashboard?.user.details.
 
