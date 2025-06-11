@@ -34,6 +34,21 @@ class LocationService {
     TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async () => {
       try {
         console.log('Background location task executed');
+        
+        // Check if location services are enabled
+        const isLocationEnabled = await Location.hasServicesEnabledAsync();
+        if (!isLocationEnabled) {
+          console.log('Location services are disabled, skipping background location update');
+          return BackgroundFetch.BackgroundFetchResult.NoData;
+        }
+
+        // Check permissions before attempting to get location
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.log('Location permission not granted, skipping background location update');
+          return BackgroundFetch.BackgroundFetchResult.NoData;
+        }
+
         await this.sendLocationToServer();
         return BackgroundFetch.BackgroundFetchResult.NewData;
       } catch (error) {
@@ -87,10 +102,39 @@ class LocationService {
   }
 
   /**
-   * Get current location
+   * Check if location services are enabled
+   */
+  private async checkLocationServices(): Promise<boolean> {
+    try {
+      const isEnabled = await Location.hasServicesEnabledAsync();
+      if (!isEnabled) {
+        console.log('Location services are disabled. Please enable location services in device settings.');
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('Error checking location services:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Get current location with better error handling
    */
   private async getCurrentLocation(): Promise<LocationData | null> {
     try {
+      // Check location services first
+      const isLocationEnabled = await this.checkLocationServices();
+      if (!isLocationEnabled) {
+        throw new Error('Location services are disabled');
+      }
+
+      // Check permissions
+      const { status } = await Location.getForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        throw new Error('Location permission not granted');
+      }
+
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.High,
         timeInterval: 5000,
@@ -109,6 +153,18 @@ class LocationService {
       };
     } catch (error) {
       console.error('Error getting current location:', error);
+      
+      // Provide specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes('location services are disabled')) {
+          console.log('Please enable location services in your device settings');
+        } else if (error.message.includes('permission not granted')) {
+          console.log('Please grant location permissions to the app');
+        } else if (error.message.includes('timeout')) {
+          console.log('Location request timed out, trying again later');
+        }
+      }
+      
       return null;
     }
   }
@@ -121,7 +177,8 @@ class LocationService {
       const locationData = await this.getCurrentLocation();
       
       if (!locationData) {
-        throw new Error('Failed to get location data');
+        console.log('Skipping API call - no location data available');
+        return;
       }
 
       const payload = {
@@ -137,15 +194,15 @@ class LocationService {
 
       console.log('Sending location payload:', payload);
 
-      // const response = await axios.post(LOCATION_API_ENDPOINT, payload, {
-      //   timeout: 10000,
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${configFile.api.credentials.key}`,
-      //   },
-      // });
+      const response = await axios.post(LOCATION_API_ENDPOINT, payload, {
+        timeout: 10000,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${configFile.api.credentials.key}`,
+        },
+      });
 
-      // console.log('Location sent successfully:', response.data);
+      console.log('Location sent successfully:', response.data);
       
     } catch (error) {
       console.error('Error sending location to server:', error);
@@ -154,7 +211,7 @@ class LocationService {
   }
 
   /**
-   * Start foreground tracking (every 10 seconds)
+   * Start foreground tracking (every 30 minutes)
    */
   private startForegroundTracking() {
     if (this.foregroundInterval) {
@@ -167,9 +224,9 @@ class LocationService {
       } catch (error) {
         console.error('Foreground location update failed:', error);
       }
-    }, 10000); // 10 seconds
+    }, 30 * 60 * 1000); // 30 minutes in milliseconds
 
-    console.log('Foreground location tracking started (10s interval)');
+    console.log('Foreground location tracking started (30min interval)');
   }
 
   /**
@@ -190,6 +247,13 @@ class LocationService {
     try {
       console.log('Starting location tracking...');
 
+      // Check location services first
+      const isLocationEnabled = await this.checkLocationServices();
+      if (!isLocationEnabled) {
+        console.error('Location services are disabled. Please enable them in device settings.');
+        return false;
+      }
+
       // Request permissions
       const hasPermissions = await this.requestPermissions();
       if (!hasPermissions) {
@@ -203,7 +267,7 @@ class LocationService {
       // Register background fetch task for native builds
       try {
         await BackgroundFetch.registerTaskAsync(BACKGROUND_LOCATION_TASK, {
-          minimumInterval: 10, // 10 seconds (minimum allowed by system)
+          minimumInterval: 30 * 60, // 30 minutes in seconds
           stopOnTerminate: false,
           startOnBoot: true,
         });
@@ -264,6 +328,26 @@ class LocationService {
       console.error('Manual location update failed:', error);
       return false;
     }
+  }
+
+  /**
+   * Check location services status
+   */
+  async checkLocationStatus(): Promise<{
+    servicesEnabled: boolean;
+    permissionsGranted: boolean;
+    canGetLocation: boolean;
+  }> {
+    const servicesEnabled = await this.checkLocationServices();
+    const { status } = await Location.getForegroundPermissionsAsync();
+    const permissionsGranted = status === 'granted';
+    const canGetLocation = servicesEnabled && permissionsGranted;
+
+    return {
+      servicesEnabled,
+      permissionsGranted,
+      canGetLocation,
+    };
   }
 }
 
