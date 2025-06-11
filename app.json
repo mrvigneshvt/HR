@@ -15,7 +15,10 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow app to Use location"
+          "locationAlwaysAndWhenInUsePermission": "Allow app to Use location",
+          "locationAlwaysPermission": "Allow app to use location in the background",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true
         }
       ],
       [
@@ -24,7 +27,9 @@
           "cameraPermission": "Allow $(PRODUCT_NAME) to Access Your Camera"
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-task-manager",
+      "expo-background-fetch"
     ],
     "orientation": "portrait",
     "icon": "./assets/appLOGO.png",
@@ -38,7 +43,15 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "location",
+          "background-processing"
+        ],
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to location to track your position for attendance purposes.",
+        "NSLocationAlwaysUsageDescription": "This app needs access to location in the background to track your position for attendance purposes."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -54,8 +67,11 @@
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "WAKE_LOCK",
+        "RECEIVE_BOOT_COMPLETED"
       ]
     },
     "extra": {
