@@ -5,6 +5,7 @@ import { configFile } from '../../../config';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import Calendar from '../../../components/Calendar';
+import SearchBar from 'components/search';
 
 const RequestsScreen = () => {
   const [activeTab, setActiveTab] = useState('uniform');
@@ -13,6 +14,7 @@ const RequestsScreen = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [search, setSearch] = useState('');
 
   // Mock data - replace with actual data
   const uniformRequests = [
@@ -65,6 +67,16 @@ const RequestsScreen = () => {
         return '#666666';
     }
   };
+
+  const filteredUniformRequests = uniformRequests.filter(req =>
+    req.employee.toLowerCase().includes(search.toLowerCase()) ||
+    req.employeeId.toLowerCase().includes(search.toLowerCase())
+  );
+  
+  const filteredLeaveRequests = leaveRequests.filter(req =>
+    req.employee.toLowerCase().includes(search.toLowerCase()) ||
+    req.employeeId.toLowerCase().includes(search.toLowerCase())
+  );
 
   const renderRequestCard = (req: any, type: 'uniform' | 'leave', showActions = true) => (
     <View key={req.id} className="mb-4 overflow-hidden rounded-xl bg-white shadow-lg">
@@ -274,9 +286,7 @@ const RequestsScreen = () => {
     </Modal>
   );
 
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
+  
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -300,7 +310,7 @@ const RequestsScreen = () => {
           ),
         }} 
       />
-
+      <SearchBar value={search} onChangeText={setSearch} placeholder="Search employee..." />
       <View className="flex-row justify-around rounded-2xl bg-gray-200 p-0.5 mx-4 my-4">
         <Pressable onPress={() => setActiveTab('uniform')}>
           <View
@@ -324,12 +334,18 @@ const RequestsScreen = () => {
         </Pressable>
       </View>
 
-      <ScrollView className="flex-1 px-4">
+      {/* <ScrollView className="flex-1 px-4">
         {activeTab === 'uniform' 
           ? uniformRequests.map(req => renderRequestCard(req, 'uniform'))
           : leaveRequests.map(req => renderRequestCard(req, 'leave'))
         }
-      </ScrollView>
+      </ScrollView> */}
+      <ScrollView className="flex-1 px-4">
+  {activeTab === 'uniform' 
+    ? filteredUniformRequests.map(req => renderRequestCard(req, 'uniform'))
+    : filteredLeaveRequests.map(req => renderRequestCard(req, 'leave'))
+  }
+</ScrollView>
 
       {renderAddModal()}
       {renderEditModal()}
