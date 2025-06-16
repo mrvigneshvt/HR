@@ -328,7 +328,7 @@ const EmployeesScreen = () => {
       >
         <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
           <ScrollView style={{ backgroundColor: 'white', padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '80%' }}>
-            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>Add Employee</Text>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>Add Employssssee</Text>
 
             <Text>Employee ID</Text>
             <TextInput
