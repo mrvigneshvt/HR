@@ -371,18 +371,44 @@ const EmployeesScreen = () => {
 
   const handleAddEmployee = async () => {
     if (!validateForm()) {
+      Alert.alert('Validation Error', 'Please fill in all required fields correctly');
       return;
     }
 
     try {
       setLoading(true);
-      const response = await axios.post(`${BASE_URL}/employees`, newEmployee);
-      Alert.alert('Success', response.data.message);
-      setNewEmployee(initialEmployeeState);
-      setShowAddModal(false);
-      fetchEmployees();
-    } catch (error) {
-      Alert.alert('Error', 'Failed to add employee');
+      
+      // Prepare the employee data
+      const employeeData = {
+        ...newEmployee,
+        joining_date: new Date().toISOString().split('T')[0], // Set current date as joining date
+        status: 'Active',
+        mobile_verified: false,
+        is_aadhaar_verified: false,
+        is_bank_verified: false,
+        upi_enabled: false,
+        rtgs_enabled: false,
+        neft_enabled: false,
+        imps_enabled: false
+      };
+
+      const response = await axios.post(`${BASE_URL}/employees`, employeeData);
+      
+      if (response.data.success) {
+        Alert.alert('Success', 'Employee added successfully');
+        setNewEmployee(initialEmployeeState);
+        setShowAddModal(false);
+        setErrors({});
+        fetchEmployees();
+      } else {
+        throw new Error(response.data.message || 'Failed to add employee');
+      }
+    } catch (error: any) {
+      console.error('Add Employee Error:', error);
+      Alert.alert(
+        'Error',
+        error.response?.data?.message || error.message || 'Failed to add employee. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
@@ -469,60 +495,97 @@ const EmployeesScreen = () => {
       >
         <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
           <ScrollView style={{ backgroundColor: 'white', padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '80%' }}>
-            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>Add Employee</Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Add Employee</Text>
+              <TouchableOpacity onPress={() => setShowAddModal(false)}>
+                <MaterialIcons name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
 
             {/* Basic Information */}
             <Text style={styles.sectionTitle}>Basic Information</Text>
-            <Text>Employee ID</Text>
+            <Text>Employee ID *</Text>
             <TextInput
               value={newEmployee.employee_id}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, employee_id: text })}
+              onChangeText={(text) => {
+                setNewEmployee({ ...newEmployee, employee_id: text });
+                if (errors.employee_id) {
+                  setErrors({ ...errors, employee_id: undefined });
+                }
+              }}
               placeholder="Enter employee ID"
               style={[styles.input, errors.employee_id && styles.inputError]}
             />
             {errors.employee_id && <Text style={styles.errorText}>{errors.employee_id}</Text>}
 
-            <Text>Name</Text>
+            <Text>Name *</Text>
             <TextInput
               value={newEmployee.name}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, name: text })}
+              onChangeText={(text) => {
+                setNewEmployee({ ...newEmployee, name: text });
+                if (errors.name) {
+                  setErrors({ ...errors, name: undefined });
+                }
+              }}
               placeholder="Enter name"
               style={[styles.input, errors.name && styles.inputError]}
             />
             {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
 
-            <Text>Gender</Text>
+            <Text>Gender *</Text>
             <View style={styles.radioGroup}>
               <Pressable
                 style={[styles.radioButton, newEmployee.gender === 'Male' && styles.radioButtonSelected]}
-                onPress={() => setNewEmployee({ ...newEmployee, gender: 'Male' })}
+                onPress={() => {
+                  setNewEmployee({ ...newEmployee, gender: 'Male' });
+                  if (errors.gender) {
+                    setErrors({ ...errors, gender: undefined });
+                  }
+                }}
               >
                 <Text>Male</Text>
               </Pressable>
               <Pressable
                 style={[styles.radioButton, newEmployee.gender === 'Female' && styles.radioButtonSelected]}
-                onPress={() => setNewEmployee({ ...newEmployee, gender: 'Female' })}
+                onPress={() => {
+                  setNewEmployee({ ...newEmployee, gender: 'Female' });
+                  if (errors.gender) {
+                    setErrors({ ...errors, gender: undefined });
+                  }
+                }}
               >
                 <Text>Female</Text>
               </Pressable>
             </View>
+            {errors.gender && <Text style={styles.errorText}>{errors.gender}</Text>}
 
             {/* Contact Information */}
             <Text style={styles.sectionTitle}>Contact Information</Text>
-            <Text>Email</Text>
+            <Text>Email *</Text>
             <TextInput
               value={newEmployee.contact_email}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, contact_email: text })}
+              onChangeText={(text) => {
+                setNewEmployee({ ...newEmployee, contact_email: text });
+                if (errors.contact_email) {
+                  setErrors({ ...errors, contact_email: undefined });
+                }
+              }}
               placeholder="Enter email"
               keyboardType="email-address"
+              autoCapitalize="none"
               style={[styles.input, errors.contact_email && styles.inputError]}
             />
             {errors.contact_email && <Text style={styles.errorText}>{errors.contact_email}</Text>}
 
-            <Text>Mobile Number</Text>
+            <Text>Mobile Number *</Text>
             <TextInput
               value={newEmployee.contact_mobile_no}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, contact_mobile_no: text })}
+              onChangeText={(text) => {
+                setNewEmployee({ ...newEmployee, contact_mobile_no: text });
+                if (errors.contact_mobile_no) {
+                  setErrors({ ...errors, contact_mobile_no: undefined });
+                }
+              }}
               placeholder="Enter mobile number"
               keyboardType="phone-pad"
               maxLength={10}
@@ -530,19 +593,29 @@ const EmployeesScreen = () => {
             />
             {errors.contact_mobile_no && <Text style={styles.errorText}>{errors.contact_mobile_no}</Text>}
 
-            <Text>Emergency Contact Name</Text>
+            <Text>Emergency Contact Name *</Text>
             <TextInput
               value={newEmployee.emergency_contact_name}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, emergency_contact_name: text })}
+              onChangeText={(text) => {
+                setNewEmployee({ ...newEmployee, emergency_contact_name: text });
+                if (errors.emergency_contact_name) {
+                  setErrors({ ...errors, emergency_contact_name: undefined });
+                }
+              }}
               placeholder="Enter emergency contact name"
               style={[styles.input, errors.emergency_contact_name && styles.inputError]}
             />
             {errors.emergency_contact_name && <Text style={styles.errorText}>{errors.emergency_contact_name}</Text>}
 
-            <Text>Emergency Contact Phone</Text>
+            <Text>Emergency Contact Phone *</Text>
             <TextInput
               value={newEmployee.emergency_contact_phone}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, emergency_contact_phone: text })}
+              onChangeText={(text) => {
+                setNewEmployee({ ...newEmployee, emergency_contact_phone: text });
+                if (errors.emergency_contact_phone) {
+                  setErrors({ ...errors, emergency_contact_phone: undefined });
+                }
+              }}
               placeholder="Enter emergency contact"
               keyboardType="phone-pad"
               maxLength={10}
@@ -550,147 +623,18 @@ const EmployeesScreen = () => {
             />
             {errors.emergency_contact_phone && <Text style={styles.errorText}>{errors.emergency_contact_phone}</Text>}
 
-            {/* Address Information */}
-            <Text style={styles.sectionTitle}>Address Information</Text>
-            <Text>Country</Text>
-            <TextInput
-              value={newEmployee.address_country}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, address_country: text })}
-              placeholder="Enter country"
-              style={[styles.input, errors.address_country && styles.inputError]}
-            />
-            {errors.address_country && <Text style={styles.errorText}>{errors.address_country}</Text>}
-
-            <Text>State</Text>
-            <TextInput
-              value={newEmployee.address_state}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, address_state: text })}
-              placeholder="Enter state"
-              style={[styles.input, errors.address_state && styles.inputError]}
-            />
-            {errors.address_state && <Text style={styles.errorText}>{errors.address_state}</Text>}
-
-            <Text>District</Text>
-            <TextInput
-              value={newEmployee.address_district}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, address_district: text })}
-              placeholder="Enter district"
-              style={[styles.input, errors.address_district && styles.inputError]}
-            />
-            {errors.address_district && <Text style={styles.errorText}>{errors.address_district}</Text>}
-
-            <Text>Post Office</Text>
-            <TextInput
-              value={newEmployee.address_po}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, address_po: text })}
-              placeholder="Enter post office"
-              style={[styles.input, errors.address_po && styles.inputError]}
-            />
-            {errors.address_po && <Text style={styles.errorText}>{errors.address_po}</Text>}
-
-            <Text>Street</Text>
-            <TextInput
-              value={newEmployee.address_street}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, address_street: text })}
-              placeholder="Enter street"
-              style={[styles.input, errors.address_street && styles.inputError]}
-            />
-            {errors.address_street && <Text style={styles.errorText}>{errors.address_street}</Text>}
-
-            <Text>House Number</Text>
-            <TextInput
-              value={newEmployee.address_house}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, address_house: text })}
-              placeholder="Enter house number"
-              style={[styles.input, errors.address_house && styles.inputError]}
-            />
-            {errors.address_house && <Text style={styles.errorText}>{errors.address_house}</Text>}
-
-            <Text>Landmark</Text>
-            <TextInput
-              value={newEmployee.address_landmark}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, address_landmark: text })}
-              placeholder="Enter landmark"
-              style={[styles.input, errors.address_landmark && styles.inputError]}
-            />
-            {errors.address_landmark && <Text style={styles.errorText}>{errors.address_landmark}</Text>}
-
-            <Text>ZIP Code</Text>
-            <TextInput
-              value={newEmployee.address_zip}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, address_zip: text })}
-              placeholder="Enter ZIP code"
-              keyboardType="numeric"
-              style={[styles.input, errors.address_zip && styles.inputError]}
-            />
-            {errors.address_zip && <Text style={styles.errorText}>{errors.address_zip}</Text>}
-
-            {/* Employment Information */}
-            <Text style={styles.sectionTitle}>Employment Information</Text>
-            <Text>Role</Text>
-            <TextInput
-              value={newEmployee.role}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, role: text })}
-              placeholder="Enter role"
-              style={[styles.input, errors.role && styles.inputError]}
-            />
-            {errors.role && <Text style={styles.errorText}>{errors.role}</Text>}
-
-            <Text>Department</Text>
-            <TextInput
-              value={newEmployee.department}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, department: text })}
-              placeholder="Enter department"
-              style={[styles.input, errors.department && styles.inputError]}
-            />
-            {errors.department && <Text style={styles.errorText}>{errors.department}</Text>}
-
-            <Text>Designation</Text>
-            <TextInput
-              value={newEmployee.designation}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, designation: text })}
-              placeholder="Enter designation"
-              style={[styles.input, errors.designation && styles.inputError]}
-            />
-            {errors.designation && <Text style={styles.errorText}>{errors.designation}</Text>}
-
-            <Text>Branch</Text>
-            <TextInput
-              value={newEmployee.branch}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, branch: text })}
-              placeholder="Enter branch"
-              style={[styles.input, errors.branch && styles.inputError]}
-            />
-            {errors.branch && <Text style={styles.errorText}>{errors.branch}</Text>}
-
-            <Text>Reporting Manager</Text>
-            <TextInput
-              value={newEmployee.reporting}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, reporting: text })}
-              placeholder="Enter reporting manager"
-              style={[styles.input, errors.reporting && styles.inputError]}
-            />
-            {errors.reporting && <Text style={styles.errorText}>{errors.reporting}</Text>}
-
-            <View style={styles.buttonContainer}>
-              <Pressable
-                onPress={() => setShowAddModal(false)}
-                style={styles.cancelButton}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </Pressable>
-              <Pressable
-                onPress={handleAddEmployee}
-                style={styles.addButton}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <Text style={styles.addButtonText}>Add</Text>
-                )}
-              </Pressable>
-            </View>
+            {/* Add Button */}
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleAddEmployee}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text style={styles.buttonText}>Add Employee</Text>
+              )}
+            </TouchableOpacity>
           </ScrollView>
         </TouchableOpacity>
       </TouchableOpacity>
@@ -1059,6 +1003,22 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 8,
     color: '#333',
+  },
+  button: {
+    backgroundColor: '#4A90E2',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonDisabled: {
+    backgroundColor: '#ccc',
+  },
+  buttonText: {
+    color: 'white',
+    marginLeft: 4,
   },
 });
 
