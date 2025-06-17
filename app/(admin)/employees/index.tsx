@@ -211,17 +211,22 @@ const EmployeesScreen = () => {
       
       const response = await axios.get(`${BASE_URL}/employees`, {
         headers: {
-          'Accept': 'application/json'
-        }
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000 // 10 second timeout
       });
       
       console.log('Fetch Response:', response.data);
       
-      if (response.data.success) {
-        setEmployeeList(response.data.data || []);
-        setFilteredList(response.data.data || []);
+      if (response.data && Array.isArray(response.data)) {
+        setEmployeeList(response.data);
+        setFilteredList(response.data);
+      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        setEmployeeList(response.data.data);
+        setFilteredList(response.data.data);
       } else {
-        throw new Error(response.data.message || 'Failed to fetch employees');
+        throw new Error('Invalid response format from server');
       }
     } catch (error: any) {
       console.error('Fetch Employees Error:', error);
@@ -230,9 +235,15 @@ const EmployeesScreen = () => {
       let errorMessage = 'Failed to fetch employees. Please try again.';
       
       if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
         errorMessage = error.response.data?.message || error.response.data?.error || errorMessage;
       } else if (error.request) {
+        // The request was made but no response was received
         errorMessage = 'No response from server. Please check your internet connection.';
+      } else if (error.message) {
+        // Something happened in setting up the request that triggered an Error
+        errorMessage = error.message;
       }
       
       Alert.alert('Error', errorMessage);
@@ -356,38 +367,38 @@ const EmployeesScreen = () => {
       newErrors.aadhaar_number = 'Aadhaar number must be 12 digits';
     }
 
-    if (!newEmployee.pan_number.trim()) {
-      newErrors.pan_number = 'PAN number is required';
-    } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(newEmployee.pan_number)) {
-      newErrors.pan_number = 'Invalid PAN number format';
-    }
+    // if (!newEmployee.pan_number.trim()) {
+    //   newErrors.pan_number = 'PAN number is required';
+    // } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(newEmployee.pan_number)) {
+    //   newErrors.pan_number = 'Invalid PAN number format';
+    // }
 
-    if (!newEmployee.voter_id.trim()) {
-      newErrors.voter_id = 'Voter ID is required';
-    }
+    // if (!newEmployee.voter_id.trim()) {
+    //   newErrors.voter_id = 'Voter ID is required';
+    // }
 
-    if (!newEmployee.driving_license.trim()) {
-      newErrors.driving_license = 'Driving license is required';
-    }
+    // if (!newEmployee.driving_license.trim()) {
+    //   newErrors.driving_license = 'Driving license is required';
+    // }
 
     // Bank Information Validation
-    if (newEmployee.bank_name.trim()) {
-      if (!newEmployee.bank_account_number.trim()) {
-        newErrors.bank_account_number = 'Bank account number is required when bank name is provided';
-      } else if (!/^[0-9]{9,18}$/.test(newEmployee.bank_account_number)) {
-        newErrors.bank_account_number = 'Invalid bank account number';
-      }
+    // if (newEmployee.bank_name.trim()) {
+    //   if (!newEmployee.bank_account_number.trim()) {
+    //     newErrors.bank_account_number = 'Bank account number is required when bank name is provided';
+    //   } else if (!/^[0-9]{9,18}$/.test(newEmployee.bank_account_number)) {
+    //     newErrors.bank_account_number = 'Invalid bank account number';
+    //   }
 
-      if (!newEmployee.bank_ifsc_code.trim()) {
-        newErrors.bank_ifsc_code = 'IFSC code is required when bank name is provided';
-      } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(newEmployee.bank_ifsc_code)) {
-        newErrors.bank_ifsc_code = 'Invalid IFSC code format';
-      }
+    //   if (!newEmployee.bank_ifsc_code.trim()) {
+    //     newErrors.bank_ifsc_code = 'IFSC code is required when bank name is provided';
+    //   } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(newEmployee.bank_ifsc_code)) {
+    //     newErrors.bank_ifsc_code = 'Invalid IFSC code format';
+    //   }
 
-      if (!newEmployee.bank_account_holder_name.trim()) {
-        newErrors.bank_account_holder_name = 'Account holder name is required when bank name is provided';
-      }
-    }
+    //   if (!newEmployee.bank_account_holder_name.trim()) {
+    //     newErrors.bank_account_holder_name = 'Account holder name is required when bank name is provided';
+    //   }
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
