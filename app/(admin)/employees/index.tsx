@@ -211,17 +211,22 @@ const EmployeesScreen = () => {
       
       const response = await axios.get(`${BASE_URL}/employees`, {
         headers: {
-          'Accept': 'application/json'
-        }
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        timeout: 10000 // 10 second timeout
       });
       
       console.log('Fetch Response:', response.data);
       
-      if (response.data.success) {
-        setEmployeeList(response.data.data || []);
-        setFilteredList(response.data.data || []);
+      if (response.data && Array.isArray(response.data)) {
+        setEmployeeList(response.data);
+        setFilteredList(response.data);
+      } else if (response.data && response.data.data && Array.isArray(response.data.data)) {
+        setEmployeeList(response.data.data);
+        setFilteredList(response.data.data);
       } else {
-        throw new Error(response.data.message || 'Failed to fetch employees');
+        throw new Error('Invalid response format from server');
       }
     } catch (error: any) {
       console.error('Fetch Employees Error:', error);
@@ -230,9 +235,15 @@ const EmployeesScreen = () => {
       let errorMessage = 'Failed to fetch employees. Please try again.';
       
       if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
         errorMessage = error.response.data?.message || error.response.data?.error || errorMessage;
       } else if (error.request) {
+        // The request was made but no response was received
         errorMessage = 'No response from server. Please check your internet connection.';
+      } else if (error.message) {
+        // Something happened in setting up the request that triggered an Error
+        errorMessage = error.message;
       }
       
       Alert.alert('Error', errorMessage);
