@@ -72,11 +72,33 @@ const RequestsScreen = () => {
     }
   };
 
+  const formatDateString = (date: any) => {
+    if (!date) return '';
+    if (typeof date === 'string') {
+      // If already in DD/MM/YY, return as is
+      if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(date)) return date;
+      // If ISO string, convert
+      const d = new Date(date);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString('en-GB');
+      }
+      return date;
+    }
+    if (date instanceof Date) {
+      return date.toLocaleDateString('en-GB');
+    }
+    return '';
+  };
+
   const handleAddRequest = async () => {
     try {
       setLoading(true);
       if (activeTab === 'uniform') {
-        await requestsService.addUniformRequest(uniformForm);
+        const payload = {
+          ...uniformForm,
+          requestedDate: formatDateString(uniformForm.requestedDate),
+        };
+        await requestsService.addUniformRequest(payload);
       } else {
         await requestsService.addLeaveRequest(leaveForm);
       }
@@ -95,7 +117,11 @@ const RequestsScreen = () => {
     try {
       setLoading(true);
       if (activeTab === 'uniform') {
-        await requestsService.updateUniformRequest(selectedRequest.id, uniformForm);
+        const payload = {
+          ...uniformForm,
+          requestedDate: formatDateString(uniformForm.requestedDate),
+        };
+        await requestsService.updateUniformRequest(selectedRequest.id, payload);
       } else {
         await requestsService.updateLeaveRequest(selectedRequest.id, leaveForm);
       }

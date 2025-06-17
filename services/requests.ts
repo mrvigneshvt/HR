@@ -17,7 +17,7 @@ export interface UniformRequest {
   femaleShoeSize: string;
   accessories: string[];
   femaleAccessories: string[];
-  requestedDate: Date;
+  requestedDate: string;
   flab: string;
 }
 
