@@ -3,28 +3,31 @@ import React, { useEffect, useState } from 'react';
 import LoadingScreen from 'components/LoadingScreen';
 import { useLocalSearchParams } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
+import PopupMessage from 'components/Popup';
+import { Api } from 'class/HandleApi';
+// import * as SecureStore from 'expo-secure-store';
+
+type popUpType = 'Internal Server Error' | 'Employee Not Found';
 
 const fetchNparse = () => {
-  const [token, setToken] = useState<string | null>('');
-  const empData: any = useLocalSearchParams();
-  console.log(empData, 'e,pppppdata');
+  const empRole: any = useLocalSearchParams();
+  const [popMsg, setPopMsg] = useState<string>('Internal Server Error');
+  const { empId, role } = empRole;
+  console.log(empRole, '/////empRole');
 
-  const data = JSON.parse(empData.data);
-  console.log(data, 'data');
-
-  const fetchToken = async () => {
-    const token = await SecureStore.getItemAsync('STOKEN');
-    setToken(token);
-    console.log('tokennnnnn', token);
+  const handlePopUps = (data: popUpType) => {
+    setPopMsg(data);
   };
 
   useEffect(() => {
-    fetchToken();
+    Api.handleEmpData(empId); //Fetch data n Navigate Screen Accordingly
   }, []);
+
   return (
     <View className="flex-1 items-center justify-center bg-white">
       <LoadingScreen />
-      <Text>{`Welcome ${data.designation}`}</Text>
+      {<Text>{`Welcome ${empRole['role']}`}</Text>}
+      {/* <PopupMessage text={popMsg} duration={3000} /> */}
     </View>
   );
 };

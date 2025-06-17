@@ -22,9 +22,11 @@ import LoadingScreen from 'components/LoadingScreen';
 import { Flow } from 'class/HandleRoleFlow';
 import { Api } from 'class/HandleApi';
 import * as SecureStore from 'expo-secure-store';
+// import * as SecureStore from 'expo-secure-store';
 const logo = require('../assets/logo.jpg');
 
 export type PopUpTypes =
+  | 'Internal Server Error Try Again Later'
   | 'EmployeeId not Found'
   | 'Invalid Employee ID'
   | 'Incorrect OTP'
@@ -64,29 +66,24 @@ export default function LoginPage() {
   }
 
   async function verifyOtp() {
-    await Api.verifyOtp({
+    await Api.verifyOtpV1({
       otp,
-      hash: otpHash,
-      apiData,
+      empId,
       triggerPopup,
       setApiLoading,
       setIsOtp,
-      setOtpHash,
-      setOtpToNumber,
-      setApiData,
     });
   }
 
   // const [password, setPassword] = useState('');
   const handleLogin = async () => {
-    console.log(empId.length, '//////////');
     if (empId.length < 4) {
       triggerPopup('Invalid Employee ID');
       return;
     }
     try {
       console.log('going udner handleAuth');
-      await Api.handleAuth({
+      await Api.handleAuthV1({
         empId,
         setApiLoading,
         triggerPopup,
@@ -127,35 +124,36 @@ export default function LoginPage() {
     checkToken();
   }, []);
 
-  useEffect(() => {
-    setTimeout(() => {
-      router.replace({
-        pathname: '/(tabs)/dashboard',
-        // pathname: '/(admin)/home',
-        params: {
-          data: JSON.stringify({
-            __v: 0,
-            _id: '6836d2fb5412bdf9177fc475',
-            createdAt: '2025-05-28T09:10:19.743Z',
-            department: 'Engineering',
-            designation: 'Junior',
-            dob: '1970-01-01T00:00:37.272Z',
-            doj: '1970-01-01T00:00:45.800Z',
-            email: 'ajay@gmail.com',
-            empId: 'EMP105',
-            gender: 'Male',
-            guardianName: 'Selva',
-            inAppRole: 'Employee',
-            mobile: '8348346334',
-            name: 'Ajay',
-            role: 'Supervisor',
-            status: 'Active',
-            updatedAt: '2025-05-28T09:10:19.743Z',
-          }),
-        },
-      });
-    }, 50);
-  }, []);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     router.replace({
+  //       // pathname: '/(admin)/index.ts',
+  //       // pathname: '/(admin)/home',
+  //       pathname: '/',
+  //       // params: {
+  //       //   data: JSON.stringify({
+  //       //     __v: 0,
+  //       //     _id: '6836d2fb5412bdf9177fc475',
+  //       //     createdAt: '2025-05-28T09:10:19.743Z',
+  //       //     department: 'Engineering',
+  //       //     designation: 'Junior',
+  //       //     dob: '1970-01-01T00:00:37.272Z',
+  //       //     doj: '1970-01-01T00:00:45.800Z',
+  //       //     email: 'ajay@gmail.com',
+  //       //     empId: 'EMP105',
+  //       //     gender: 'Male',
+  //       //     guardianName: 'Selva',
+  //       //     inAppRole: 'Employee',
+  //       //     mobile: '8348346334',
+  //       //     name: 'Ajay',
+  //       //     role: 'Supervisor',
+  //       //     status: 'Active',
+  //       //     updatedAt: '2025-05-28T09:10:19.743Z',
+  //       //   }),
+  //       // },
+  //     });
+  //   }, 50);
+  // }, []);
 
   return (
     <>
@@ -193,7 +191,7 @@ export default function LoginPage() {
                 verifyOtp();
               }
             }}>
-            <Text style={styles.buttonText}>{!isOtp ? 'LogsIn' : 'Verify Otp'}</Text>
+            <Text style={styles.buttonText}>{!isOtp ? 'Log In' : 'Verify Otp'}</Text>
           </Pressable>
         </Pressable>
       </Pressable>
