@@ -189,6 +189,15 @@ const initialEmployeeState: Employee = {
 };
 
 const EmployeesScreen = () => {
+  // Add this function to log API details
+  const logApiDetails = (method: string, url: string, data?: any) => {
+    console.log(`API Call Details:
+      Method: ${method}
+      URL: ${url}
+      Data: ${JSON.stringify(data, null, 2)}
+    `);
+  };
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -399,33 +408,6 @@ const EmployeesScreen = () => {
     try {
       setLoading(true);
       
-      // Check if Aadhaar or mobile already exists
-      const checkExistingResponse = await axios.get(`${BASE_URL}/employees/check-existing`, {
-        params: {
-          aadhaar_number: newEmployee.aadhaar_number,
-          mobile_number: newEmployee.contact_mobile_no
-        },
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (checkExistingResponse.data.exists) {
-        const conflicts = [];
-        if (checkExistingResponse.data.aadhaar_exists) {
-          conflicts.push('Aadhaar Number');
-        }
-        if (checkExistingResponse.data.mobile_exists) {
-          conflicts.push('Mobile Number');
-        }
-        Alert.alert(
-          'Duplicate Entry',
-          `The following details already exist: ${conflicts.join(', ')}`
-        );
-        return;
-      }
-
       // Prepare the employee data with default values
       const employeeData = {
         ...newEmployee,
@@ -450,12 +432,17 @@ const EmployeesScreen = () => {
         bank_account_currency: newEmployee.bank_account_currency || 'INR'
       };
 
+      console.log('Sending request to:', `${BASE_URL}/employees`);
+      console.log('Request data:', employeeData);
+
       const response = await axios.post(`${BASE_URL}/employees`, employeeData, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         }
       });
+
+      console.log('Response:', response.data);
 
       if (response.data.success) {
         Alert.alert('Success', 'Employee added successfully');
@@ -468,11 +455,16 @@ const EmployeesScreen = () => {
       }
     } catch (error: any) {
       console.error('Add Employee Error:', error);
+      console.error('Error Response:', error.response?.data);
+      console.error('Error Status:', error.response?.status);
+      console.error('Error Config:', error.config);
       
       let errorMessage = 'Failed to add employee. Please try again.';
       
       if (error.response) {
-        if (error.response.status === 409) {
+        if (error.response.status === 404) {
+          errorMessage = 'API endpoint not found. Please check the server configuration.';
+        } else if (error.response.status === 409) {
           const conflicts = [];
           if (error.response.data.aadhaar_exists) {
             conflicts.push('Aadhaar Number');
@@ -521,33 +513,8 @@ const EmployeesScreen = () => {
     try {
       setLoading(true);
 
-      // Check if Aadhaar or mobile already exists (excluding current employee)
-      const checkExistingResponse = await axios.get(`${BASE_URL}/employees/check-existing`, {
-        params: {
-          aadhaar_number: selectedEmployee.aadhaar_number,
-          mobile_number: selectedEmployee.contact_mobile_no,
-          exclude_employee_id: selectedEmployee.employee_id
-        },
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (checkExistingResponse.data.exists) {
-        const conflicts = [];
-        if (checkExistingResponse.data.aadhaar_exists) {
-          conflicts.push('Aadhaar Number');
-        }
-        if (checkExistingResponse.data.mobile_exists) {
-          conflicts.push('Mobile Number');
-        }
-        Alert.alert(
-          'Duplicate Entry',
-          `The following details already exist: ${conflicts.join(', ')}`
-        );
-        return;
-      }
+      console.log('Sending request to:', `${BASE_URL}/employees/${selectedEmployee.employee_id}`);
+      console.log('Request data:', selectedEmployee);
 
       const response = await axios.put(
         `${BASE_URL}/employees/${selectedEmployee.employee_id}`,
@@ -560,6 +527,8 @@ const EmployeesScreen = () => {
         }
       );
 
+      console.log('Response:', response.data);
+
       if (response.data.success) {
         Alert.alert('Success', 'Employee updated successfully');
         setShowEditModal(false);
@@ -569,11 +538,16 @@ const EmployeesScreen = () => {
       }
     } catch (error: any) {
       console.error('Update Employee Error:', error);
+      console.error('Error Response:', error.response?.data);
+      console.error('Error Status:', error.response?.status);
+      console.error('Error Config:', error.config);
       
       let errorMessage = 'Failed to update employee. Please try again.';
       
       if (error.response) {
-        if (error.response.status === 409) {
+        if (error.response.status === 404) {
+          errorMessage = 'API endpoint not found. Please check the server configuration.';
+        } else if (error.response.status === 409) {
           const conflicts = [];
           if (error.response.data.aadhaar_exists) {
             conflicts.push('Aadhaar Number');
