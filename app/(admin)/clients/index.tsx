@@ -148,10 +148,10 @@ const ClientsScreen = () => {
       <View className="p-4">
         <View className="flex-row items-center justify-between">
           <View>
-            <Text className="text-xl font-bold text-gray-800">{client.clientName}</Text>
-            <Text className="text-gray-600">Company: {client.companyName}</Text>
-            <Text className="text-gray-600">Location: {client.location}</Text>
-            <Text className="text-gray-600">Status: {client.status}</Text>
+            <Text className="text-xl font-bold text-gray-800 truncate w-[200px]">{client.clientName}</Text>
+            <Text className="text-gray-600 truncate w-[200px]">Company: {client.companyName}</Text>
+            <Text className="text-gray-600 truncate w-[200px]">Location: {client.location}</Text>
+            <Text className="text-gray-600 truncate w-[200px]">Status: {client.status}</Text>
           </View>
           <View className="flex-row gap-2">
             <Pressable
@@ -312,7 +312,24 @@ const ClientsScreen = () => {
           },
           headerTintColor: 'white',
           headerRight: () => (
-            <Pressable onPress={() => setShowAddModal(true)} style={{ marginRight: 16 }}>
+            <Pressable onPress={() => {setShowAddModal(true)
+              setFormData({
+                clientName: '',
+                companyName: '',
+                phoneNumber: '',
+                gstNumber: '',
+                site: '',
+                branch: '',
+                address: '',
+                location: '',
+                latitude: '',
+                longitude: '',
+                status: 'Active',
+                checkIn: '',
+                lunch_time: '',
+                check_out: ''
+              });
+            }} style={{ marginRight: 16 }}>
               <MaterialIcons name="add" size={24} color="white" />
             </Pressable>
           ),

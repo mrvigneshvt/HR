@@ -106,10 +106,10 @@ const RequestsScreen = () => {
           femaleShoeSize: uniformForm.femaleShoeSize,
           accessories: uniformForm.accessories,
           femaleAccessories: uniformForm.femaleAccessories,
-          requestedDate: uniformForm.requestedDate ? uniformForm.requestedDate: formatDateString(new Date()),
+          requestedDate: uniformForm.requestedDate ? uniformForm.requestedDate : formatDateString(new Date()),
           flab: uniformForm.flab
         };
-        console.log(payload, "payloadThilak");
+
         await requestsService.addUniformRequest(payload);
         setUniformForm({
           empId: '',
@@ -168,7 +168,6 @@ const RequestsScreen = () => {
         };
         await requestsService.updateUniformRequest(selectedRequest._id, payload);
       } else {
-        console.log(selectedRequest,leaveForm,"selectedRequest")
         await requestsService.updateLeaveRequest(selectedRequest._id, leaveForm);
         setLeaveForm(initialLeaveForm);
       }
@@ -241,7 +240,7 @@ const RequestsScreen = () => {
       animationType="slide"
       onRequestClose={() => setShowAddModal(false)}
     >
-      <TouchableOpacity 
+      <TouchableOpacity
         className="flex-1 justify-end bg-black/50"
         activeOpacity={1}
         onPress={() => setShowAddModal(false)}
@@ -287,7 +286,7 @@ const RequestsScreen = () => {
       animationType="slide"
       onRequestClose={() => setShowEditModal(false)}
     >
-      <TouchableOpacity 
+      <TouchableOpacity
         className="flex-1 justify-end bg-black/50"
         activeOpacity={1}
         onPress={() => setShowEditModal(false)}
@@ -333,7 +332,7 @@ const RequestsScreen = () => {
       animationType="slide"
       onRequestClose={() => setShowDeleteModal(false)}
     >
-      <TouchableOpacity 
+      <TouchableOpacity
         className="flex-1 justify-end bg-black/50"
         activeOpacity={1}
         onPress={() => setShowDeleteModal(false)}
@@ -405,6 +404,7 @@ const RequestsScreen = () => {
                   setSelectedRequest(req);
                   if (type === 'uniform') {
                     setUniformForm(req);
+
                   } else {
                     setLeaveForm(req);
                   }
@@ -429,7 +429,7 @@ const RequestsScreen = () => {
         <View className="mt-4 flex-row items-center justify-between">
           <View className="flex-row items-center">
             <Text className="mr-2 font-semibold text-gray-700">Status:</Text>
-            <View 
+            <View
               className="rounded-full px-3 py-1"
               style={{ backgroundColor: `${getStatusColor(req.status)}20` }}
             >
@@ -447,7 +447,7 @@ const RequestsScreen = () => {
                 <Text className="text-white">Approve</Text>
               </Pressable>
               <Pressable
-                 onPress={() => {
+                onPress={() => {
                   setSelectedRequest(req);
                   setShowDeleteModal(true);
                 }}
@@ -479,7 +479,7 @@ const RequestsScreen = () => {
     req.name.toLowerCase().includes(search.toLowerCase()) ||
     req.empId.toLowerCase().includes(search.toLowerCase())
   );
-  
+
   const filteredLeaveRequests = leaveRequests.filter(req =>
     req.employeeName.toLowerCase().includes(search.toLowerCase()) ||
     req.employeeId.toLowerCase().includes(search.toLowerCase())
@@ -487,8 +487,8 @@ const RequestsScreen = () => {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <Stack.Screen 
-        options={{ 
+      <Stack.Screen
+        options={{
           headerShown: true,
           title: 'Requests',
           headerStyle: {
@@ -500,12 +500,34 @@ const RequestsScreen = () => {
               <Pressable onPress={() => setShowFilterModal(true)} style={{ marginRight: 16 }}>
                 <MaterialIcons name="filter-list" size={24} color="white" />
               </Pressable>
-              <Pressable onPress={() => setShowAddModal(true)}>
+              <Pressable onPress={() => {
+
+                setShowAddModal(true)
+                setUniformForm({
+                  empId: '',
+                  name: '',
+                  designation: '',
+                  site: '',
+                  location: '',
+                  gender: 'Male',
+                  status: 'Active',
+                  shirtSize: '',
+                  pantSize: '',
+                  shoeSize: '',
+                  chuditharSize: '',
+                  femaleShoeSize: '',
+                  accessories: [],
+                  femaleAccessories: [],
+                  requestedDate: '',
+                  flab: ''
+                });
+                setLeaveForm(initialLeaveForm);
+              }}>
                 <MaterialIcons name="add" size={24} color="white" />
               </Pressable>
             </View>
           ),
-        }} 
+        }}
       />
       {loading ? (
         <View className="flex-1 items-center justify-center">
@@ -538,7 +560,7 @@ const RequestsScreen = () => {
           </View>
 
           <ScrollView className="flex-1 px-4">
-            {activeTab === 'uniform' 
+            {activeTab === 'uniform'
               ? filteredUniformRequests.map((req, idx) => renderRequestCard(req, 'uniform', true, idx))
               : filteredLeaveRequests.map((req, idx) => renderRequestCard(req, 'leave', true, idx))
             }
@@ -557,7 +579,7 @@ const RequestsScreen = () => {
         animationType="slide"
         onRequestClose={() => setShowFilterModal(false)}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           className="flex-1 justify-end bg-black/50"
           activeOpacity={1}
           onPress={() => setShowFilterModal(false)}
@@ -609,11 +631,11 @@ const RequestsScreen = () => {
               <ScrollView className="flex-1">
                 {activeTab === 'uniform'
                   ? uniformRequests
-                      .filter(r => r.status === 'Active')
-                      .map((req, idx) => renderRequestCard(req, 'uniform', true, idx))
+                    .filter(r => r.status === 'Active')
+                    .map((req, idx) => renderRequestCard(req, 'uniform', true, idx))
                   : leaveRequests
-                      .filter(r => r.status === 'Approved' && r.approvedBy)
-                      .map((req, idx) => renderRequestCard(req, 'leave', true, idx))
+                    .filter(r => r.status === 'Approved' && r.approvedBy)
+                    .map((req, idx) => renderRequestCard(req, 'leave', true, idx))
                 }
               </ScrollView>
             </View>
