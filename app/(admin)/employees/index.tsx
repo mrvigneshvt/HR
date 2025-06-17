@@ -265,16 +265,16 @@ const EmployeesScreen = () => {
     const newErrors: FormErrors = {};
     
     // Basic Information Validation
-    if (!newEmployee.employee_id.trim()) {
+    if (!newEmployee.employee_id?.trim()) {
       newErrors.employee_id = 'Employee ID is required';
-    } else if (newEmployee.employee_id.length < 3) {
-      newErrors.employee_id = 'Employee ID must be at least 3 characters';
+    } else if (!/^[A-Z0-9]{3,10}$/.test(newEmployee.employee_id)) {
+      newErrors.employee_id = 'Employee ID must be 3-10 characters (letters and numbers only)';
     }
 
-    if (!newEmployee.name.trim()) {
+    if (!newEmployee.name?.trim()) {
       newErrors.name = 'Name is required';
-    } else if (newEmployee.name.length < 2) {
-      newErrors.name = 'Name must be at least 2 characters';
+    } else if (newEmployee.name.length < 2 || newEmployee.name.length > 50) {
+      newErrors.name = 'Name must be between 2 and 50 characters';
     }
 
     if (!newEmployee.gender) {
@@ -282,123 +282,109 @@ const EmployeesScreen = () => {
     }
 
     // Contact Information Validation
-    if (!newEmployee.contact_email.trim()) {
+    if (!newEmployee.contact_email?.trim()) {
       newErrors.contact_email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(newEmployee.contact_email)) {
+    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(newEmployee.contact_email)) {
       newErrors.contact_email = 'Invalid email format';
     }
 
-    if (!newEmployee.contact_mobile_no.trim()) {
+    if (!newEmployee.contact_mobile_no?.trim()) {
       newErrors.contact_mobile_no = 'Mobile number is required';
-    } else if (!/^[0-9]{10}$/.test(newEmployee.contact_mobile_no)) {
-      newErrors.contact_mobile_no = 'Mobile number must be 10 digits';
+    } else if (!/^[6-9]\d{9}$/.test(newEmployee.contact_mobile_no)) {
+      newErrors.contact_mobile_no = 'Mobile number must be 10 digits starting with 6-9';
     }
 
-    if (!newEmployee.emergency_contact_name.trim()) {
+    if (!newEmployee.emergency_contact_name?.trim()) {
       newErrors.emergency_contact_name = 'Emergency contact name is required';
     }
 
-    if (!newEmployee.emergency_contact_phone.trim()) {
+    if (!newEmployee.emergency_contact_phone?.trim()) {
       newErrors.emergency_contact_phone = 'Emergency contact phone is required';
-    } else if (!/^[0-9]{10}$/.test(newEmployee.emergency_contact_phone)) {
-      newErrors.emergency_contact_phone = 'Emergency contact must be 10 digits';
+    } else if (!/^[6-9]\d{9}$/.test(newEmployee.emergency_contact_phone)) {
+      newErrors.emergency_contact_phone = 'Emergency contact must be 10 digits starting with 6-9';
     }
 
     // Address Validation
-    if (!newEmployee.address_country.trim()) {
+    if (!newEmployee.address_country?.trim()) {
       newErrors.address_country = 'Country is required';
     }
 
-    if (!newEmployee.address_state.trim()) {
+    if (!newEmployee.address_state?.trim()) {
       newErrors.address_state = 'State is required';
     }
 
-    if (!newEmployee.address_district.trim()) {
+    if (!newEmployee.address_district?.trim()) {
       newErrors.address_district = 'District is required';
     }
 
-    if (!newEmployee.address_po.trim()) {
+    if (!newEmployee.address_po?.trim()) {
       newErrors.address_po = 'Post Office is required';
     }
 
-    if (!newEmployee.address_street.trim()) {
+    if (!newEmployee.address_street?.trim()) {
       newErrors.address_street = 'Street is required';
     }
 
-    if (!newEmployee.address_house.trim()) {
+    if (!newEmployee.address_house?.trim()) {
       newErrors.address_house = 'House number is required';
     }
 
-    if (!newEmployee.address_landmark.trim()) {
+    if (!newEmployee.address_landmark?.trim()) {
       newErrors.address_landmark = 'Landmark is required';
     }
 
-    if (!newEmployee.address_zip.trim()) {
+    if (!newEmployee.address_zip?.trim()) {
       newErrors.address_zip = 'ZIP code is required';
-    } else if (!/^[0-9]{6}$/.test(newEmployee.address_zip)) {
+    } else if (!/^[1-9][0-9]{5}$/.test(newEmployee.address_zip)) {
       newErrors.address_zip = 'ZIP code must be 6 digits';
     }
 
     // Employment Information Validation
-    if (!newEmployee.role.trim()) {
+    if (!newEmployee.role?.trim()) {
       newErrors.role = 'Role is required';
     }
 
-    if (!newEmployee.department.trim()) {
+    if (!newEmployee.department?.trim()) {
       newErrors.department = 'Department is required';
     }
 
-    if (!newEmployee.designation.trim()) {
+    if (!newEmployee.designation?.trim()) {
       newErrors.designation = 'Designation is required';
     }
 
-    if (!newEmployee.branch.trim()) {
+    if (!newEmployee.branch?.trim()) {
       newErrors.branch = 'Branch is required';
     }
 
-    if (!newEmployee.reporting.trim()) {
+    if (!newEmployee.reporting?.trim()) {
       newErrors.reporting = 'Reporting manager is required';
     }
 
     // Document Validation
-    if (!newEmployee.aadhaar_number.trim()) {
+    if (!newEmployee.aadhaar_number?.trim()) {
       newErrors.aadhaar_number = 'Aadhaar number is required';
-    } else if (!/^[0-9]{12}$/.test(newEmployee.aadhaar_number)) {
+    } else if (!/^\d{12}$/.test(newEmployee.aadhaar_number)) {
       newErrors.aadhaar_number = 'Aadhaar number must be 12 digits';
     }
 
-    // if (!newEmployee.pan_number.trim()) {
-    //   newErrors.pan_number = 'PAN number is required';
-    // } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(newEmployee.pan_number)) {
-    //   newErrors.pan_number = 'Invalid PAN number format';
-    // }
+    // Bank Information Validation (only if bank name is provided)
+    if (newEmployee.bank_name?.trim()) {
+      if (!newEmployee.bank_account_number?.trim()) {
+        newErrors.bank_account_number = 'Bank account number is required when bank name is provided';
+      } else if (!/^\d{9,18}$/.test(newEmployee.bank_account_number)) {
+        newErrors.bank_account_number = 'Bank account number must be 9-18 digits';
+      }
 
-    // if (!newEmployee.voter_id.trim()) {
-    //   newErrors.voter_id = 'Voter ID is required';
-    // }
+      if (!newEmployee.bank_ifsc_code?.trim()) {
+        newErrors.bank_ifsc_code = 'IFSC code is required when bank name is provided';
+      } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(newEmployee.bank_ifsc_code)) {
+        newErrors.bank_ifsc_code = 'Invalid IFSC code format';
+      }
 
-    // if (!newEmployee.driving_license.trim()) {
-    //   newErrors.driving_license = 'Driving license is required';
-    // }
-
-    // Bank Information Validation
-    // if (newEmployee.bank_name.trim()) {
-    //   if (!newEmployee.bank_account_number.trim()) {
-    //     newErrors.bank_account_number = 'Bank account number is required when bank name is provided';
-    //   } else if (!/^[0-9]{9,18}$/.test(newEmployee.bank_account_number)) {
-    //     newErrors.bank_account_number = 'Invalid bank account number';
-    //   }
-
-    //   if (!newEmployee.bank_ifsc_code.trim()) {
-    //     newErrors.bank_ifsc_code = 'IFSC code is required when bank name is provided';
-    //   } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(newEmployee.bank_ifsc_code)) {
-    //     newErrors.bank_ifsc_code = 'Invalid IFSC code format';
-    //   }
-
-    //   if (!newEmployee.bank_account_holder_name.trim()) {
-    //     newErrors.bank_account_holder_name = 'Account holder name is required when bank name is provided';
-    //   }
-    // }
+      if (!newEmployee.bank_account_holder_name?.trim()) {
+        newErrors.bank_account_holder_name = 'Account holder name is required when bank name is provided';
+      }
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -413,7 +399,34 @@ const EmployeesScreen = () => {
     try {
       setLoading(true);
       
-      // Prepare the employee data with all required fields
+      // Check if Aadhaar or mobile already exists
+      const checkExistingResponse = await axios.get(`${BASE_URL}/employees/check-existing`, {
+        params: {
+          aadhaar_number: newEmployee.aadhaar_number,
+          mobile_number: newEmployee.contact_mobile_no
+        },
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (checkExistingResponse.data.exists) {
+        const conflicts = [];
+        if (checkExistingResponse.data.aadhaar_exists) {
+          conflicts.push('Aadhaar Number');
+        }
+        if (checkExistingResponse.data.mobile_exists) {
+          conflicts.push('Mobile Number');
+        }
+        Alert.alert(
+          'Duplicate Entry',
+          `The following details already exist: ${conflicts.join(', ')}`
+        );
+        return;
+      }
+
+      // Prepare the employee data with default values
       const employeeData = {
         ...newEmployee,
         joining_date: new Date().toISOString().split('T')[0],
@@ -425,7 +438,6 @@ const EmployeesScreen = () => {
         rtgs_enabled: false,
         neft_enabled: false,
         imps_enabled: false,
-        // Set default values for required fields if not provided
         father_spouse_name: newEmployee.father_spouse_name || 'Not Provided',
         guardian_name: newEmployee.guardian_name || 'Not Provided',
         reference_id: newEmployee.reference_id || 'Not Provided',
@@ -438,16 +450,12 @@ const EmployeesScreen = () => {
         bank_account_currency: newEmployee.bank_account_currency || 'INR'
       };
 
-      console.log('Sending employee data:', employeeData);
-
       const response = await axios.post(`${BASE_URL}/employees`, employeeData, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         }
       });
-
-      console.log('API Response:', response.data);
 
       if (response.data.success) {
         Alert.alert('Success', 'Employee added successfully');
@@ -460,30 +468,27 @@ const EmployeesScreen = () => {
       }
     } catch (error: any) {
       console.error('Add Employee Error:', error);
-      console.error('Error Response:', error.response?.data);
-      console.error('Error Status:', error.response?.status);
       
       let errorMessage = 'Failed to add employee. Please try again.';
       
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        errorMessage = error.response.data?.message || error.response.data?.error || errorMessage;
+        if (error.response.status === 409) {
+          const conflicts = [];
+          if (error.response.data.aadhaar_exists) {
+            conflicts.push('Aadhaar Number');
+          }
+          if (error.response.data.mobile_exists) {
+            conflicts.push('Mobile Number');
+          }
+          errorMessage = `The following details already exist: ${conflicts.join(', ')}`;
+        } else {
+          errorMessage = error.response.data?.message || error.response.data?.error || errorMessage;
+        }
       } else if (error.request) {
-        // The request was made but no response was received
         errorMessage = 'No response from server. Please check your internet connection.';
       }
       
-      Alert.alert(
-        'Error',
-        errorMessage,
-        [
-          {
-            text: 'OK',
-            onPress: () => console.log('Error alert closed')
-          }
-        ]
-      );
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -515,12 +520,76 @@ const EmployeesScreen = () => {
 
     try {
       setLoading(true);
-      const response = await axios.put(`${BASE_URL}/employees/${selectedEmployee.employee_id}`, selectedEmployee);
-      Alert.alert('Success', 'Employee updated successfully');
-      setShowEditModal(false);
-      fetchEmployees();
-    } catch (error) {
-      Alert.alert('Error', 'Failed to update employee');
+
+      // Check if Aadhaar or mobile already exists (excluding current employee)
+      const checkExistingResponse = await axios.get(`${BASE_URL}/employees/check-existing`, {
+        params: {
+          aadhaar_number: selectedEmployee.aadhaar_number,
+          mobile_number: selectedEmployee.contact_mobile_no,
+          exclude_employee_id: selectedEmployee.employee_id
+        },
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (checkExistingResponse.data.exists) {
+        const conflicts = [];
+        if (checkExistingResponse.data.aadhaar_exists) {
+          conflicts.push('Aadhaar Number');
+        }
+        if (checkExistingResponse.data.mobile_exists) {
+          conflicts.push('Mobile Number');
+        }
+        Alert.alert(
+          'Duplicate Entry',
+          `The following details already exist: ${conflicts.join(', ')}`
+        );
+        return;
+      }
+
+      const response = await axios.put(
+        `${BASE_URL}/employees/${selectedEmployee.employee_id}`,
+        selectedEmployee,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      );
+
+      if (response.data.success) {
+        Alert.alert('Success', 'Employee updated successfully');
+        setShowEditModal(false);
+        fetchEmployees();
+      } else {
+        throw new Error(response.data.message || 'Failed to update employee');
+      }
+    } catch (error: any) {
+      console.error('Update Employee Error:', error);
+      
+      let errorMessage = 'Failed to update employee. Please try again.';
+      
+      if (error.response) {
+        if (error.response.status === 409) {
+          const conflicts = [];
+          if (error.response.data.aadhaar_exists) {
+            conflicts.push('Aadhaar Number');
+          }
+          if (error.response.data.mobile_exists) {
+            conflicts.push('Mobile Number');
+          }
+          errorMessage = `The following details already exist: ${conflicts.join(', ')}`;
+        } else {
+          errorMessage = error.response.data?.message || error.response.data?.error || errorMessage;
+        }
+      } else if (error.request) {
+        errorMessage = 'No response from server. Please check your internet connection.';
+      }
+      
+      Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }
