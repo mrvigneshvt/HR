@@ -87,13 +87,10 @@ interface FormErrors {
   employee_id?: string;
   name?: string;
   gender?: string;
-  aadhaar_number?: string;
-  contact_mobile_no?: string;
-  emergency_contact_phone?: string;
   contact_email?: string;
+  contact_mobile_no?: string;
   emergency_contact_name?: string;
-  guardian_name?: string;
-  reference_id?: string;
+  emergency_contact_phone?: string;
   address_country?: string;
   address_state?: string;
   address_district?: string;
@@ -102,13 +99,18 @@ interface FormErrors {
   address_house?: string;
   address_landmark?: string;
   address_zip?: string;
-  communication_address?: string;
-  marital_status?: string;
   role?: string;
   department?: string;
   designation?: string;
   branch?: string;
   reporting?: string;
+  aadhaar_number?: string;
+  pan_number?: string;
+  voter_id?: string;
+  driving_license?: string;
+  bank_account_number?: string;
+  bank_ifsc_code?: string;
+  bank_account_holder_name?: string;
 }
 
 const initialEmployeeState: Employee = {
@@ -227,79 +229,140 @@ const EmployeesScreen = () => {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
     
-    if (!newEmployee.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
+    // Basic Information Validation
     if (!newEmployee.employee_id.trim()) {
       newErrors.employee_id = 'Employee ID is required';
+    } else if (newEmployee.employee_id.length < 3) {
+      newErrors.employee_id = 'Employee ID must be at least 3 characters';
     }
-    if (!newEmployee.aadhaar_number.trim()) {
-      newErrors.aadhaar_number = 'Aadhaar number is required';
+
+    if (!newEmployee.name.trim()) {
+      newErrors.name = 'Name is required';
+    } else if (newEmployee.name.length < 2) {
+      newErrors.name = 'Name must be at least 2 characters';
     }
-    if (!newEmployee.contact_mobile_no.trim()) {
-      newErrors.contact_mobile_no = 'Mobile number is required';
+
+    if (!newEmployee.gender) {
+      newErrors.gender = 'Gender is required';
     }
-    if (!newEmployee.emergency_contact_phone.trim()) {
-      newErrors.emergency_contact_phone = 'Emergency contact is required';
-    }
+
+    // Contact Information Validation
     if (!newEmployee.contact_email.trim()) {
       newErrors.contact_email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(newEmployee.contact_email)) {
       newErrors.contact_email = 'Invalid email format';
     }
+
+    if (!newEmployee.contact_mobile_no.trim()) {
+      newErrors.contact_mobile_no = 'Mobile number is required';
+    } else if (!/^[0-9]{10}$/.test(newEmployee.contact_mobile_no)) {
+      newErrors.contact_mobile_no = 'Mobile number must be 10 digits';
+    }
+
     if (!newEmployee.emergency_contact_name.trim()) {
       newErrors.emergency_contact_name = 'Emergency contact name is required';
     }
-    if (!newEmployee.guardian_name.trim()) {
-      newErrors.guardian_name = 'Guardian name is required';
+
+    if (!newEmployee.emergency_contact_phone.trim()) {
+      newErrors.emergency_contact_phone = 'Emergency contact phone is required';
+    } else if (!/^[0-9]{10}$/.test(newEmployee.emergency_contact_phone)) {
+      newErrors.emergency_contact_phone = 'Emergency contact must be 10 digits';
     }
-    if (!newEmployee.reference_id.trim()) {
-      newErrors.reference_id = 'Reference ID is required';
-    }
+
+    // Address Validation
     if (!newEmployee.address_country.trim()) {
       newErrors.address_country = 'Country is required';
     }
+
     if (!newEmployee.address_state.trim()) {
       newErrors.address_state = 'State is required';
     }
+
     if (!newEmployee.address_district.trim()) {
       newErrors.address_district = 'District is required';
     }
+
     if (!newEmployee.address_po.trim()) {
       newErrors.address_po = 'Post Office is required';
     }
+
     if (!newEmployee.address_street.trim()) {
       newErrors.address_street = 'Street is required';
     }
+
     if (!newEmployee.address_house.trim()) {
       newErrors.address_house = 'House number is required';
     }
+
     if (!newEmployee.address_landmark.trim()) {
       newErrors.address_landmark = 'Landmark is required';
     }
+
     if (!newEmployee.address_zip.trim()) {
       newErrors.address_zip = 'ZIP code is required';
+    } else if (!/^[0-9]{6}$/.test(newEmployee.address_zip)) {
+      newErrors.address_zip = 'ZIP code must be 6 digits';
     }
-    if (!newEmployee.communication_address.trim()) {
-      newErrors.communication_address = 'Communication address is required';
-    }
-    if (!newEmployee.marital_status.trim()) {
-      newErrors.marital_status = 'Marital status is required';
-    }
+
+    // Employment Information Validation
     if (!newEmployee.role.trim()) {
       newErrors.role = 'Role is required';
     }
+
     if (!newEmployee.department.trim()) {
       newErrors.department = 'Department is required';
     }
+
     if (!newEmployee.designation.trim()) {
       newErrors.designation = 'Designation is required';
     }
+
     if (!newEmployee.branch.trim()) {
       newErrors.branch = 'Branch is required';
     }
+
     if (!newEmployee.reporting.trim()) {
       newErrors.reporting = 'Reporting manager is required';
+    }
+
+    // Document Validation
+    if (!newEmployee.aadhaar_number.trim()) {
+      newErrors.aadhaar_number = 'Aadhaar number is required';
+    } else if (!/^[0-9]{12}$/.test(newEmployee.aadhaar_number)) {
+      newErrors.aadhaar_number = 'Aadhaar number must be 12 digits';
+    }
+
+    if (!newEmployee.pan_number.trim()) {
+      newErrors.pan_number = 'PAN number is required';
+    } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(newEmployee.pan_number)) {
+      newErrors.pan_number = 'Invalid PAN number format';
+    }
+
+    if (!newEmployee.voter_id.trim()) {
+      newErrors.voter_id = 'Voter ID is required';
+    }
+
+    if (!newEmployee.driving_license.trim()) {
+      newErrors.driving_license = 'Driving license is required';
+    }
+
+    // Bank Information Validation
+    if (newEmployee.bank_name.trim()) {
+      if (!newEmployee.bank_account_number.trim()) {
+        newErrors.bank_account_number = 'Bank account number is required when bank name is provided';
+      } else if (!/^[0-9]{9,18}$/.test(newEmployee.bank_account_number)) {
+        newErrors.bank_account_number = 'Invalid bank account number';
+      }
+
+      if (!newEmployee.bank_ifsc_code.trim()) {
+        newErrors.bank_ifsc_code = 'IFSC code is required when bank name is provided';
+      } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(newEmployee.bank_ifsc_code)) {
+        newErrors.bank_ifsc_code = 'Invalid IFSC code format';
+      }
+
+      if (!newEmployee.bank_account_holder_name.trim()) {
+        newErrors.bank_account_holder_name = 'Account holder name is required when bank name is provided';
+      }
     }
 
     setErrors(newErrors);
