@@ -444,7 +444,7 @@ const EmployeesScreen = () => {
 
       console.log('Response:', response.data);
 
-      if (response.data.success) {
+      if (response.data) {
         Alert.alert('Success', 'Employee added successfully');
         setNewEmployee(initialEmployeeState);
         setShowAddModal(false);
@@ -529,7 +529,7 @@ const EmployeesScreen = () => {
 
       console.log('Response:', response.data);
 
-      if (response.data.success) {
+      if (response.data) {
         Alert.alert('Success', 'Employee updated successfully');
         setShowEditModal(false);
         fetchEmployees();
