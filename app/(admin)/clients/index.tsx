@@ -16,7 +16,7 @@ const ClientsScreen = () => {
   const [search, setSearch] = useState('');
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<Partial<Client>>({
+  const [formData, setFormData] = useState<Partial<any>>({
     clientName: '',
     companyName: '',
     phoneNumber: '',
@@ -73,6 +73,7 @@ const ClientsScreen = () => {
         await clientService.updateClient(selectedClient.id, formData as Omit<Client, 'id'>);
         Alert.alert('Success', 'Client updated successfully!');
       } else {
+        console.log(formData,"formData")
         await clientService.addClient(formData as Omit<Client, 'id'>);
         Alert.alert('Success', 'Client added successfully!');
       }
