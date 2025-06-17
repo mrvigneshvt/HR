@@ -32,6 +32,12 @@ export interface LeaveRequest {
   numberOfDays: number;
 }
 
+// For add API, allow string dates
+export interface LeaveRequestAddPayload extends Omit<LeaveRequest, 'startDate' | 'endDate'> {
+  startDate: string;
+  endDate: string;
+}
+
 export const requestsService = {
   // Uniform Requests
   async getUniformRequests() {
@@ -60,7 +66,7 @@ export const requestsService = {
     return response.data;
   },
 
-  async addLeaveRequest(request: LeaveRequest) {
+  async addLeaveRequest(request: LeaveRequestAddPayload) {
     const response = await axios.post(`${BASE_URL}/Leaves`, request);
     return response.data;
   },

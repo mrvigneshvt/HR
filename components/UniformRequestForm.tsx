@@ -52,43 +52,43 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
   };
 
   return (
-    <ScrollView className="max-h-[70%]">
+    <ScrollView className="max-h-[90%]">
       <TextInput
-        className="mb-1 rounded-lg border border-gray-300 p-3"
+        className="mb-4 rounded-lg border border-gray-300 p-3"
         placeholder="Employee ID"
         value={form.empId}
         onChangeText={(text) => onChange('empId', text)}
       />
       {errors.empId && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.empId}</Text>}
       <TextInput
-        className="mb-1 rounded-lg border border-gray-300 p-3"
+        className="mb-4 rounded-lg border border-gray-300 p-3"
         placeholder="Name"
         value={form.name}
         onChangeText={(text) => onChange('name', text)}
       />
       {errors.name && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.name}</Text>}
       <TextInput
-        className="mb-1 rounded-lg border border-gray-300 p-3"
+        className="mb-4 rounded-lg border border-gray-300 p-3"
         placeholder="Designation"
         value={form.designation}
         onChangeText={(text) => onChange('designation', text)}
       />
       {errors.designation && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.designation}</Text>}
       <TextInput
-        className="mb-1 rounded-lg border border-gray-300 p-3"
+        className="mb-4 rounded-lg border border-gray-300 p-3"
         placeholder="Site"
         value={form.site}
         onChangeText={(text) => onChange('site', text)}
       />
       {errors.site && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.site}</Text>}
       <TextInput
-        className="mb-1 rounded-lg border border-gray-300 p-3"
+        className="mb-4 rounded-lg border border-gray-300 p-3"
         placeholder="Location"
         value={form.location}
         onChangeText={(text) => onChange('location', text)}
       />
       {errors.location && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.location}</Text>}
-      <View className="mb-1 flex-row items-center justify-between">
+      <View className="mb-4 flex-row items-center justify-between">
         <Text>Gender:</Text>
         <View className="flex-row gap-4">
           <Pressable
@@ -106,7 +106,7 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
         </View>
       </View>
       {errors.gender && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.gender}</Text>}
-      <View className="mb-1 flex-row items-center justify-between">
+      <View className="mb-4 flex-row items-center justify-between">
         <Text>Status:</Text>
         <View className="flex-row gap-4">
           <Pressable
@@ -127,7 +127,7 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
       {form.gender === 'Male' ? (
         <>
           <TextInput
-            className="mb-1 rounded-lg border border-gray-300 p-3"
+            className="mb-4 rounded-lg border border-gray-300 p-3"
             placeholder="Shirt Size"
             value={form.shirtSize}
             onChangeText={(text) => onChange('shirtSize', text)}
@@ -135,7 +135,7 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
           />
           {errors.shirtSize && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.shirtSize}</Text>}
           <TextInput
-            className="mb-1 rounded-lg border border-gray-300 p-3"
+            className="mb-4 rounded-lg border border-gray-300 p-3"
             placeholder="Pant Size"
             value={form.pantSize}
             onChangeText={(text) => onChange('pantSize', text)}
@@ -146,7 +146,7 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
       ) : (
         <>
           <TextInput
-            className="mb-1 rounded-lg border border-gray-300 p-3"
+            className="mb-4 rounded-lg border border-gray-300 p-3"
             placeholder="Chudithar Size"
             value={form.chuditharSize}
             onChangeText={(text) => onChange('chuditharSize', text)}
@@ -154,7 +154,7 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
           />
           {errors.chuditharSize && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.chuditharSize}</Text>}
           <TextInput
-            className="mb-1 rounded-lg border border-gray-300 p-3"
+            className="mb-4 rounded-lg border border-gray-300 p-3"
             placeholder="Female Shoe Size"
             value={form.femaleShoeSize}
             onChangeText={(text) => onChange('femaleShoeSize', text)}
@@ -166,7 +166,7 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
       {form.gender === 'Male' && (
         <>
           <TextInput
-            className="mb-1 rounded-lg border border-gray-300 p-3"
+            className="mb-4 rounded-lg border border-gray-300 p-3"
             placeholder="Shoe Size"
             value={form.shoeSize}
             onChangeText={(text) => onChange('shoeSize', text)}
@@ -177,28 +177,28 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
       )}
       {/* Accessories (comma separated) */}
       <TextInput
-        className="mb-1 rounded-lg border border-gray-300 p-3"
+        className="mb-4 rounded-lg border border-gray-300 p-3"
         placeholder="Accessories (comma separated)"
         value={form.accessories.join(',')}
         onChangeText={(text) => onChange('accessories', text.split(',').map((a) => a.trim()).filter(Boolean))}
       />
       <TextInput
-        className="mb-1 rounded-lg border border-gray-300 p-3"
+        className="mb-4 rounded-lg border border-gray-300 p-3"
         placeholder="Female Accessories (comma separated)"
         value={form.femaleAccessories.join(',')}
         onChangeText={(text) => onChange('femaleAccessories', text.split(',').map((a) => a.trim()).filter(Boolean))}
       />
       {/* Requested Date */}
       <TextInput
-        className="mb-1 rounded-lg border border-gray-300 p-3"
+        className="mb-4 rounded-lg border border-gray-300 p-3"
         placeholder="Requested Date (DD/MM/YY)"
-        value={typeof form.requestedDate === 'string' ? form.requestedDate : (form.requestedDate ? new Date(form.requestedDate).toLocaleDateString('en-GB') : '')}
+        value={form.requestedDate}
         onChangeText={(text) => onChange('requestedDate', text)}
       />
       {errors.requestedDate && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.requestedDate}</Text>}
       {/* Flab */}
       <TextInput
-        className="mb-1 rounded-lg border border-gray-300 p-3"
+        className="mb-4 rounded-lg border border-gray-300 p-3"
         placeholder="Flab (optional)"
         value={form.flab}
         onChangeText={(text) => onChange('flab', text)}

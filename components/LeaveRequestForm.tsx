@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TextInput, Pressable, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, Pressable, ScrollView, Modal, Platform } from 'react-native';
 import { LeaveRequest } from '../services/requests';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -10,14 +10,43 @@ interface LeaveRequestFormProps {
   loading?: boolean;
 }
 
+const leaveTypes = ['Sick', 'Vacation', 'Casual', 'Maternity', 'Other'];
+const statusTypes = ['Pending', 'Approved', 'Rejected'];
+
 const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
   form,
   onChange,
   onSubmit,
   loading = false,
 }) => {
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+  const [error, setError] = useState('');
+
+  const validate = () => {
+    if (!form.employeeId || !form.employeeName || !form.leaveType || !form.startDate || !form.endDate || !form.status || !form.approvedBy || !form.numberOfDays) {
+      setError('Please fill in all required fields.');
+      return false;
+    }
+    if (new Date(form.endDate) < new Date(form.startDate)) {
+      setError('End date cannot be before start date.');
+      return false;
+    }
+    setError('');
+    return true;
+  };
+
+  const handleSubmit = () => {
+    if (validate()) {
+      onSubmit();
+    }
+  };
+
   return (
-    <ScrollView className="max-h-[70%]">
+    <ScrollView className="max-h-[90%]">
+      {error ? (
+        <Text className="mb-2 text-red-500 font-semibold">{error}</Text>
+      ) : null}
       <TextInput
         className="mb-4 rounded-lg border border-gray-300 p-3"
         placeholder="Employee ID"
@@ -33,7 +62,7 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
       <View className="mb-4">
         <Text>Leave Type:</Text>
         <View className="mt-2 flex-row flex-wrap gap-2">
-          {['Sick', 'Vacation', 'Casual', 'Maternity', 'Other'].map((type) => (
+          {leaveTypes.map((type) => (
             <Pressable
               key={type}
               onPress={() => onChange('leaveType', type)}
@@ -45,29 +74,63 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
         </View>
       </View>
       <View className="mb-4">
+        <Text>Status:</Text>
+        <View className="mt-2 flex-row flex-wrap gap-2">
+          {statusTypes.map((type) => (
+            <Pressable
+              key={type}
+              onPress={() => onChange('status', type)}
+              className={`rounded-lg px-4 py-2 ${form.status === type ? 'bg-green-500' : 'bg-gray-200'}`}
+            >
+              <Text className={form.status === type ? 'text-white' : 'text-black'}>{type}</Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+      <View className="mb-4">
         <Text>Start Date:</Text>
-        <DateTimePicker
-          value={form.startDate}
-          mode="date"
-          onChange={(event, date) => {
-            if (date) onChange('startDate', date);
-          }}
-        />
+        <Pressable
+          className="rounded-lg border border-gray-300 p-3 mt-2"
+          onPress={() => setShowStartPicker(true)}
+        >
+          <Text>{form.startDate ? new Date(form.startDate).toLocaleDateString() : 'Select Start Date'}</Text>
+        </Pressable>
+        {showStartPicker && (
+          <DateTimePicker
+            value={form.startDate ? new Date(form.startDate) : new Date()}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={(event, date) => {
+              setShowStartPicker(false);
+              if (date) onChange('startDate', date);
+            }}
+          />
+        )}
       </View>
       <View className="mb-4">
         <Text>End Date:</Text>
-        <DateTimePicker
-          value={form.endDate}
-          mode="date"
-          onChange={(event, date) => {
-            if (date) onChange('endDate', date);
-          }}
-        />
+        <Pressable
+          className="rounded-lg border border-gray-300 p-3 mt-2"
+          onPress={() => setShowEndPicker(true)}
+        >
+          <Text>{form.endDate ? new Date(form.endDate).toLocaleDateString() : 'Select End Date'}</Text>
+        </Pressable>
+        {showEndPicker && (
+          <DateTimePicker
+            value={form.endDate ? new Date(form.endDate) : new Date()}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={(event, date) => {
+              setShowEndPicker(false);
+              if (date) onChange('endDate', date);
+            }}
+          />
+        )}
       </View>
       <TextInput
         className="mb-4 rounded-lg border border-gray-300 p-3"
         placeholder="Number of Days"
-        value={form.numberOfDays.toString()}
+        value={form.numberOfDays ? form.numberOfDays.toString() : ''}
         keyboardType="numeric"
         onChangeText={(text) => onChange('numberOfDays', parseInt(text) || 0)}
       />
@@ -79,7 +142,7 @@ const LeaveRequestForm: React.FC<LeaveRequestFormProps> = ({
       />
       <View className="mt-4 flex-row justify-end gap-2">
         <Pressable
-          onPress={onSubmit}
+          onPress={handleSubmit}
           className="rounded-lg bg-blue-500 px-4 py-2"
           disabled={loading}
         >
