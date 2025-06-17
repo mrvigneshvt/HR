@@ -291,8 +291,8 @@ const RequestsScreen = () => {
     </Modal>
   );
 
-  const renderRequestCard = (req: any, type: 'uniform' | 'leave', showActions = true) => (
-    <View key={req.id} className="mb-4 overflow-hidden rounded-xl bg-white shadow-lg">
+  const renderRequestCard = (req: any, type: 'uniform' | 'leave', showActions = true, idx: number) => (
+    <View key={req.id || req.empId || req.employeeId || idx} className="mb-4 overflow-hidden rounded-xl bg-white shadow-lg">
       <View className="p-4">
         <View className="flex-row items-center justify-between">
           <View>
@@ -460,8 +460,8 @@ const RequestsScreen = () => {
 
           <ScrollView className="flex-1 px-4">
             {activeTab === 'uniform' 
-              ? filteredUniformRequests?.map(req => renderRequestCard(req, 'uniform'))
-              : filteredLeaveRequests?.map(req => renderRequestCard(req, 'leave'))
+              ? filteredUniformRequests.map((req, idx) => renderRequestCard(req, 'uniform', true, idx))
+              : filteredLeaveRequests.map((req, idx) => renderRequestCard(req, 'leave', true, idx))
             }
           </ScrollView>
         </>
@@ -529,8 +529,8 @@ const RequestsScreen = () => {
               </View>
               <ScrollView className="flex-1">
                 {activeTab === 'uniform'
-                  ? uniformRequests.filter(r => r.status === 'Approved').map(req => renderRequestCard(req, 'uniform'))
-                  : leaveRequests.filter(r => r.status === 'Approved').map(req => renderRequestCard(req, 'leave'))
+                  ? uniformRequests.filter(r => r.status === 'Approved').map((req, idx) => renderRequestCard(req, 'uniform', true, idx))
+                  : leaveRequests.filter(r => r.status === 'Approved').map((req, idx) => renderRequestCard(req, 'leave', true, idx))
                 }
               </ScrollView>
             </View>
@@ -539,6 +539,7 @@ const RequestsScreen = () => {
       </Modal>
     </View>
   );
+
 };
 
 export default RequestsScreen; 
