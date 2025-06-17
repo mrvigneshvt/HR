@@ -212,15 +212,15 @@ const ClientsScreen = () => {
             {renderFormField('Lunch Time', 'lunch_time', 'HH:MM:SS')}
             {renderFormField('Check-out Time', 'check_out', 'HH:MM:SS')}
 
-            <View className="flex-row justify-end gap-2">
+            <View className="flex-row justify-between mt-3 mb-10">
               <Pressable
                 onPress={() => isEdit ? setShowEditModal(false) : setShowAddModal(false)}
-                className="rounded-lg bg-gray-200 px-4 py-2">
+                className="rounded-lg bg-gray-200 px-10 py-2">
                 <Text>Cancel</Text>
               </Pressable>
               <Pressable
                 onPress={() => handleSubmit(isEdit)}
-                className="rounded-lg bg-blue-500 px-4 py-2">
+                className="rounded-lg bg-blue-500 px-10 py-2">
                 <Text className="text-white">{isEdit ? 'Save' : 'Add'}</Text>
               </Pressable>
             </View>

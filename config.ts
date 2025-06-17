@@ -1,4 +1,4 @@
 export const configFile = {
-  colorGreen: '#4CAF50',
+  colorGreen: '#00965F',
   // Add other configuration values as needed
 }; 

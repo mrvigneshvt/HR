@@ -1,26 +1,31 @@
 import React from 'react';
-import { View, TextInput } from 'react-native';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { View, TextInput, StyleSheet } from 'react-native';
 
-interface SearchBarProps {
-  value: string;
-  onChangeText: (text: string) => void;
-  placeholder?: string;
-}
+const SearchBar = ({ value, onChangeText, placeholder }: { value: string, onChangeText: (text: string) => void, placeholder: string }) => (
+  <View style={styles.container}>
+    <TextInput
+      style={styles.input}
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      placeholderTextColor="#E4E9F2"
+    />
+  </View>
+);
 
-const SearchBar: React.FC<SearchBarProps> = ({ value, onChangeText, placeholder = 'Search...' }) => {
-  return (
-    <View className="flex-row items-center rounded-lg border border-gray-300 bg-white px-4 py-2">
-      <MaterialIcons name="search" size={20} color="#666" />
-      <TextInput
-        className="ml-2 flex-1"
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor="#666"
-      />
-    </View>
-  );
-};
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    margin: 16,
+    borderWidth: 1,
+    borderColor: '#E4E9F2',
+  },
+  input: {
+    padding: 12,
+    fontSize: 16,
+    color: '#222B45',
+  },
+});
 
 export default SearchBar; 
