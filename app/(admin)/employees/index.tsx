@@ -326,27 +326,27 @@ const EmployeesScreen = () => {
       newErrors.address_district = 'District is required';
     }
 
-    if (!newEmployee.address_po?.trim()) {
-      newErrors.address_po = 'Post Office is required';
-    }
+    // if (!newEmployee.address_po?.trim()) {
+    //   newErrors.address_po = 'Post Office is required';
+    // }
 
-    if (!newEmployee.address_street?.trim()) {
-      newErrors.address_street = 'Street is required';
-    }
+    // if (!newEmployee.address_street?.trim()) {
+    //   newErrors.address_street = 'Street is required';
+    // }
 
-    if (!newEmployee.address_house?.trim()) {
-      newErrors.address_house = 'House number is required';
-    }
+    // if (!newEmployee.address_house?.trim()) {
+    //   newErrors.address_house = 'House number is required';
+    // }
 
-    if (!newEmployee.address_landmark?.trim()) {
-      newErrors.address_landmark = 'Landmark is required';
-    }
+    // if (!newEmployee.address_landmark?.trim()) {
+    //   newErrors.address_landmark = 'Landmark is required';
+    // }
 
-    if (!newEmployee.address_zip?.trim()) {
-      newErrors.address_zip = 'ZIP code is required';
-    } else if (!/^[1-9][0-9]{5}$/.test(newEmployee.address_zip)) {
-      newErrors.address_zip = 'ZIP code must be 6 digits';
-    }
+    // if (!newEmployee.address_zip?.trim()) {
+    //   newErrors.address_zip = 'ZIP code is required';
+    // } else if (!/^[1-9][0-9]{5}$/.test(newEmployee.address_zip)) {
+    //   newErrors.address_zip = 'ZIP code must be 6 digits';
+    // }
 
     // Employment Information Validation
     if (!newEmployee.role?.trim()) {
@@ -377,23 +377,23 @@ const EmployeesScreen = () => {
     }
 
     // Bank Information Validation (only if bank name is provided)
-    if (newEmployee.bank_name?.trim()) {
-      if (!newEmployee.bank_account_number?.trim()) {
-        newErrors.bank_account_number = 'Bank account number is required when bank name is provided';
-      } else if (!/^\d{9,18}$/.test(newEmployee.bank_account_number)) {
-        newErrors.bank_account_number = 'Bank account number must be 9-18 digits';
-      }
+    // if (newEmployee.bank_name?.trim()) {
+    //   if (!newEmployee.bank_account_number?.trim()) {
+    //     newErrors.bank_account_number = 'Bank account number is required when bank name is provided';
+    //   } else if (!/^\d{9,18}$/.test(newEmployee.bank_account_number)) {
+    //     newErrors.bank_account_number = 'Bank account number must be 9-18 digits';
+    //   }
 
-      if (!newEmployee.bank_ifsc_code?.trim()) {
-        newErrors.bank_ifsc_code = 'IFSC code is required when bank name is provided';
-      } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(newEmployee.bank_ifsc_code)) {
-        newErrors.bank_ifsc_code = 'Invalid IFSC code format';
-      }
+    //   if (!newEmployee.bank_ifsc_code?.trim()) {
+    //     newErrors.bank_ifsc_code = 'IFSC code is required when bank name is provided';
+    //   } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(newEmployee.bank_ifsc_code)) {
+    //     newErrors.bank_ifsc_code = 'Invalid IFSC code format';
+    //   }
 
-      if (!newEmployee.bank_account_holder_name?.trim()) {
-        newErrors.bank_account_holder_name = 'Account holder name is required when bank name is provided';
-      }
-    }
+    //   if (!newEmployee.bank_account_holder_name?.trim()) {
+    //     newErrors.bank_account_holder_name = 'Account holder name is required when bank name is provided';
+    //   }
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -493,8 +493,10 @@ const EmployeesScreen = () => {
       setLoading(true);
       await axios.delete(`${BASE_URL}/employees/${selectedEmployee.employee_id}`);
       setEmployeeList(employeeList.filter(emp => emp.employee_id !== selectedEmployee.employee_id));
+      Alert.alert('Success', 'Employee Delete successfully');
       setShowDeleteModal(false);
       setSelectedEmployee(null);
+      fetchEmployees();
     } catch (error) {
       Alert.alert('Error', 'Failed to delete employee');
     } finally {

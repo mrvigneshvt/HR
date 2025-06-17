@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, Modal, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ScrollView, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { configFile } from '../../../config';
@@ -16,7 +16,7 @@ const ClientsScreen = () => {
   const [search, setSearch] = useState('');
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<Partial<Client>>({
+  const [formData, setFormData] = useState<Partial<any>>({
     clientName: '',
     companyName: '',
     phoneNumber: '',
@@ -33,6 +33,8 @@ const ClientsScreen = () => {
     check_out: ''
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchClients();
@@ -66,11 +68,14 @@ const ClientsScreen = () => {
     }
 
     try {
-      setLoading(true);
+      setIsSubmitting(true);
       if (isEdit && selectedClient?.id) {
         await clientService.updateClient(selectedClient.id, formData as Omit<Client, 'id'>);
+        Alert.alert('Success', 'Client updated successfully!');
       } else {
+        console.log(formData,"formData")
         await clientService.addClient(formData as Omit<Client, 'id'>);
+        Alert.alert('Success', 'Client added successfully!');
       }
       await fetchClients();
       setShowAddModal(false);
@@ -93,7 +98,9 @@ const ClientsScreen = () => {
       });
     } catch (error) {
       console.error('Error saving client:', error);
+      Alert.alert('Error', 'Failed to save client. Please try again.');
     } finally {
+      setIsSubmitting(false);
       setLoading(false);
     }
   };
@@ -101,13 +108,16 @@ const ClientsScreen = () => {
   const handleDelete = async () => {
     if (!selectedClient?.id) return;
     try {
-      setLoading(true);
+      setIsDeleting(true);
       await clientService.deleteClient(selectedClient.id);
+      Alert.alert('Success', 'Client deleted successfully!');
       await fetchClients();
       setShowDeleteModal(false);
     } catch (error) {
       console.error('Error deleting client:', error);
+      Alert.alert('Error', 'Failed to delete client. Please try again.');
     } finally {
+      setIsDeleting(false);
       setLoading(false);
     }
   };
@@ -215,13 +225,19 @@ const ClientsScreen = () => {
             <View className="flex-row justify-between mt-3 mb-10">
               <Pressable
                 onPress={() => isEdit ? setShowEditModal(false) : setShowAddModal(false)}
-                className="rounded-lg bg-gray-200 px-10 py-2">
+                className="rounded-lg bg-gray-200 px-10 py-2"
+                disabled={isSubmitting}>
                 <Text>Cancel</Text>
               </Pressable>
               <Pressable
                 onPress={() => handleSubmit(isEdit)}
-                className="rounded-lg bg-blue-500 px-10 py-2">
-                <Text className="text-white">{isEdit ? 'Save' : 'Add'}</Text>
+                className="rounded-lg bg-blue-500 px-10 py-2"
+                disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text className="text-white">{isEdit ? 'Save' : 'Add'}</Text>
+                )}
               </Pressable>
             </View>
           </ScrollView>
@@ -249,13 +265,19 @@ const ClientsScreen = () => {
             <View className="flex-row justify-end gap-2">
               <Pressable
                 onPress={() => setShowDeleteModal(false)}
-                className="rounded-lg bg-gray-200 px-4 py-2">
+                className="rounded-lg bg-gray-200 px-4 py-2"
+                disabled={isDeleting}>
                 <Text>Cancel</Text>
               </Pressable>
               <Pressable
                 onPress={handleDelete}
-                className="rounded-lg bg-red-500 px-4 py-2">
-                <Text className="text-white">Delete</Text>
+                className="rounded-lg bg-red-500 px-4 py-2"
+                disabled={isDeleting}>
+                {isDeleting ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text className="text-white">Delete</Text>
+                )}
               </Pressable>
             </View>
           </View>
