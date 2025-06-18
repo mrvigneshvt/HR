@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView, Modal, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Alert, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import {
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  Modal,
+  TouchableOpacity,
+  TextInput,
+  FlatList,
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  ViewStyle,
+  TextStyle,
+} from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { configFile } from '../../../config';
@@ -190,8 +204,9 @@ const initialEmployeeState: Employee = {
 };
 
 const EmployeesScreen = () => {
+  const { role } = useLocalSearchParams();
   const params = useLocalSearchParams();
-  const role = params.role as string | undefined;
+  console.log(params, '/////////');
   const readOnly = isReadOnlyRole(role);
   console.log('EmployeesScreen readOnly:', readOnly, 'role:', role);
 
@@ -223,17 +238,17 @@ const EmployeesScreen = () => {
     try {
       setLoading(true);
       console.log('Fetching employees...');
-      
+
       const response = await axios.get(`${BASE_URL}/employees`, {
         headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
         },
-        timeout: 10000 // 10 second timeout
+        timeout: 10000, // 10 second timeout
       });
-      
+
       console.log('Fetch Response:', response.data);
-      
+
       if (response.data && Array.isArray(response.data)) {
         setEmployeeList(response.data);
         setFilteredList(response.data);
@@ -246,9 +261,9 @@ const EmployeesScreen = () => {
     } catch (error: any) {
       console.error('Fetch Employees Error:', error);
       console.error('Error Response:', error.response?.data);
-      
+
       let errorMessage = 'Failed to fetch employees. Please try again.';
-      
+
       if (error.response) {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
@@ -260,7 +275,7 @@ const EmployeesScreen = () => {
         // Something happened in setting up the request that triggered an Error
         errorMessage = error.message;
       }
-      
+
       Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
@@ -269,16 +284,17 @@ const EmployeesScreen = () => {
 
   useEffect(() => {
     setFilteredList(
-      employeeList.filter(emp =>
-        emp.name.toLowerCase().includes(search.toLowerCase()) ||
-        emp.employee_id.toLowerCase().includes(search.toLowerCase())
+      employeeList.filter(
+        (emp) =>
+          emp.name.toLowerCase().includes(search.toLowerCase()) ||
+          emp.employee_id.toLowerCase().includes(search.toLowerCase())
       )
     );
   }, [search, employeeList]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-    
+
     // Basic Information Validation
     if (!newEmployee.employee_id?.trim()) {
       newErrors.employee_id = 'Employee ID is required';
@@ -413,7 +429,7 @@ const EmployeesScreen = () => {
 
     try {
       setLoading(true);
-      
+
       // Prepare the employee data with default values
       const employeeData = {
         ...newEmployee,
@@ -435,15 +451,15 @@ const EmployeesScreen = () => {
         esi_number: newEmployee.esi_number || 'Not Provided',
         bank_account_type: newEmployee.bank_account_type || 'Savings',
         bank_account_status: newEmployee.bank_account_status || 'Active',
-        bank_account_currency: newEmployee.bank_account_currency || 'INR'
+        bank_account_currency: newEmployee.bank_account_currency || 'INR',
       };
 
-      console.log(employeeData,"employeeData")
+      console.log(employeeData, 'employeeData');
       const response = await axios.post(`${BASE_URL}/employees`, employeeData, {
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
+          Accept: 'application/json',
+        },
       });
 
       console.log('Response:', response.data);
@@ -459,9 +475,9 @@ const EmployeesScreen = () => {
       }
     } catch (error: any) {
       console.error('Add Employee Error:', error);
-      
+
       let errorMessage = 'Failed to add employee. Please try again.';
-      
+
       if (error.response) {
         if (error.response.status === 404) {
           errorMessage = 'API endpoint not found. Please check the server configuration.';
@@ -480,7 +496,7 @@ const EmployeesScreen = () => {
       } else if (error.request) {
         errorMessage = 'No response from server. Please check your internet connection.';
       }
-      
+
       Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
@@ -493,7 +509,9 @@ const EmployeesScreen = () => {
     try {
       setLoading(true);
       await axios.delete(`${BASE_URL}/employees/${selectedEmployee.employee_id}`);
-      setEmployeeList(employeeList.filter(emp => emp.employee_id !== selectedEmployee.employee_id));
+      setEmployeeList(
+        employeeList.filter((emp) => emp.employee_id !== selectedEmployee.employee_id)
+      );
       Alert.alert('Success', 'Employee Delete successfully');
       setShowDeleteModal(false);
       setSelectedEmployee(null);
@@ -525,8 +543,8 @@ const EmployeesScreen = () => {
         {
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
+            Accept: 'application/json',
+          },
         }
       );
 
@@ -544,9 +562,9 @@ const EmployeesScreen = () => {
       console.error('Error Response:', error.response?.data);
       console.error('Error Status:', error.response?.status);
       console.error('Error Config:', error.config);
-      
+
       let errorMessage = 'Failed to update employee. Please try again.';
-      
+
       if (error.response) {
         if (error.response.status === 404) {
           errorMessage = 'API endpoint not found. Please check the server configuration.';
@@ -565,7 +583,7 @@ const EmployeesScreen = () => {
       } else if (error.request) {
         errorMessage = 'No response from server. Please check your internet connection.';
       }
-      
+
       Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
@@ -588,37 +606,56 @@ const EmployeesScreen = () => {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-      }}
-    >
+      }}>
       <View>
         <Text style={{ fontSize: 16, fontWeight: 'bold' }}>{item.name}</Text>
         <Text style={{ color: 'gray' }}>ID: {item.employee_id}</Text>
         <Text style={{ color: 'gray' }}>Role: {item.role}</Text>
         <Text style={{ color: 'gray' }}>Department: {item.department}</Text>
       </View>
-      { !readOnly && (
-      <View style={{ flexDirection: 'row', gap: 10 }}>
-        <Pressable onPress={() => handleEditEmployee(item)}>
-          <MaterialIcons name="edit" size={20} color="#4A90E2" />
-        </Pressable>
-        <Pressable onPress={() => { setSelectedEmployee(item); setShowDeleteModal(true); }}>
-          <MaterialIcons name="delete" size={20} color="#FF6B6B" />
-        </Pressable>
-      </View>
+      {!readOnly && (
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <Pressable onPress={() => handleEditEmployee(item)}>
+            <MaterialIcons name="edit" size={20} color="#4A90E2" />
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              setSelectedEmployee(item);
+              setShowDeleteModal(true);
+            }}>
+            <MaterialIcons name="delete" size={20} color="#FF6B6B" />
+          </Pressable>
+        </View>
       )}
     </View>
   );
 
   const renderAddModal = () => (
-    <Modal visible={showAddModal} transparent animationType="slide" onRequestClose={() => setShowAddModal(false)}>
+    <Modal
+      visible={showAddModal}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setShowAddModal(false)}>
       <TouchableOpacity
         activeOpacity={1}
         style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}
-        onPress={() => setShowAddModal(false)}
-      >
+        onPress={() => setShowAddModal(false)}>
         <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
-          <ScrollView style={{ backgroundColor: 'white', padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '90%' }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <ScrollView
+            style={{
+              backgroundColor: 'white',
+              padding: 20,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              maxHeight: '90%',
+            }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 16,
+              }}>
               <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Add Employee</Text>
               <TouchableOpacity onPress={() => setShowAddModal(false)}>
                 <MaterialIcons name="close" size={24} color="#666" />
@@ -654,21 +691,25 @@ const EmployeesScreen = () => {
             <Text>Gender *</Text>
             <View style={styles.radioGroup}>
               <Pressable
-                style={[styles.radioButton, newEmployee.gender === 'Male' && styles.radioButtonSelected]}
+                style={[
+                  styles.radioButton,
+                  newEmployee.gender === 'Male' && styles.radioButtonSelected,
+                ]}
                 onPress={() => {
                   setNewEmployee({ ...newEmployee, gender: 'Male' });
                   if (errors.gender) setErrors({ ...errors, gender: undefined });
-                }}
-              >
+                }}>
                 <Text>Male</Text>
               </Pressable>
               <Pressable
-                style={[styles.radioButton, newEmployee.gender === 'Female' && styles.radioButtonSelected]}
+                style={[
+                  styles.radioButton,
+                  newEmployee.gender === 'Female' && styles.radioButtonSelected,
+                ]}
                 onPress={() => {
                   setNewEmployee({ ...newEmployee, gender: 'Female' });
                   if (errors.gender) setErrors({ ...errors, gender: undefined });
-                }}
-              >
+                }}>
                 <Text>Female</Text>
               </Pressable>
             </View>
@@ -693,7 +734,9 @@ const EmployeesScreen = () => {
             <Text>Age</Text>
             <TextInput
               value={newEmployee.age?.toString() || ''}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, age: parseInt(text) || null })}
+              onChangeText={(text) =>
+                setNewEmployee({ ...newEmployee, age: parseInt(text) || null })
+              }
               placeholder="Enter age"
               keyboardType="numeric"
               style={styles.input}
@@ -720,40 +763,49 @@ const EmployeesScreen = () => {
               value={newEmployee.contact_mobile_no}
               onChangeText={(text) => {
                 setNewEmployee({ ...newEmployee, contact_mobile_no: text });
-                if (errors.contact_mobile_no) setErrors({ ...errors, contact_mobile_no: undefined });
+                if (errors.contact_mobile_no)
+                  setErrors({ ...errors, contact_mobile_no: undefined });
               }}
               placeholder="Enter mobile number"
               keyboardType="phone-pad"
               maxLength={10}
               style={[styles.input, errors.contact_mobile_no && styles.inputError]}
             />
-            {errors.contact_mobile_no && <Text style={styles.errorText}>{errors.contact_mobile_no}</Text>}
+            {errors.contact_mobile_no && (
+              <Text style={styles.errorText}>{errors.contact_mobile_no}</Text>
+            )}
 
             <Text>Emergency Contact Name *</Text>
             <TextInput
               value={newEmployee.emergency_contact_name}
               onChangeText={(text) => {
                 setNewEmployee({ ...newEmployee, emergency_contact_name: text });
-                if (errors.emergency_contact_name) setErrors({ ...errors, emergency_contact_name: undefined });
+                if (errors.emergency_contact_name)
+                  setErrors({ ...errors, emergency_contact_name: undefined });
               }}
               placeholder="Enter emergency contact name"
               style={[styles.input, errors.emergency_contact_name && styles.inputError]}
             />
-            {errors.emergency_contact_name && <Text style={styles.errorText}>{errors.emergency_contact_name}</Text>}
+            {errors.emergency_contact_name && (
+              <Text style={styles.errorText}>{errors.emergency_contact_name}</Text>
+            )}
 
             <Text>Emergency Contact Phone *</Text>
             <TextInput
               value={newEmployee.emergency_contact_phone}
               onChangeText={(text) => {
                 setNewEmployee({ ...newEmployee, emergency_contact_phone: text });
-                if (errors.emergency_contact_phone) setErrors({ ...errors, emergency_contact_phone: undefined });
+                if (errors.emergency_contact_phone)
+                  setErrors({ ...errors, emergency_contact_phone: undefined });
               }}
               placeholder="Enter emergency contact"
               keyboardType="phone-pad"
               maxLength={10}
               style={[styles.input, errors.emergency_contact_phone && styles.inputError]}
             />
-            {errors.emergency_contact_phone && <Text style={styles.errorText}>{errors.emergency_contact_phone}</Text>}
+            {errors.emergency_contact_phone && (
+              <Text style={styles.errorText}>{errors.emergency_contact_phone}</Text>
+            )}
 
             {/* Address Information */}
             <Text style={styles.sectionTitle}>Address Information</Text>
@@ -954,7 +1006,9 @@ const EmployeesScreen = () => {
             <Text>Account Holder Name</Text>
             <TextInput
               value={newEmployee.bank_account_holder_name}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, bank_account_holder_name: text })}
+              onChangeText={(text) =>
+                setNewEmployee({ ...newEmployee, bank_account_holder_name: text })
+              }
               placeholder="Enter account holder name"
               style={styles.input}
             />
@@ -963,8 +1017,7 @@ const EmployeesScreen = () => {
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
               onPress={handleAddEmployee}
-              disabled={loading}
-            >
+              disabled={loading}>
               {loading ? (
                 <ActivityIndicator color="white" />
               ) : (
@@ -987,13 +1040,12 @@ const EmployeesScreen = () => {
             backgroundColor: configFile.colorGreen,
           },
           headerTintColor: 'white',
-          headerRight: () => (
+          headerRight: () =>
             !readOnly && (
-            <Pressable onPress={() => setShowAddModal(true)} style={{ marginRight: 16 }}>
-              <MaterialIcons name="add" size={24} color="white" />
-            </Pressable>
-            )
-          ),
+              <Pressable onPress={() => setShowAddModal(true)} style={{ marginRight: 16 }}>
+                <MaterialIcons name="add" size={24} color="white" />
+              </Pressable>
+            ),
         }}
       />
 
@@ -1012,43 +1064,74 @@ const EmployeesScreen = () => {
         />
       )}
 
-      { !readOnly && renderAddModal() }
+      {!readOnly && renderAddModal()}
 
       {/* Edit Modal */}
-      { !readOnly && showEditModal && (
-        <Modal visible={showEditModal} transparent animationType="slide" onRequestClose={() => setShowEditModal(false)}>
-          <TouchableOpacity activeOpacity={1} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={() => setShowEditModal(false)}>
+      {!readOnly && showEditModal && (
+        <Modal
+          visible={showEditModal}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowEditModal(false)}>
+          <TouchableOpacity
+            activeOpacity={1}
+            style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}
+            onPress={() => setShowEditModal(false)}>
             <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
-              <ScrollView style={{ backgroundColor: 'white', padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '80%' }}>
-                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>Edit Employee</Text>
+              <ScrollView
+                style={{
+                  backgroundColor: 'white',
+                  padding: 20,
+                  borderTopLeftRadius: 20,
+                  borderTopRightRadius: 20,
+                  maxHeight: '80%',
+                }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>
+                  Edit Employee
+                </Text>
                 {/* Basic Information */}
                 <Text style={styles.sectionTitle}>Basic Information</Text>
                 <Text>Employee ID</Text>
                 <TextInput
                   value={selectedEmployee?.employee_id}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, employee_id: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, employee_id: text })
+                  }
                   placeholder="Enter employee ID"
                   style={styles.input}
                 />
                 <Text>Name</Text>
                 <TextInput
                   value={selectedEmployee?.name}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, name: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee && setSelectedEmployee({ ...selectedEmployee, name: text })
+                  }
                   placeholder="Enter name"
                   style={styles.input}
                 />
                 <Text>Gender</Text>
                 <View style={styles.radioGroup}>
                   <Pressable
-                    style={[styles.radioButton, selectedEmployee?.gender === 'Male' && styles.radioButtonSelected]}
-                    onPress={() => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, gender: 'Male' })}
-                  >
+                    style={[
+                      styles.radioButton,
+                      selectedEmployee?.gender === 'Male' && styles.radioButtonSelected,
+                    ]}
+                    onPress={() =>
+                      selectedEmployee &&
+                      setSelectedEmployee({ ...selectedEmployee, gender: 'Male' })
+                    }>
                     <Text>Male</Text>
                   </Pressable>
                   <Pressable
-                    style={[styles.radioButton, selectedEmployee?.gender === 'Female' && styles.radioButtonSelected]}
-                    onPress={() => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, gender: 'Female' })}
-                  >
+                    style={[
+                      styles.radioButton,
+                      selectedEmployee?.gender === 'Female' && styles.radioButtonSelected,
+                    ]}
+                    onPress={() =>
+                      selectedEmployee &&
+                      setSelectedEmployee({ ...selectedEmployee, gender: 'Female' })
+                    }>
                     <Text>Female</Text>
                   </Pressable>
                 </View>
@@ -1057,7 +1140,10 @@ const EmployeesScreen = () => {
                 <Text>Email</Text>
                 <TextInput
                   value={selectedEmployee?.contact_email}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, contact_email: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, contact_email: text })
+                  }
                   placeholder="Enter email"
                   keyboardType="email-address"
                   style={styles.input}
@@ -1065,7 +1151,10 @@ const EmployeesScreen = () => {
                 <Text>Mobile Number</Text>
                 <TextInput
                   value={selectedEmployee?.contact_mobile_no}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, contact_mobile_no: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, contact_mobile_no: text })
+                  }
                   placeholder="Enter mobile number"
                   keyboardType="phone-pad"
                   maxLength={10}
@@ -1074,14 +1163,20 @@ const EmployeesScreen = () => {
                 <Text>Emergency Contact Name</Text>
                 <TextInput
                   value={selectedEmployee?.emergency_contact_name}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, emergency_contact_name: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, emergency_contact_name: text })
+                  }
                   placeholder="Enter emergency contact name"
                   style={styles.input}
                 />
                 <Text>Emergency Contact Phone</Text>
                 <TextInput
                   value={selectedEmployee?.emergency_contact_phone}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, emergency_contact_phone: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, emergency_contact_phone: text })
+                  }
                   placeholder="Enter emergency contact"
                   keyboardType="phone-pad"
                   maxLength={10}
@@ -1092,56 +1187,80 @@ const EmployeesScreen = () => {
                 <Text>Country</Text>
                 <TextInput
                   value={selectedEmployee?.address_country}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_country: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, address_country: text })
+                  }
                   placeholder="Enter country"
                   style={styles.input}
                 />
                 <Text>State</Text>
                 <TextInput
                   value={selectedEmployee?.address_state}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_state: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, address_state: text })
+                  }
                   placeholder="Enter state"
                   style={styles.input}
                 />
                 <Text>District</Text>
                 <TextInput
                   value={selectedEmployee?.address_district}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_district: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, address_district: text })
+                  }
                   placeholder="Enter district"
                   style={styles.input}
                 />
                 <Text>Post Office</Text>
                 <TextInput
                   value={selectedEmployee?.address_po}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_po: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, address_po: text })
+                  }
                   placeholder="Enter post office"
                   style={styles.input}
                 />
                 <Text>Street</Text>
                 <TextInput
                   value={selectedEmployee?.address_street}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_street: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, address_street: text })
+                  }
                   placeholder="Enter street"
                   style={styles.input}
                 />
                 <Text>House Number</Text>
                 <TextInput
                   value={selectedEmployee?.address_house}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_house: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, address_house: text })
+                  }
                   placeholder="Enter house number"
                   style={styles.input}
                 />
                 <Text>Landmark</Text>
                 <TextInput
                   value={selectedEmployee?.address_landmark}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_landmark: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, address_landmark: text })
+                  }
                   placeholder="Enter landmark"
                   style={styles.input}
                 />
                 <Text>ZIP Code</Text>
                 <TextInput
                   value={selectedEmployee?.address_zip}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_zip: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, address_zip: text })
+                  }
                   placeholder="Enter ZIP code"
                   keyboardType="numeric"
                   style={styles.input}
@@ -1151,50 +1270,59 @@ const EmployeesScreen = () => {
                 <Text>Role</Text>
                 <TextInput
                   value={selectedEmployee?.role}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, role: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee && setSelectedEmployee({ ...selectedEmployee, role: text })
+                  }
                   placeholder="Enter role"
                   style={styles.input}
                 />
                 <Text>Department</Text>
                 <TextInput
                   value={selectedEmployee?.department}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, department: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, department: text })
+                  }
                   placeholder="Enter department"
                   style={styles.input}
                 />
                 <Text>Designation</Text>
                 <TextInput
                   value={selectedEmployee?.designation}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, designation: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, designation: text })
+                  }
                   placeholder="Enter designation"
                   style={styles.input}
                 />
                 <Text>Branch</Text>
                 <TextInput
                   value={selectedEmployee?.branch}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, branch: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee && setSelectedEmployee({ ...selectedEmployee, branch: text })
+                  }
                   placeholder="Enter branch"
                   style={styles.input}
                 />
                 <Text>Reporting Manager</Text>
                 <TextInput
                   value={selectedEmployee?.reporting}
-                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, reporting: text })}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, reporting: text })
+                  }
                   placeholder="Enter reporting manager"
                   style={styles.input}
                 />
                 <View style={styles.buttonContainer}>
-                  <Pressable
-                    onPress={() => setShowEditModal(false)}
-                    style={styles.cancelButton}
-                  >
+                  <Pressable onPress={() => setShowEditModal(false)} style={styles.cancelButton}>
                     <Text style={styles.cancelButtonText}>Cancel</Text>
                   </Pressable>
                   <Pressable
                     onPress={handleUpdateEmployee}
                     style={styles.addButton}
-                    disabled={loading}
-                  >
+                    disabled={loading}>
                     {loading ? (
                       <ActivityIndicator color="white" />
                     ) : (
@@ -1209,18 +1337,45 @@ const EmployeesScreen = () => {
       )}
 
       {/* Delete Modal */}
-      { !readOnly && showDeleteModal && (
-        <Modal visible={showDeleteModal} transparent animationType="slide" onRequestClose={() => setShowDeleteModal(false)}>
-          <TouchableOpacity activeOpacity={1} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={() => setShowDeleteModal(false)}>
+      {!readOnly && showDeleteModal && (
+        <Modal
+          visible={showDeleteModal}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowDeleteModal(false)}>
+          <TouchableOpacity
+            activeOpacity={1}
+            style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}
+            onPress={() => setShowDeleteModal(false)}>
             <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
-              <View style={{ backgroundColor: 'white', padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
-                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12 }}>Delete Employee</Text>
-                <Text style={{ marginBottom: 12 }}>Are you sure you want to delete {selectedEmployee?.name}?</Text>
+              <View
+                style={{
+                  backgroundColor: 'white',
+                  padding: 20,
+                  borderTopLeftRadius: 20,
+                  borderTopRightRadius: 20,
+                }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12 }}>
+                  Delete Employee
+                </Text>
+                <Text style={{ marginBottom: 12 }}>
+                  Are you sure you want to delete {selectedEmployee?.name}?
+                </Text>
                 <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-                  <Pressable onPress={() => setShowDeleteModal(false)} style={{ marginRight: 12, borderWidth: 1, borderColor: '#FF6B6B', padding: 10, borderRadius: 6 }}>
+                  <Pressable
+                    onPress={() => setShowDeleteModal(false)}
+                    style={{
+                      marginRight: 12,
+                      borderWidth: 1,
+                      borderColor: '#FF6B6B',
+                      padding: 10,
+                      borderRadius: 6,
+                    }}>
                     <Text style={{ color: '#FF6B6B' }}>Cancel</Text>
                   </Pressable>
-                  <Pressable onPress={handleDeleteEmployee} style={{ backgroundColor: '#FF6B6B', padding: 10, borderRadius: 6 }}>
+                  <Pressable
+                    onPress={handleDeleteEmployee}
+                    style={{ backgroundColor: '#FF6B6B', padding: 10, borderRadius: 6 }}>
                     <Text style={{ color: 'white' }}>Delete</Text>
                   </Pressable>
                 </View>
@@ -1302,8 +1457,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
     marginVertical: 30,
-    
-
   },
   cancelButton: {
     paddingHorizontal: 40,
