@@ -132,6 +132,7 @@ export class Api {
 
           if (api.data.smsResponse) {
             options.setIsOtp(true);
+            options.setOtpToNumber(api.data.smsResponse.phoneNumber);
             return;
           } else {
             router.replace({ pathname: '/ApiContex/fetchNparse', params: { role } });
@@ -215,8 +216,14 @@ export class Api {
       switch (api.status) {
         case 200:
           let status = api.data.status.toLowerCase();
-          status = 'inacitve';
+          let role = api.data.role.toLowerCase();
           if (status == 'active') {
+            if (role == 'employee') {
+              router.replace('/(tabs)/dashboard');
+              return;
+            }
+            router.replace('/(admin)/home');
+            return;
           } else {
             router.replace('/quarantine');
           }

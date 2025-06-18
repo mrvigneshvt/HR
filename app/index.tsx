@@ -97,62 +97,62 @@ export default function LoginPage() {
     }
   };
 
-  const checkToken = async () => {
-    const token = await SecureStore.getItemAsync('STOKEN');
-    console.log(token, 'tokennnnnn');
-    if (!token) {
-      return;
-    }
-    let isVerified = await Api.verifyToken(token);
-    console.log(isVerified);
+  // const checkToken = async () => {
+  //   const token = await SecureStore.getItemAsync('STOKEN');
+  //   console.log(token, 'tokennnnnn');
+  //   if (!token) {
+  //     return;
+  //   }
+  //   let isVerified = await Api.verifyToken(token);
+  //   console.log(isVerified);
 
-    if (!isVerified) {
-      //await SecureStore.deleteItemAsync('STOKEN');
-      return;
-    }
+  //   if (!isVerified) {
+  //     //await SecureStore.deleteItemAsync('STOKEN');
+  //     return;
+  //   }
 
-    console.log('IsVerifiedddd', isVerified);
-    router.replace({
-      pathname: '/ApiContex/fetchNparse',
-      params: {
-        data: JSON.stringify(isVerified.data),
-      },
-    });
-  };
+  //   console.log('IsVerifiedddd', isVerified);
+  //   router.replace({
+  //     pathname: '/ApiContex/fetchNparse',
+  //     params: {
+  //       data: JSON.stringify(isVerified.data),
+  //     },
+  //   });
+  // };
 
-  useEffect(() => {
-    checkToken();
-  }, []);
+  // useEffect(() => {
+  //   checkToken();
+  // }, []);
 
-  useEffect(() => {
-    setTimeout(() => {
-      router.replace({
-        // pathname: '/(tabs)/dashboard',
-        pathname: '/(admin)/home',
-        params: {
-          data: JSON.stringify({
-            __v: 0,
-            _id: '6836d2fb5412bdf9177fc475',
-            createdAt: '2025-05-28T09:10:19.743Z',
-            department: 'Engineering',
-            designation: 'Junior',
-            dob: '1970-01-01T00:00:37.272Z',
-            doj: '1970-01-01T00:00:45.800Z',
-            email: 'ajay@gmail.com',
-            empId: 'EMP105',
-            gender: 'Male',
-            guardianName: 'Selva',
-            inAppRole: 'Employee',
-            mobile: '8348346334',
-            name: 'Ajay',
-            role: 'Supervisor',
-            status: 'Active',
-            updatedAt: '2025-05-28T09:10:19.743Z',
-          }),
-        },
-      });
-    }, 50);
-  }, []);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     router.replace({
+  //       // pathname: '/(tabs)/dashboard',
+  //       pathname: '/(admin)/home',
+  //       params: {
+  //         data: JSON.stringify({
+  //           __v: 0,
+  //           _id: '6836d2fb5412bdf9177fc475',
+  //           createdAt: '2025-05-28T09:10:19.743Z',
+  //           department: 'Engineering',
+  //           designation: 'Junior',
+  //           dob: '1970-01-01T00:00:37.272Z',
+  //           doj: '1970-01-01T00:00:45.800Z',
+  //           email: 'ajay@gmail.com',
+  //           empId: 'EMP105',
+  //           gender: 'Male',
+  //           guardianName: 'Selva',
+  //           inAppRole: 'Employee',
+  //           mobile: '8348346334',
+  //           name: 'Ajay',
+  //           role: 'Supervisor',
+  //           status: 'Active',
+  //           updatedAt: '2025-05-28T09:10:19.743Z',
+  //         }),
+  //       },
+  //     });
+  //   }, 50);
+  // }, []);
 
   return (
     <>
