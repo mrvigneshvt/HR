@@ -12,6 +12,7 @@
     "dev": "expo start --dev-client --android --clear"
   },
   "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/datetimepicker": "8.2.0",
     "@react-native-community/netinfo": "^11.4.1",
     "@react-native-picker/picker": "2.9.0",
