@@ -217,15 +217,16 @@ export class Api {
         case 200:
           let status = api.data.status.toLowerCase();
           let role = api.data.role.toLowerCase();
+          console.log(status, '////', role);
           if (status == 'active') {
             if (role == 'employee') {
-              router.replace('/(tabs)/dashboard');
+              router.replace('/quarantine');
               return;
             }
             // router.replace('/(admin)/home');
             router.replace({
               pathname: '/(admin)/home',
-              params: { role },
+              params: { role, empId: api.data.employee_id },
             });
             return;
           } else {

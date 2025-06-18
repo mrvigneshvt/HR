@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Modal, Pressable, StyleSheet, ScrollView } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { BackHandler } from 'react-native';
 import SearchBar from '../../../components/search';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AdminCalendar from '../../../components/adminCalendar';
@@ -59,6 +60,7 @@ const AttendanceScreen = () => {
   const [attendanceSummary, setAttendanceSummary] = useState<AttendanceResponse['summary'] | null>(null);
   const params = useLocalSearchParams();
   const role = params.role as string | undefined;
+  const empId = params.empId as string | undefined;
   const readOnly = isReadOnlyRole(role);
   console.log('AttendanceScreen readOnly:', readOnly, 'role:', role);
 
@@ -164,6 +166,18 @@ const AttendanceScreen = () => {
       </View>
     );
   }
+
+  useEffect(() => {
+    const onBackPress = () => {
+      router.replace({
+        pathname: '/home',
+        params: { role, empId },
+      });
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, [role, empId]);
 
   return (
     <View style={styles.container}>

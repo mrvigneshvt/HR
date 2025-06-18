@@ -8,6 +8,8 @@ import { requestsService, UniformRequest, LeaveRequest, LeaveRequestAddPayload }
 import UniformRequestForm from '../../../components/UniformRequestForm';
 import LeaveRequestForm from '../../../components/LeaveRequestForm';
 import { isReadOnlyRole } from 'utils/roleUtils';
+import { BackHandler } from 'react-native';
+import { router } from 'expo-router';
 
 const RequestsScreen = () => {
   const [activeTab, setActiveTab] = useState('uniform');
@@ -55,6 +57,7 @@ const RequestsScreen = () => {
 
   const params = useLocalSearchParams();
   const role = params.role as string | undefined;
+  const empId = params.empId as string | undefined;
   const readOnly = isReadOnlyRole(role);
   console.log('RequestsScreen readOnly:', readOnly, 'role:', role);
 
@@ -489,6 +492,18 @@ const RequestsScreen = () => {
     req.employeeName.toLowerCase().includes(search.toLowerCase()) ||
     req.employeeId.toLowerCase().includes(search.toLowerCase())
   );
+
+  useEffect(() => {
+    const onBackPress = () => {
+      router.replace({
+        pathname: '/home',
+        params: { role, empId },
+      });
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, [role, empId]);
 
   return (
     <View className="flex-1 bg-gray-50">

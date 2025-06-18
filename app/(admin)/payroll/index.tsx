@@ -14,6 +14,8 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AdminCalendar from '../../../components/adminCalendar';
 import { configFile } from 'config';
 import { isReadOnlyRole } from 'utils/roleUtils';
+import { BackHandler } from 'react-native';
+import { router } from 'expo-router';
 
 const PayrollScreen = () => {
   const [loading, setLoading] = useState(true);
@@ -26,6 +28,7 @@ const PayrollScreen = () => {
 
   const params = useLocalSearchParams();
   const role = params.role as string | undefined;
+  const empId = params.empId as string | undefined;
   const readOnly = isReadOnlyRole(role);
   console.log('PayrollScreen readOnly:', readOnly, 'role:', role);
 
@@ -63,6 +66,18 @@ const PayrollScreen = () => {
   };
 
   if (loading) return <ActivityIndicator color="#4A90E2" size="large" />;
+
+  useEffect(() => {
+    const onBackPress = () => {
+      router.replace({
+        pathname: '/home',
+        params: { role, empId },
+      });
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, [role, empId]);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F9F9F9' }}>

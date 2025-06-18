@@ -1,4 +1,14 @@
-import { View, Text, Pressable, ScrollView, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  Modal,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { configFile } from '../../../config';
@@ -7,6 +17,9 @@ import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import SearchBar from 'components/search';
 import { clientService, Client } from '../../../services/clientService';
 import { validateClientForm, ValidationErrors } from '../../../utils/validation';
+import { BackHandler } from 'react-native';
+import { router } from 'expo-router';
+
 import { isReadOnlyRole } from 'utils/roleUtils';
 
 const ClientsScreen = () => {
@@ -31,13 +44,14 @@ const ClientsScreen = () => {
     status: 'Active',
     checkIn: '',
     lunch_time: '',
-    check_out: ''
+    check_out: '',
   });
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const params = useLocalSearchParams();
   const role = params.role as string | undefined;
+  const empId = params.empId as string | undefined;
   const readOnly = isReadOnlyRole(role);
   console.log('ClientsScreen readOnly:', readOnly, 'role:', role);
 
@@ -58,10 +72,10 @@ const ClientsScreen = () => {
   };
 
   const handleInputChange = (field: keyof Client, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
 
@@ -78,7 +92,7 @@ const ClientsScreen = () => {
         await clientService.updateClient(selectedClient.id, formData as Omit<Client, 'id'>);
         Alert.alert('Success', 'Client updated successfully!');
       } else {
-        console.log(formData,"formData")
+        console.log(formData, 'formData');
         await clientService.addClient(formData as Omit<Client, 'id'>);
         Alert.alert('Success', 'Client added successfully!');
       }
@@ -99,7 +113,7 @@ const ClientsScreen = () => {
         status: 'Active',
         checkIn: '',
         lunch_time: '',
-        check_out: ''
+        check_out: '',
       });
     } catch (error) {
       console.error('Error saving client:', error);
@@ -134,7 +148,12 @@ const ClientsScreen = () => {
       client.location.toLowerCase().includes(search.toLowerCase())
   );
 
-  const renderFormField = (label: string, field: keyof Client, placeholder: string, keyboardType: 'default' | 'numeric' = 'default') => (
+  const renderFormField = (
+    label: string,
+    field: keyof Client,
+    placeholder: string,
+    keyboardType: 'default' | 'numeric' = 'default'
+  ) => (
     <View className="mb-4">
       <Text className="mb-1 text-sm font-medium text-gray-700">{label}</Text>
       <TextInput
@@ -153,31 +172,33 @@ const ClientsScreen = () => {
       <View className="p-4">
         <View className="flex-row items-center justify-between">
           <View>
-            <Text className="text-xl font-bold text-gray-800 truncate w-[200px]">{client.clientName}</Text>
-            <Text className="text-gray-600 truncate w-[200px]">Company: {client.companyName}</Text>
-            <Text className="text-gray-600 truncate w-[200px]">Location: {client.location}</Text>
-            <Text className="text-gray-600 truncate w-[200px]">Status: {client.status}</Text>
+            <Text className="w-[200px] truncate text-xl font-bold text-gray-800">
+              {client.clientName}
+            </Text>
+            <Text className="w-[200px] truncate text-gray-600">Company: {client.companyName}</Text>
+            <Text className="w-[200px] truncate text-gray-600">Location: {client.location}</Text>
+            <Text className="w-[200px] truncate text-gray-600">Status: {client.status}</Text>
           </View>
-          { !readOnly && (
-          <View className="flex-row gap-2">
-            <Pressable
-              onPress={() => {
-                setSelectedClient(client);
-                setFormData(client);
-                setShowEditModal(true);
-              }}
-              className="rounded-full bg-blue-100 p-2">
-              <MaterialIcons name="edit" size={20} color="#4A90E2" />
-            </Pressable>
-            <Pressable
-              onPress={() => {
-                setSelectedClient(client);
-                setShowDeleteModal(true);
-              }}
-              className="rounded-full bg-red-100 p-2">
-              <MaterialIcons name="delete" size={20} color="#FF6B6B" />
-            </Pressable>
-          </View>
+          {!readOnly && (
+            <View className="flex-row gap-2">
+              <Pressable
+                onPress={() => {
+                  setSelectedClient(client);
+                  setFormData(client);
+                  setShowEditModal(true);
+                }}
+                className="rounded-full bg-blue-100 p-2">
+                <MaterialIcons name="edit" size={20} color="#4A90E2" />
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setSelectedClient(client);
+                  setShowDeleteModal(true);
+                }}
+                className="rounded-full bg-red-100 p-2">
+                <MaterialIcons name="delete" size={20} color="#FF6B6B" />
+              </Pressable>
+            </View>
           )}
         </View>
       </View>
@@ -189,15 +210,15 @@ const ClientsScreen = () => {
       visible={isEdit ? showEditModal : showAddModal}
       transparent
       animationType="slide"
-      onRequestClose={() => isEdit ? setShowEditModal(false) : setShowAddModal(false)}>
+      onRequestClose={() => (isEdit ? setShowEditModal(false) : setShowAddModal(false))}>
       <TouchableOpacity
         className="flex-1 justify-end bg-black/50"
         activeOpacity={1}
-        onPress={() => isEdit ? setShowEditModal(false) : setShowAddModal(false)}>
+        onPress={() => (isEdit ? setShowEditModal(false) : setShowAddModal(false))}>
         <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
           <ScrollView className="max-h-[90vh] rounded-t-3xl bg-white p-6">
             <Text className="mb-4 text-xl font-bold">{isEdit ? 'Edit Client' : 'Add Client'}</Text>
-            
+
             {renderFormField('Client Name', 'clientName', 'Enter client name')}
             {renderFormField('Company Name', 'companyName', 'Enter company name')}
             {renderFormField('Phone Number', 'phoneNumber', 'Enter phone number', 'numeric')}
@@ -208,19 +229,25 @@ const ClientsScreen = () => {
             {renderFormField('Location', 'location', 'Enter location')}
             {renderFormField('Latitude', 'latitude', 'Enter latitude', 'numeric')}
             {renderFormField('Longitude', 'longitude', 'Enter longitude', 'numeric')}
-            
+
             <View className="mb-4">
               <Text className="mb-1 text-sm font-medium text-gray-700">Status</Text>
               <View className="flex-row gap-4">
                 <Pressable
                   onPress={() => handleInputChange('status', 'Active')}
                   className={`flex-1 rounded-lg border p-2 ${formData.status === 'Active' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}>
-                  <Text className={`text-center ${formData.status === 'Active' ? 'text-blue-500' : 'text-gray-500'}`}>Active</Text>
+                  <Text
+                    className={`text-center ${formData.status === 'Active' ? 'text-blue-500' : 'text-gray-500'}`}>
+                    Active
+                  </Text>
                 </Pressable>
                 <Pressable
                   onPress={() => handleInputChange('status', 'Inactive')}
                   className={`flex-1 rounded-lg border p-2 ${formData.status === 'Inactive' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'}`}>
-                  <Text className={`text-center ${formData.status === 'Inactive' ? 'text-blue-500' : 'text-gray-500'}`}>Inactive</Text>
+                  <Text
+                    className={`text-center ${formData.status === 'Inactive' ? 'text-blue-500' : 'text-gray-500'}`}>
+                    Inactive
+                  </Text>
                 </Pressable>
               </View>
             </View>
@@ -229,9 +256,9 @@ const ClientsScreen = () => {
             {renderFormField('Lunch Time', 'lunch_time', 'HH:MM:SS')}
             {renderFormField('Check-out Time', 'check_out', 'HH:MM:SS')}
 
-            <View className="flex-row justify-between mt-3 mb-10">
+            <View className="mb-10 mt-3 flex-row justify-between">
               <Pressable
-                onPress={() => isEdit ? setShowEditModal(false) : setShowAddModal(false)}
+                onPress={() => (isEdit ? setShowEditModal(false) : setShowAddModal(false))}
                 className="rounded-lg bg-gray-200 px-10 py-2"
                 disabled={isSubmitting}>
                 <Text>Cancel</Text>
@@ -292,11 +319,24 @@ const ClientsScreen = () => {
       </TouchableOpacity>
     </Modal>
   );
+
+  useEffect(() => {
+    const onBackPress = () => {
+      router.replace({
+        pathname: '/home',
+        params: { role, empId },
+      });
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, [role, empId]);
+
   return (
     <View className="flex-1 bg-gray-50">
       {/* <Stack.Screen
         options={{
-          headerShown: true,
+          headesrShown: true,
           title: 'Clients',
           // headerStyle: {
           //   backgroundColor: configFile.colorGreen,
@@ -317,34 +357,35 @@ const ClientsScreen = () => {
             backgroundColor: configFile.colorGreen,
           },
           headerTintColor: 'white',
-          headerRight: () => (
+          headerRight: () =>
             !readOnly && (
-            <Pressable onPress={() => {setShowAddModal(true)
-              setFormData({
-                clientName: '',
-                companyName: '',
-                phoneNumber: '',
-                gstNumber: '',
-                site: '',
-                branch: '',
-                address: '',
-                location: '',
-                latitude: '',
-                longitude: '',
-                status: 'Active',
-                checkIn: '',
-                lunch_time: '',
-                check_out: ''
-              });
-            }} style={{ marginRight: 16 }}>
-              <MaterialIcons name="add" size={24} color="white" />
-            </Pressable>
-            )
-          ),
+              <Pressable
+                onPress={() => {
+                  setShowAddModal(true);
+                  setFormData({
+                    clientName: '',
+                    companyName: '',
+                    phoneNumber: '',
+                    gstNumber: '',
+                    site: '',
+                    branch: '',
+                    address: '',
+                    location: '',
+                    latitude: '',
+                    longitude: '',
+                    status: 'Active',
+                    checkIn: '',
+                    lunch_time: '',
+                    check_out: '',
+                  });
+                }}
+                style={{ marginRight: 16 }}>
+                <MaterialIcons name="add" size={24} color="white" />
+              </Pressable>
+            ),
         }}
       />
- <SearchBar value={search} onChangeText={setSearch} placeholder="Search employee..." />
-
+      <SearchBar value={search} onChangeText={setSearch} placeholder="Search employee..." />
 
       {/* <SearchBar value={search} onChangeText={setSearch} placeholder="Search client..." /> */}
       {loading ? (
@@ -356,9 +397,9 @@ const ClientsScreen = () => {
           {filteredClients.map((client) => renderClientCard(client))}
         </ScrollView>
       )}
-      { !readOnly && renderFormModal(false) }
-      { !readOnly && renderFormModal(true) }
-      { !readOnly && renderDeleteModal() }
+      {!readOnly && renderFormModal(false)}
+      {!readOnly && renderFormModal(true)}
+      {!readOnly && renderDeleteModal()}
     </View>
   );
 };

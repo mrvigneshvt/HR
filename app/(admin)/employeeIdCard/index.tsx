@@ -8,6 +8,8 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AdminCalendar from '../../../components/adminCalendar'; // Import the calendar component
 import EmployeeIdCardDetail from 'components/employeeIdCardDetails';
 import { isReadOnlyRole } from 'utils/roleUtils';
+import { BackHandler } from 'react-native';
+import { router } from 'expo-router';
 
 const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
   const [loading, setLoading] = useState(true);
@@ -24,6 +26,7 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
 
   const params = useLocalSearchParams();
   const role = params.role as string | undefined;
+  const empId = params.empId as string | undefined;
   const readOnly = isReadOnlyRole(role);
   console.log('EmployeeIdCardScreen readOnly:', readOnly, 'role:', role);
 
@@ -81,6 +84,18 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
   };
 
   if (loading) return <ActivityIndicator color="#4A90E2" size="large" />;
+
+  useEffect(() => {
+    const onBackPress = () => {
+      router.replace({
+        pathname: '/home',
+        params: { role, empId },
+      });
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, [role, empId]);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F9F9F9' }}>
