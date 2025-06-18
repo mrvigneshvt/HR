@@ -222,7 +222,11 @@ export class Api {
               router.replace('/(tabs)/dashboard');
               return;
             }
-            router.replace('/(admin)/home');
+            // router.replace('/(admin)/home');
+            router.replace({
+              pathname: '/(admin)/home',
+              params: { role },
+            });
             return;
           } else {
             router.replace('/quarantine');

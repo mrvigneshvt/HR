@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { View, FlatList, ActivityIndicator, TouchableOpacity, Text, Modal, Pressable, TextInput } from 'react-native';
 import SearchBar from '../../../components/search';
 import FilterIcon from '../../../components/filterIcons';
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { configFile } from 'config';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AdminCalendar from '../../../components/adminCalendar'; // Import the calendar component
 import EmployeeIdCardDetail from 'components/employeeIdCardDetails';
+import { isReadOnlyRole } from 'utils/roleUtils';
 
 const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
   const [loading, setLoading] = useState(true);
@@ -20,6 +21,11 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
 
   // NEW: State to hold selected employee and show detail modal
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
+
+  const params = useLocalSearchParams();
+  const role = params.role as string | undefined;
+  const readOnly = isReadOnlyRole(role);
+  console.log('EmployeeIdCardScreen readOnly:', readOnly, 'role:', role);
 
   useEffect(() => {
     setTimeout(() => {
@@ -88,12 +94,17 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
           headerTintColor: 'white',
           headerRight: () => (
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Pressable onPress={() => setShowFilterModal(true)} style={{ marginRight: 16 }}>
+              {!readOnly && (
+                <Pressable onPress={() => setShowFilterModal(true)} style={{ marginRight: 16 }}>
                 <MaterialIcons name="filter-list" size={24} color="white" />
               </Pressable>
-              <Pressable onPress={() => setShowAddModal(true)}>
-                <MaterialIcons name="add" size={24} color="white" />
-              </Pressable>
+              )}
+              
+              { !readOnly && (
+                <Pressable onPress={() => setShowAddModal(true)}>
+                  <MaterialIcons name="add" size={24} color="white" />
+                </Pressable>
+              )}
             </View>
           ),
         }}
@@ -200,87 +211,89 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
       </Modal>
 
       {/* Add Employee Modal */}
-      <Modal
-        visible={showAddModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowAddModal(false)}
-      >
-        <TouchableOpacity
-          activeOpacity={1}
-          style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}
-          onPress={() => setShowAddModal(false)}
+      { !readOnly && (
+        <Modal
+          visible={showAddModal}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowAddModal(false)}
         >
           <TouchableOpacity
             activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-            style={{ backgroundColor: 'white', padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
+            style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}
+            onPress={() => setShowAddModal(false)}
           >
-            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>Add Employee</Text>
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+              style={{ backgroundColor: 'white', padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
+            >
+              <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>Add Employee</Text>
 
-            {/* Input Fields */}
-            <View style={{ marginBottom: 12 }}>
-              <Text style={{ marginBottom: 4 }}>Name</Text>
-              <TextInput
-                value={newEmployee.name}
-                onChangeText={(text) => setNewEmployee({ ...newEmployee, name: text })}
-                style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 6, padding: 8 }}
-                placeholder="Enter name"
-              />
-            </View>
+              {/* Input Fields */}
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ marginBottom: 4 }}>Name</Text>
+                <TextInput
+                  value={newEmployee.name}
+                  onChangeText={(text) => setNewEmployee({ ...newEmployee, name: text })}
+                  style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 6, padding: 8 }}
+                  placeholder="Enter name"
+                />
+              </View>
 
-            <View style={{ marginBottom: 12 }}>
-              <Text style={{ marginBottom: 4 }}>Emergency Contact</Text>
-              <TextInput
-                value={newEmployee.emergencyContact}
-                onChangeText={(text) => setNewEmployee({ ...newEmployee, emergencyContact: text })}
-                style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 6, padding: 8 }}
-                placeholder="Enter contact number"
-                keyboardType="phone-pad"
-              />
-            </View>
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ marginBottom: 4 }}>Emergency Contact</Text>
+                <TextInput
+                  value={newEmployee.emergencyContact}
+                  onChangeText={(text) => setNewEmployee({ ...newEmployee, emergencyContact: text })}
+                  style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 6, padding: 8 }}
+                  placeholder="Enter contact number"
+                  keyboardType="phone-pad"
+                />
+              </View>
 
-            <View style={{ marginBottom: 12 }}>
-              <Text style={{ marginBottom: 4 }}>ID Card Number</Text>
-              <TextInput
-                value={newEmployee.idCardNumber}
-                onChangeText={(text) => setNewEmployee({ ...newEmployee, idCardNumber: text })}
-                style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 6, padding: 8 }}
-                placeholder="Enter ID card number"
-              />
-            </View>
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ marginBottom: 4 }}>ID Card Number</Text>
+                <TextInput
+                  value={newEmployee.idCardNumber}
+                  onChangeText={(text) => setNewEmployee({ ...newEmployee, idCardNumber: text })}
+                  style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 6, padding: 8 }}
+                  placeholder="Enter ID card number"
+                />
+              </View>
 
-            {/* Actions */}
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16 }}>
-              <Pressable
-                onPress={() => setShowAddModal(false)}
-                style={{
-                  borderColor: '#4A90E2',
-                  borderWidth: 1,
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderRadius: 6,
-                  marginRight: 12,
-                }}
-              >
-                <Text style={{ color: '#4A90E2' }}>Cancel</Text>
-              </Pressable>
+              {/* Actions */}
+              <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 16 }}>
+                <Pressable
+                  onPress={() => setShowAddModal(false)}
+                  style={{
+                    borderColor: '#4A90E2',
+                    borderWidth: 1,
+                    paddingHorizontal: 16,
+                    paddingVertical: 8,
+                    borderRadius: 6,
+                    marginRight: 12,
+                  }}
+                >
+                  <Text style={{ color: '#4A90E2' }}>Cancel</Text>
+                </Pressable>
 
-              <Pressable
-                onPress={handleAddEmployee}
-                style={{
-                  backgroundColor: '#4A90E2',
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderRadius: 6,
-                }}
-              >
-                <Text style={{ color: 'white' }}>Add</Text>
-              </Pressable>
-            </View>
+                <Pressable
+                  onPress={handleAddEmployee}
+                  style={{
+                    backgroundColor: '#4A90E2',
+                    paddingHorizontal: 16,
+                    paddingVertical: 8,
+                    borderRadius: 6,
+                  }}
+                >
+                  <Text style={{ color: 'white' }}>Add</Text>
+                </Pressable>
+              </View>
+            </TouchableOpacity>
           </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+        </Modal>
+      )}
     </View>
   );
 };

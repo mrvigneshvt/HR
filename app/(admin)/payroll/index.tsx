@@ -8,11 +8,12 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import SearchBar from '../../../components/search';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AdminCalendar from '../../../components/adminCalendar';
 import { configFile } from 'config';
+import { isReadOnlyRole } from 'utils/roleUtils';
 
 const PayrollScreen = () => {
   const [loading, setLoading] = useState(true);
@@ -22,6 +23,11 @@ const PayrollScreen = () => {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedPayroll, setSelectedPayroll] = useState<any>(null);
+
+  const params = useLocalSearchParams();
+  const role = params.role as string | undefined;
+  const readOnly = isReadOnlyRole(role);
+  console.log('PayrollScreen readOnly:', readOnly, 'role:', role);
 
   useEffect(() => {
     setTimeout(() => {
@@ -67,9 +73,11 @@ const PayrollScreen = () => {
           headerStyle: { backgroundColor: configFile.colorGreen },
           headerTintColor: 'white',
           headerRight: () => (
-            <Pressable onPress={() => setShowFilterModal(true)} style={{ marginRight: 16 }}>
-              <MaterialIcons name="filter-list" size={24} color="white" />
-            </Pressable>
+            !readOnly && (
+              <Pressable onPress={() => setShowFilterModal(true)} style={{ marginRight: 16 }}>
+                <MaterialIcons name="filter-list" size={24} color="white" />
+              </Pressable>
+            )
           ),
         }}
       />

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, ScrollView, Modal, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Alert, StyleSheet, ViewStyle, TextStyle } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { configFile } from '../../../config';
 import SearchBar from '../../../components/search';
 import axios from 'axios';
+import { isReadOnlyRole } from 'utils/roleUtils';
 
 const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
 
@@ -189,6 +190,11 @@ const initialEmployeeState: Employee = {
 };
 
 const EmployeesScreen = () => {
+  const params = useLocalSearchParams();
+  const role = params.role as string | undefined;
+  const readOnly = isReadOnlyRole(role);
+  console.log('EmployeesScreen readOnly:', readOnly, 'role:', role);
+
   // Add this function to log API details
   const logApiDetails = (method: string, url: string, data?: any) => {
     console.log(`API Call Details:
@@ -590,6 +596,7 @@ const EmployeesScreen = () => {
         <Text style={{ color: 'gray' }}>Role: {item.role}</Text>
         <Text style={{ color: 'gray' }}>Department: {item.department}</Text>
       </View>
+      { !readOnly && (
       <View style={{ flexDirection: 'row', gap: 10 }}>
         <Pressable onPress={() => handleEditEmployee(item)}>
           <MaterialIcons name="edit" size={20} color="#4A90E2" />
@@ -598,6 +605,7 @@ const EmployeesScreen = () => {
           <MaterialIcons name="delete" size={20} color="#FF6B6B" />
         </Pressable>
       </View>
+      )}
     </View>
   );
 
@@ -980,9 +988,11 @@ const EmployeesScreen = () => {
           },
           headerTintColor: 'white',
           headerRight: () => (
+            !readOnly && (
             <Pressable onPress={() => setShowAddModal(true)} style={{ marginRight: 16 }}>
               <MaterialIcons name="add" size={24} color="white" />
             </Pressable>
+            )
           ),
         }}
       />
@@ -1002,240 +1012,223 @@ const EmployeesScreen = () => {
         />
       )}
 
-      {renderAddModal()}
+      { !readOnly && renderAddModal() }
 
       {/* Edit Modal */}
-      <Modal visible={showEditModal} transparent animationType="slide" onRequestClose={() => setShowEditModal(false)}>
-        <TouchableOpacity activeOpacity={1} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={() => setShowEditModal(false)}>
-          <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
-            <ScrollView style={{ backgroundColor: 'white', padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '80%' }}>
-              <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>Edit Employee</Text>
-
-              {/* Basic Information */}
-              <Text style={styles.sectionTitle}>Basic Information</Text>
-              <Text>Employee ID</Text>
-              <TextInput
-                value={selectedEmployee?.employee_id}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, employee_id: text })}
-                placeholder="Enter employee ID"
-                style={styles.input}
-              />
-
-              <Text>Name</Text>
-              <TextInput
-                value={selectedEmployee?.name}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, name: text })}
-                placeholder="Enter name"
-                style={styles.input}
-              />
-
-              <Text>Gender</Text>
-              <View style={styles.radioGroup}>
-                <Pressable
-                  style={[styles.radioButton, selectedEmployee?.gender === 'Male' && styles.radioButtonSelected]}
-                  onPress={() => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, gender: 'Male' })}
-                >
-                  <Text>Male</Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.radioButton, selectedEmployee?.gender === 'Female' && styles.radioButtonSelected]}
-                  onPress={() => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, gender: 'Female' })}
-                >
-                  <Text>Female</Text>
-                </Pressable>
-              </View>
-
-              {/* Contact Information */}
-              <Text style={styles.sectionTitle}>Contact Information</Text>
-              <Text>Email</Text>
-              <TextInput
-                value={selectedEmployee?.contact_email}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, contact_email: text })}
-                placeholder="Enter email"
-                keyboardType="email-address"
-                style={styles.input}
-              />
-
-              <Text>Mobile Number</Text>
-              <TextInput
-                value={selectedEmployee?.contact_mobile_no}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, contact_mobile_no: text })}
-                placeholder="Enter mobile number"
-                keyboardType="phone-pad"
-                maxLength={10}
-                style={styles.input}
-              />
-
-              <Text>Emergency Contact Name</Text>
-              <TextInput
-                value={selectedEmployee?.emergency_contact_name}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, emergency_contact_name: text })}
-                placeholder="Enter emergency contact name"
-                style={styles.input}
-              />
-
-              <Text>Emergency Contact Phone</Text>
-              <TextInput
-                value={selectedEmployee?.emergency_contact_phone}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, emergency_contact_phone: text })}
-                placeholder="Enter emergency contact"
-                keyboardType="phone-pad"
-                maxLength={10}
-                style={styles.input}
-              />
-
-              {/* Address Information */}
-              <Text style={styles.sectionTitle}>Address Information</Text>
-              <Text>Country</Text>
-              <TextInput
-                value={selectedEmployee?.address_country}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_country: text })}
-                placeholder="Enter country"
-                style={styles.input}
-              />
-
-              <Text>State</Text>
-              <TextInput
-                value={selectedEmployee?.address_state}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_state: text })}
-                placeholder="Enter state"
-                style={styles.input}
-              />
-
-              <Text>District</Text>
-              <TextInput
-                value={selectedEmployee?.address_district}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_district: text })}
-                placeholder="Enter district"
-                style={styles.input}
-              />
-
-              <Text>Post Office</Text>
-              <TextInput
-                value={selectedEmployee?.address_po}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_po: text })}
-                placeholder="Enter post office"
-                style={styles.input}
-              />
-
-              <Text>Street</Text>
-              <TextInput
-                value={selectedEmployee?.address_street}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_street: text })}
-                placeholder="Enter street"
-                style={styles.input}
-              />
-
-              <Text>House Number</Text>
-              <TextInput
-                value={selectedEmployee?.address_house}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_house: text })}
-                placeholder="Enter house number"
-                style={styles.input}
-              />
-
-              <Text>Landmark</Text>
-              <TextInput
-                value={selectedEmployee?.address_landmark}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_landmark: text })}
-                placeholder="Enter landmark"
-                style={styles.input}
-              />
-
-              <Text>ZIP Code</Text>
-              <TextInput
-                value={selectedEmployee?.address_zip}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_zip: text })}
-                placeholder="Enter ZIP code"
-                keyboardType="numeric"
-                style={styles.input}
-              />
-
-              {/* Employment Information */}
-              <Text style={styles.sectionTitle}>Employment Information</Text>
-              <Text>Role</Text>
-              <TextInput
-                value={selectedEmployee?.role}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, role: text })}
-                placeholder="Enter role"
-                style={styles.input}
-              />
-
-              <Text>Department</Text>
-              <TextInput
-                value={selectedEmployee?.department}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, department: text })}
-                placeholder="Enter department"
-                style={styles.input}
-              />
-
-              <Text>Designation</Text>
-              <TextInput
-                value={selectedEmployee?.designation}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, designation: text })}
-                placeholder="Enter designation"
-                style={styles.input}
-              />
-
-              <Text>Branch</Text>
-              <TextInput
-                value={selectedEmployee?.branch}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, branch: text })}
-                placeholder="Enter branch"
-                style={styles.input}
-              />
-
-              <Text>Reporting Manager</Text>
-              <TextInput
-                value={selectedEmployee?.reporting}
-                onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, reporting: text })}
-                placeholder="Enter reporting manager"
-                style={styles.input}
-              />
-
-              <View style={styles.buttonContainer}>
-                <Pressable
-                  onPress={() => setShowEditModal(false)}
-                  style={styles.cancelButton}
-                >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
-                </Pressable>
-                <Pressable
-                  onPress={handleUpdateEmployee}
-                  style={styles.addButton}
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <ActivityIndicator color="white" />
-                  ) : (
-                    <Text style={styles.addButtonText}>Save</Text>
-                  )}
-                </Pressable>
-              </View>
-            </ScrollView>
+      { !readOnly && showEditModal && (
+        <Modal visible={showEditModal} transparent animationType="slide" onRequestClose={() => setShowEditModal(false)}>
+          <TouchableOpacity activeOpacity={1} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={() => setShowEditModal(false)}>
+            <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+              <ScrollView style={{ backgroundColor: 'white', padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '80%' }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>Edit Employee</Text>
+                {/* Basic Information */}
+                <Text style={styles.sectionTitle}>Basic Information</Text>
+                <Text>Employee ID</Text>
+                <TextInput
+                  value={selectedEmployee?.employee_id}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, employee_id: text })}
+                  placeholder="Enter employee ID"
+                  style={styles.input}
+                />
+                <Text>Name</Text>
+                <TextInput
+                  value={selectedEmployee?.name}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, name: text })}
+                  placeholder="Enter name"
+                  style={styles.input}
+                />
+                <Text>Gender</Text>
+                <View style={styles.radioGroup}>
+                  <Pressable
+                    style={[styles.radioButton, selectedEmployee?.gender === 'Male' && styles.radioButtonSelected]}
+                    onPress={() => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, gender: 'Male' })}
+                  >
+                    <Text>Male</Text>
+                  </Pressable>
+                  <Pressable
+                    style={[styles.radioButton, selectedEmployee?.gender === 'Female' && styles.radioButtonSelected]}
+                    onPress={() => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, gender: 'Female' })}
+                  >
+                    <Text>Female</Text>
+                  </Pressable>
+                </View>
+                {/* Contact Information */}
+                <Text style={styles.sectionTitle}>Contact Information</Text>
+                <Text>Email</Text>
+                <TextInput
+                  value={selectedEmployee?.contact_email}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, contact_email: text })}
+                  placeholder="Enter email"
+                  keyboardType="email-address"
+                  style={styles.input}
+                />
+                <Text>Mobile Number</Text>
+                <TextInput
+                  value={selectedEmployee?.contact_mobile_no}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, contact_mobile_no: text })}
+                  placeholder="Enter mobile number"
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                  style={styles.input}
+                />
+                <Text>Emergency Contact Name</Text>
+                <TextInput
+                  value={selectedEmployee?.emergency_contact_name}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, emergency_contact_name: text })}
+                  placeholder="Enter emergency contact name"
+                  style={styles.input}
+                />
+                <Text>Emergency Contact Phone</Text>
+                <TextInput
+                  value={selectedEmployee?.emergency_contact_phone}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, emergency_contact_phone: text })}
+                  placeholder="Enter emergency contact"
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                  style={styles.input}
+                />
+                {/* Address Information */}
+                <Text style={styles.sectionTitle}>Address Information</Text>
+                <Text>Country</Text>
+                <TextInput
+                  value={selectedEmployee?.address_country}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_country: text })}
+                  placeholder="Enter country"
+                  style={styles.input}
+                />
+                <Text>State</Text>
+                <TextInput
+                  value={selectedEmployee?.address_state}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_state: text })}
+                  placeholder="Enter state"
+                  style={styles.input}
+                />
+                <Text>District</Text>
+                <TextInput
+                  value={selectedEmployee?.address_district}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_district: text })}
+                  placeholder="Enter district"
+                  style={styles.input}
+                />
+                <Text>Post Office</Text>
+                <TextInput
+                  value={selectedEmployee?.address_po}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_po: text })}
+                  placeholder="Enter post office"
+                  style={styles.input}
+                />
+                <Text>Street</Text>
+                <TextInput
+                  value={selectedEmployee?.address_street}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_street: text })}
+                  placeholder="Enter street"
+                  style={styles.input}
+                />
+                <Text>House Number</Text>
+                <TextInput
+                  value={selectedEmployee?.address_house}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_house: text })}
+                  placeholder="Enter house number"
+                  style={styles.input}
+                />
+                <Text>Landmark</Text>
+                <TextInput
+                  value={selectedEmployee?.address_landmark}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_landmark: text })}
+                  placeholder="Enter landmark"
+                  style={styles.input}
+                />
+                <Text>ZIP Code</Text>
+                <TextInput
+                  value={selectedEmployee?.address_zip}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, address_zip: text })}
+                  placeholder="Enter ZIP code"
+                  keyboardType="numeric"
+                  style={styles.input}
+                />
+                {/* Employment Information */}
+                <Text style={styles.sectionTitle}>Employment Information</Text>
+                <Text>Role</Text>
+                <TextInput
+                  value={selectedEmployee?.role}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, role: text })}
+                  placeholder="Enter role"
+                  style={styles.input}
+                />
+                <Text>Department</Text>
+                <TextInput
+                  value={selectedEmployee?.department}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, department: text })}
+                  placeholder="Enter department"
+                  style={styles.input}
+                />
+                <Text>Designation</Text>
+                <TextInput
+                  value={selectedEmployee?.designation}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, designation: text })}
+                  placeholder="Enter designation"
+                  style={styles.input}
+                />
+                <Text>Branch</Text>
+                <TextInput
+                  value={selectedEmployee?.branch}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, branch: text })}
+                  placeholder="Enter branch"
+                  style={styles.input}
+                />
+                <Text>Reporting Manager</Text>
+                <TextInput
+                  value={selectedEmployee?.reporting}
+                  onChangeText={(text) => selectedEmployee && setSelectedEmployee({ ...selectedEmployee, reporting: text })}
+                  placeholder="Enter reporting manager"
+                  style={styles.input}
+                />
+                <View style={styles.buttonContainer}>
+                  <Pressable
+                    onPress={() => setShowEditModal(false)}
+                    style={styles.cancelButton}
+                  >
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={handleUpdateEmployee}
+                    style={styles.addButton}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="white" />
+                    ) : (
+                      <Text style={styles.addButtonText}>Save</Text>
+                    )}
+                  </Pressable>
+                </View>
+              </ScrollView>
+            </TouchableOpacity>
           </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+        </Modal>
+      )}
 
       {/* Delete Modal */}
-      <Modal visible={showDeleteModal} transparent animationType="slide" onRequestClose={() => setShowDeleteModal(false)}>
-        <TouchableOpacity activeOpacity={1} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={() => setShowDeleteModal(false)}>
-          <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
-            <View style={{ backgroundColor: 'white', padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
-              <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12 }}>Delete Employee</Text>
-              <Text style={{ marginBottom: 12 }}>Are you sure you want to delete {selectedEmployee?.name}?</Text>
-              <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-                <Pressable onPress={() => setShowDeleteModal(false)} style={{ marginRight: 12, borderWidth: 1, borderColor: '#FF6B6B', padding: 10, borderRadius: 6 }}>
-                  <Text style={{ color: '#FF6B6B' }}>Cancel</Text>
-                </Pressable>
-                <Pressable onPress={handleDeleteEmployee} style={{ backgroundColor: '#FF6B6B', padding: 10, borderRadius: 6 }}>
-                  <Text style={{ color: 'white' }}>Delete</Text>
-                </Pressable>
+      { !readOnly && showDeleteModal && (
+        <Modal visible={showDeleteModal} transparent animationType="slide" onRequestClose={() => setShowDeleteModal(false)}>
+          <TouchableOpacity activeOpacity={1} style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }} onPress={() => setShowDeleteModal(false)}>
+            <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+              <View style={{ backgroundColor: 'white', padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12 }}>Delete Employee</Text>
+                <Text style={{ marginBottom: 12 }}>Are you sure you want to delete {selectedEmployee?.name}?</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+                  <Pressable onPress={() => setShowDeleteModal(false)} style={{ marginRight: 12, borderWidth: 1, borderColor: '#FF6B6B', padding: 10, borderRadius: 6 }}>
+                    <Text style={{ color: '#FF6B6B' }}>Cancel</Text>
+                  </Pressable>
+                  <Pressable onPress={handleDeleteEmployee} style={{ backgroundColor: '#FF6B6B', padding: 10, borderRadius: 6 }}>
+                    <Text style={{ color: 'white' }}>Delete</Text>
+                  </Pressable>
+                </View>
               </View>
-            </View>
+            </TouchableOpacity>
           </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+        </Modal>
+      )}
     </View>
   );
 };

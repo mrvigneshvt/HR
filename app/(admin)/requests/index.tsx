@@ -1,12 +1,13 @@
 import { View, Text, Pressable, ScrollView, Modal, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { configFile } from '../../../config';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import SearchBar from 'components/search';
 import { requestsService, UniformRequest, LeaveRequest, LeaveRequestAddPayload } from '../../../services/requests';
 import UniformRequestForm from '../../../components/UniformRequestForm';
 import LeaveRequestForm from '../../../components/LeaveRequestForm';
+import { isReadOnlyRole } from 'utils/roleUtils';
 
 const RequestsScreen = () => {
   const [activeTab, setActiveTab] = useState('uniform');
@@ -51,6 +52,11 @@ const RequestsScreen = () => {
     numberOfDays: 0
   };
   const [leaveForm, setLeaveForm] = useState<LeaveRequest>(initialLeaveForm);
+
+  const params = useLocalSearchParams();
+  const role = params.role as string | undefined;
+  const readOnly = isReadOnlyRole(role);
+  console.log('RequestsScreen readOnly:', readOnly, 'role:', role);
 
   useEffect(() => {
     fetchRequests();
@@ -397,14 +403,13 @@ const RequestsScreen = () => {
               </>
             )}
           </View>
-          {showActions && (
+          {showActions && !readOnly && (
             <View className="flex-row gap-2">
               <Pressable
                 onPress={() => {
                   setSelectedRequest(req);
                   if (type === 'uniform') {
                     setUniformForm(req);
-
                   } else {
                     setLeaveForm(req);
                   }
@@ -436,7 +441,7 @@ const RequestsScreen = () => {
               <Text style={{ color: getStatusColor(req.status) }}>{req.status}</Text>
             </View>
           </View>
-          {req.status === 'Pending' && (
+          {req.status === 'Pending' && !readOnly && (
             <View className="flex-row gap-2">
               <Pressable
                 onPress={() => {
@@ -496,12 +501,12 @@ const RequestsScreen = () => {
           },
           headerTintColor: 'white',
           headerRight: () => (
+            !readOnly && (
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Pressable onPress={() => setShowFilterModal(true)} style={{ marginRight: 16 }}>
                 <MaterialIcons name="filter-list" size={24} color="white" />
               </Pressable>
               <Pressable onPress={() => {
-
                 setShowAddModal(true)
                 setUniformForm({
                   empId: '',
@@ -526,6 +531,7 @@ const RequestsScreen = () => {
                 <MaterialIcons name="add" size={24} color="white" />
               </Pressable>
             </View>
+            )
           ),
         }}
       />
@@ -568,9 +574,9 @@ const RequestsScreen = () => {
         </>
       )}
 
-      {renderAddModal()}
-      {renderEditModal()}
-      {renderDeleteModal()}
+      { !readOnly && renderAddModal() }
+      { !readOnly && renderEditModal() }
+      { !readOnly && renderDeleteModal() }
 
       {/* Filter Modal */}
       <Modal

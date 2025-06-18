@@ -1,12 +1,13 @@
 import { View, Text, Pressable, ScrollView, Modal, TouchableOpacity, TextInput, ActivityIndicator, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { configFile } from '../../../config';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import SearchBar from 'components/search';
 import { clientService, Client } from '../../../services/clientService';
 import { validateClientForm, ValidationErrors } from '../../../utils/validation';
+import { isReadOnlyRole } from 'utils/roleUtils';
 
 const ClientsScreen = () => {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -35,6 +36,10 @@ const ClientsScreen = () => {
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const params = useLocalSearchParams();
+  const role = params.role as string | undefined;
+  const readOnly = isReadOnlyRole(role);
+  console.log('ClientsScreen readOnly:', readOnly, 'role:', role);
 
   useEffect(() => {
     fetchClients();
@@ -153,6 +158,7 @@ const ClientsScreen = () => {
             <Text className="text-gray-600 truncate w-[200px]">Location: {client.location}</Text>
             <Text className="text-gray-600 truncate w-[200px]">Status: {client.status}</Text>
           </View>
+          { !readOnly && (
           <View className="flex-row gap-2">
             <Pressable
               onPress={() => {
@@ -172,6 +178,7 @@ const ClientsScreen = () => {
               <MaterialIcons name="delete" size={20} color="#FF6B6B" />
             </Pressable>
           </View>
+          )}
         </View>
       </View>
     </View>
@@ -312,6 +319,7 @@ const ClientsScreen = () => {
           },
           headerTintColor: 'white',
           headerRight: () => (
+            !readOnly && (
             <Pressable onPress={() => {setShowAddModal(true)
               setFormData({
                 clientName: '',
@@ -332,6 +340,7 @@ const ClientsScreen = () => {
             }} style={{ marginRight: 16 }}>
               <MaterialIcons name="add" size={24} color="white" />
             </Pressable>
+            )
           ),
         }}
       />
@@ -348,9 +357,9 @@ const ClientsScreen = () => {
           {filteredClients.map((client) => renderClientCard(client))}
         </ScrollView>
       )}
-      {renderFormModal(false)}
-      {renderFormModal(true)}
-      {renderDeleteModal()}
+      { !readOnly && renderFormModal(false) }
+      { !readOnly && renderFormModal(true) }
+      { !readOnly && renderDeleteModal() }
     </View>
   );
 };

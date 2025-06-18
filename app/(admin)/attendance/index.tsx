@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Modal, Pressable, StyleSheet, ScrollView } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import SearchBar from '../../../components/search';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AdminCalendar from '../../../components/adminCalendar';
 import { configFile } from 'config';
 import axios from 'axios';
+import { isReadOnlyRole } from 'utils/roleUtils';
 
 interface AttendanceData {
   id: number;
@@ -56,6 +57,10 @@ const AttendanceScreen = () => {
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [detailedAttendance, setDetailedAttendance] = useState<AttendanceData | null>(null);
   const [attendanceSummary, setAttendanceSummary] = useState<AttendanceResponse['summary'] | null>(null);
+  const params = useLocalSearchParams();
+  const role = params.role as string | undefined;
+  const readOnly = isReadOnlyRole(role);
+  console.log('AttendanceScreen readOnly:', readOnly, 'role:', role);
 
   const fetchAttendance = async () => {
     try {
@@ -172,9 +177,12 @@ const AttendanceScreen = () => {
           headerTintColor: 'white',
           headerRight: () => (
             <View style={styles.headerRight}>
+              {
+                readOnly &&
               <Pressable onPress={() => setShowFilterModal(true)} style={styles.filterButton}>
                 <MaterialIcons name="filter-list" size={24} color="white" />
               </Pressable>
+              }
             </View>
           ),
         }}
