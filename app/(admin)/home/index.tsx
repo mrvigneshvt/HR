@@ -33,6 +33,26 @@ const HomeScreen = () => {
       color: '#FF6B6B',
       description: 'Manage client information and status',
       onPress: handleClientsPress
+    },{
+      title: 'Payroll',
+      icon: 'cash',
+      route: '/payroll',
+      color: '#4A90E2',
+      description: 'Monthly wise payroll and download'
+    },
+    {
+      title: 'Employee ID Card',
+      icon: 'card',
+      route: '/employeeIdCard',
+      color: '#50C878',
+      description: 'View and generate employee ID cards'
+    },
+    {
+      title: 'Attendance',
+      icon: 'calendar',
+      route: '/attendance',
+      color: '#FF6B6B',
+      description: 'View employee attendance details'
     }
   ];
 
@@ -73,7 +93,7 @@ const HomeScreen = () => {
 
       <ScrollView className="flex-1 p-4">
         {/* Welcome Card */}
-        <View className="bg-white p-6">
+        <View className="bg-white p-6 mb-3">
           <Text className="text-2xl font-bold">Welcome, Super Admin</Text>
           <Text className="text-gray-600 mt-1">ID: ADMIN001</Text>
         </View>
