@@ -542,7 +542,7 @@ const RequestsScreen = () => {
                 className={`rounded-3xl p-3 px-6 ${activeTab === 'uniform' ? `bg-[#238c58]` : ''}`}
                 style={{ borderRadius: 12 }}>
                 <Text
-                  className={`text-lg font-semibold ${activeTab !== 'uniform' ? 'text-black' : 'text-white'}`}>
+                  className={`text-lg font-semibold ${activeTab !== 'uniform' ? 'text-black' : 'text-[#fff]'}`}>
                   Uniform Request
                 </Text>
               </View>
@@ -552,7 +552,7 @@ const RequestsScreen = () => {
                 className={`rounded-3xl p-3 px-6 ${activeTab === 'leave' ? `bg-[#238c58]` : ''}`}
                 style={{ borderRadius: 12 }}>
                 <Text
-                  className={`text-lg font-semibold ${activeTab !== 'leave' ? 'text-black' : 'text-white'}`}>
+                  className={`text-lg font-semibold ${activeTab !== 'leave' ? 'text-black' : 'text-[#fff]'}`}>
                   Leave Request
                 </Text>
               </View>

@@ -46,6 +46,7 @@ export const requestsService = {
   },
 
   async addUniformRequest(request: UniformRequest) {
+    console.log(request,"request")
     const response = await axios.post(`${BASE_URL}/uniforms`, request);
     return response.data;
   },
