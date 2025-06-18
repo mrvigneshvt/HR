@@ -292,7 +292,6 @@ const ClientsScreen = () => {
       </TouchableOpacity>
     </Modal>
   );
-
   return (
     <View className="flex-1 bg-gray-50">
       {/* <Stack.Screen

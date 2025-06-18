@@ -7,8 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 const HomeScreen = () => {
   const router = useRouter();
 
-  const handleClientsPress =  () => {
-      router.push('/clients');
+  const handleMenuPress = (route: string) => {
+    router.push(route);
   };
 
   const menuCards = [
@@ -17,14 +17,16 @@ const HomeScreen = () => {
       icon: 'people',
       route: '/employees',
       color: '#4A90E2',
-      description: 'Manage employee information and records'
+      description: 'Manage employee information and records',
+      onPress: () => handleMenuPress('/employees')
     },
     {
       title: 'Requests',
       icon: 'document-text',
       route: '/requests',
       color: '#50C878',
-      description: 'Handle uniform and leave requests'
+      description: 'Handle uniform and leave requests',
+      onPress: () => handleMenuPress('/requests')
     },
     {
       title: 'Clients',
@@ -32,34 +34,38 @@ const HomeScreen = () => {
       route: '/clients',
       color: '#FF6B6B',
       description: 'Manage client information and status',
-      onPress: handleClientsPress
-    },{
+      onPress: () => handleMenuPress('/clients')
+    },
+    {
       title: 'Payroll',
       icon: 'cash',
       route: '/payroll',
       color: '#4A90E2',
-      description: 'Monthly wise payroll and download'
+      description: 'Monthly wise payroll and download',
+      onPress: () => handleMenuPress('/payroll')
     },
     {
       title: 'Employee ID Card',
       icon: 'card',
       route: '/employeeIdCard',
       color: '#50C878',
-      description: 'View and generate employee ID cards'
+      description: 'View and generate employee ID cards',
+      onPress: () => handleMenuPress('/employeeIdCard')
     },
     {
       title: 'Attendance',
       icon: 'calendar',
       route: '/attendance',
       color: '#FF6B6B',
-      description: 'View employee attendance details'
+      description: 'View employee attendance details',
+      onPress: () => handleMenuPress('/attendance')
     }
   ];
 
   const renderMenuCard = (card: any) => (
     <Pressable
       key={card.title}
-      onPress={card.onPress || (() => router.push(card.route))}
+      onPress={card.onPress}
       className="bg-white rounded-lg p-6 mb-4 shadow-sm"
     >
       <View className="flex-row items-center">
