@@ -10,7 +10,7 @@ import { customPlugins } from 'plugins/plug';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios, { AxiosError } from 'axios';
-import { getTodayDateString } from '../utils/date';
+import { getTodayDateString } from '../utils/validation';
 
 const manImage = require('../assets/man.webp');
 
