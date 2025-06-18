@@ -432,9 +432,7 @@ const EmployeesScreen = () => {
         bank_account_currency: newEmployee.bank_account_currency || 'INR'
       };
 
-      console.log('Sending request to:', `${BASE_URL}/employees`);
-      console.log('Request data:', employeeData);
-
+      console.log(employeeData,"employeeData")
       const response = await axios.post(`${BASE_URL}/employees`, employeeData, {
         headers: {
           'Content-Type': 'application/json',
@@ -455,9 +453,6 @@ const EmployeesScreen = () => {
       }
     } catch (error: any) {
       console.error('Add Employee Error:', error);
-      console.error('Error Response:', error.response?.data);
-      console.error('Error Status:', error.response?.status);
-      console.error('Error Config:', error.config);
       
       let errorMessage = 'Failed to add employee. Please try again.';
       

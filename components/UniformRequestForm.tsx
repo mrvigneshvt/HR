@@ -192,7 +192,7 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
       <TextInput
         className="mb-4 rounded-lg border border-gray-300 p-3"
         placeholder="Requested Date (DD/MM/YY)"
-        value={typeof form.requestedDate === 'string' ? form.requestedDate : (form.requestedDate ? new Date(form.requestedDate).toLocaleDateString('en-GB') : '')}
+        value={form.requestedDate}
         onChangeText={(text) => onChange('requestedDate', text)}
       />
       {errors.requestedDate && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.requestedDate}</Text>}

@@ -4,7 +4,7 @@ import { Stack } from 'expo-router';
 import { configFile } from '../../../config';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import SearchBar from 'components/search';
-import { requestsService, UniformRequest, LeaveRequest } from '../../../services/requests';
+import { requestsService, UniformRequest, LeaveRequest, LeaveRequestAddPayload } from '../../../services/requests';
 import UniformRequestForm from '../../../components/UniformRequestForm';
 import LeaveRequestForm from '../../../components/LeaveRequestForm';
 
@@ -36,20 +36,21 @@ const RequestsScreen = () => {
     femaleShoeSize: '',
     accessories: [],
     femaleAccessories: [],
-    requestedDate: new Date(),
+    requestedDate: '',
     flab: ''
   });
 
-  const [leaveForm, setLeaveForm] = useState<LeaveRequest>({
+  const initialLeaveForm: LeaveRequest = {
     employeeId: '',
     employeeName: '',
     leaveType: 'Casual',
-    startDate: new Date(),
-    endDate: new Date(),
+    startDate: undefined as any,
+    endDate: undefined as any,
     status: 'Pending',
     approvedBy: '',
     numberOfDays: 0
-  });
+  };
+  const [leaveForm, setLeaveForm] = useState<LeaveRequest>(initialLeaveForm);
 
   useEffect(() => {
     fetchRequests();
@@ -74,33 +75,68 @@ const RequestsScreen = () => {
 
   const formatDateString = (date: any) => {
     if (!date) return '';
-    if (typeof date === 'string') {
-      // If already in DD/MM/YY, return as is
-      if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(date)) return date;
-      // If ISO string, convert
-      const d = new Date(date);
-      if (!isNaN(d.getTime())) {
-        return d.toLocaleDateString('en-GB');
-      }
-      return date;
-    }
-    if (date instanceof Date) {
-      return date.toLocaleDateString('en-GB');
+    const d = new Date(date);
+    if (!isNaN(d.getTime())) {
+      // Format as D/M/YY (e.g., 1/1/25)
+      const day = d.getDate();
+      const month = d.getMonth() + 1;
+      const year = d.getFullYear() % 100; // last two digits
+      return `${day}/${month}/${year < 10 ? '0' : ''}${year}`;
     }
     return '';
   };
+
 
   const handleAddRequest = async () => {
     try {
       setLoading(true);
       if (activeTab === 'uniform') {
         const payload = {
-          ...uniformForm,
-          requestedDate: formatDateString(uniformForm.requestedDate),
+          empId: uniformForm.empId,
+          name: uniformForm.name,
+          designation: uniformForm.designation,
+          site: uniformForm.site,
+          location: uniformForm.location,
+          gender: uniformForm.gender,
+          status: uniformForm.status,
+          shirtSize: uniformForm.shirtSize,
+          pantSize: uniformForm.pantSize,
+          shoeSize: uniformForm.shoeSize,
+          chuditharSize: uniformForm.chuditharSize,
+          femaleShoeSize: uniformForm.femaleShoeSize,
+          accessories: uniformForm.accessories,
+          femaleAccessories: uniformForm.femaleAccessories,
+          requestedDate: uniformForm.requestedDate ? uniformForm.requestedDate : formatDateString(new Date()),
+          flab: uniformForm.flab
         };
+
         await requestsService.addUniformRequest(payload);
+        setUniformForm({
+          empId: '',
+          name: '',
+          designation: '',
+          site: '',
+          location: '',
+          gender: 'Male',
+          status: 'Active',
+          shirtSize: '',
+          pantSize: '',
+          shoeSize: '',
+          chuditharSize: '',
+          femaleShoeSize: '',
+          accessories: [],
+          femaleAccessories: [],
+          requestedDate: '',
+          flab: ''
+        });
       } else {
-        await requestsService.addLeaveRequest(leaveForm);
+        const payload: LeaveRequestAddPayload = {
+          ...leaveForm,
+          startDate: leaveForm.startDate ? formatDateString(leaveForm.startDate) : '',
+          endDate: leaveForm.endDate ? formatDateString(leaveForm.endDate) : '',
+        };
+        await requestsService.addLeaveRequest(payload);
+        setLeaveForm(initialLeaveForm);
       }
       Alert.alert('Success', `${activeTab === 'uniform' ? 'Uniform' : 'Leave'} request added successfully`);
       setShowAddModal(false);
@@ -117,13 +153,23 @@ const RequestsScreen = () => {
     try {
       setLoading(true);
       if (activeTab === 'uniform') {
+        // Only pick the fields needed for the API
+        const {
+          empId, name, designation, site, location, gender, status,
+          shirtSize, pantSize, shoeSize, chuditharSize, femaleShoeSize,
+          accessories, femaleAccessories, flab
+        } = uniformForm;
         const payload = {
-          ...uniformForm,
+          empId, name, designation, site, location, gender, status,
+          shirtSize, pantSize, shoeSize, chuditharSize, femaleShoeSize,
+          accessories, femaleAccessories,
           requestedDate: formatDateString(uniformForm.requestedDate),
+          flab
         };
-        await requestsService.updateUniformRequest(selectedRequest.id, payload);
+        await requestsService.updateUniformRequest(selectedRequest._id, payload);
       } else {
-        await requestsService.updateLeaveRequest(selectedRequest.id, leaveForm);
+        await requestsService.updateLeaveRequest(selectedRequest._id, leaveForm);
+        setLeaveForm(initialLeaveForm);
       }
       Alert.alert('Success', `${activeTab === 'uniform' ? 'Uniform' : 'Leave'} request updated successfully`);
       setShowEditModal(false);
@@ -140,9 +186,14 @@ const RequestsScreen = () => {
     try {
       setLoading(true);
       if (activeTab === 'uniform') {
-        await requestsService.deleteUniformRequest(selectedRequest.id);
+        await requestsService.deleteUniformRequest(selectedRequest._id);
       } else {
-        await requestsService.deleteLeaveRequest(selectedRequest.id);
+        const id = selectedRequest._id || selectedRequest.id;
+        if (!id) {
+          Alert.alert('Error', 'Invalid request ID');
+          return;
+        }
+        await requestsService.deleteLeaveRequest(id);
       }
       Alert.alert('Success', `${activeTab === 'uniform' ? 'Uniform' : 'Leave'} request deleted successfully`);
       setShowDeleteModal(false);
@@ -170,7 +221,7 @@ const RequestsScreen = () => {
         return false;
       }
     } else {
-      if (!leaveForm.employeeId || !leaveForm.employeeName || !leaveForm.leaveType || !leaveForm.startDate || !leaveForm.endDate) {
+      if (!leaveForm.employeeId || !leaveForm.employeeName || !leaveForm.leaveType || !leaveForm.startDate || !leaveForm.endDate || !leaveForm.status || !leaveForm.approvedBy || !leaveForm.numberOfDays) {
         Alert.alert('Error', 'Please fill in all required fields');
         return false;
       }
@@ -189,7 +240,7 @@ const RequestsScreen = () => {
       animationType="slide"
       onRequestClose={() => setShowAddModal(false)}
     >
-      <TouchableOpacity 
+      <TouchableOpacity
         className="flex-1 justify-end bg-black/50"
         activeOpacity={1}
         onPress={() => setShowAddModal(false)}
@@ -235,7 +286,7 @@ const RequestsScreen = () => {
       animationType="slide"
       onRequestClose={() => setShowEditModal(false)}
     >
-      <TouchableOpacity 
+      <TouchableOpacity
         className="flex-1 justify-end bg-black/50"
         activeOpacity={1}
         onPress={() => setShowEditModal(false)}
@@ -281,7 +332,7 @@ const RequestsScreen = () => {
       animationType="slide"
       onRequestClose={() => setShowDeleteModal(false)}
     >
-      <TouchableOpacity 
+      <TouchableOpacity
         className="flex-1 justify-end bg-black/50"
         activeOpacity={1}
         onPress={() => setShowDeleteModal(false)}
@@ -353,6 +404,7 @@ const RequestsScreen = () => {
                   setSelectedRequest(req);
                   if (type === 'uniform') {
                     setUniformForm(req);
+
                   } else {
                     setLeaveForm(req);
                   }
@@ -377,7 +429,7 @@ const RequestsScreen = () => {
         <View className="mt-4 flex-row items-center justify-between">
           <View className="flex-row items-center">
             <Text className="mr-2 font-semibold text-gray-700">Status:</Text>
-            <View 
+            <View
               className="rounded-full px-3 py-1"
               style={{ backgroundColor: `${getStatusColor(req.status)}20` }}
             >
@@ -396,7 +448,8 @@ const RequestsScreen = () => {
               </Pressable>
               <Pressable
                 onPress={() => {
-                  // Handle reject
+                  setSelectedRequest(req);
+                  setShowDeleteModal(true);
                 }}
                 className="rounded-lg bg-red-500 px-4 py-2"
               >
@@ -426,7 +479,7 @@ const RequestsScreen = () => {
     req.name.toLowerCase().includes(search.toLowerCase()) ||
     req.empId.toLowerCase().includes(search.toLowerCase())
   );
-  
+
   const filteredLeaveRequests = leaveRequests.filter(req =>
     req.employeeName.toLowerCase().includes(search.toLowerCase()) ||
     req.employeeId.toLowerCase().includes(search.toLowerCase())
@@ -434,8 +487,8 @@ const RequestsScreen = () => {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <Stack.Screen 
-        options={{ 
+      <Stack.Screen
+        options={{
           headerShown: true,
           title: 'Requests',
           headerStyle: {
@@ -447,12 +500,34 @@ const RequestsScreen = () => {
               <Pressable onPress={() => setShowFilterModal(true)} style={{ marginRight: 16 }}>
                 <MaterialIcons name="filter-list" size={24} color="white" />
               </Pressable>
-              <Pressable onPress={() => setShowAddModal(true)}>
+              <Pressable onPress={() => {
+
+                setShowAddModal(true)
+                setUniformForm({
+                  empId: '',
+                  name: '',
+                  designation: '',
+                  site: '',
+                  location: '',
+                  gender: 'Male',
+                  status: 'Active',
+                  shirtSize: '',
+                  pantSize: '',
+                  shoeSize: '',
+                  chuditharSize: '',
+                  femaleShoeSize: '',
+                  accessories: [],
+                  femaleAccessories: [],
+                  requestedDate: '',
+                  flab: ''
+                });
+                setLeaveForm(initialLeaveForm);
+              }}>
                 <MaterialIcons name="add" size={24} color="white" />
               </Pressable>
             </View>
           ),
-        }} 
+        }}
       />
       {loading ? (
         <View className="flex-1 items-center justify-center">
@@ -464,7 +539,7 @@ const RequestsScreen = () => {
           <View className="flex-row justify-around rounded-2xl bg-gray-200 p-0.5 mx-4 my-4">
             <Pressable onPress={() => setActiveTab('uniform')}>
               <View
-                className={`rounded-3xl p-3 px-6 ${activeTab === 'uniform' ? `bg-[green]` : ''}`}
+                className={`rounded-3xl p-3 px-6 ${activeTab === 'uniform' ? `bg-[#238c58]` : ''}`}
                 style={{ borderRadius: 12 }}>
                 <Text
                   className={`text-lg font-semibold ${activeTab !== 'uniform' ? 'text-black' : 'text-[#fff]'}`}>
@@ -474,7 +549,7 @@ const RequestsScreen = () => {
             </Pressable>
             <Pressable onPress={() => setActiveTab('leave')}>
               <View
-                className={`rounded-3xl p-3 px-6 ${activeTab === 'leave' ? `bg-[green]` : ''}`}
+                className={`rounded-3xl p-3 px-6 ${activeTab === 'leave' ? `bg-[#238c58]` : ''}`}
                 style={{ borderRadius: 12 }}>
                 <Text
                   className={`text-lg font-semibold ${activeTab !== 'leave' ? 'text-black' : 'text-[#fff]'}`}>
@@ -485,7 +560,7 @@ const RequestsScreen = () => {
           </View>
 
           <ScrollView className="flex-1 px-4">
-            {activeTab === 'uniform' 
+            {activeTab === 'uniform'
               ? filteredUniformRequests.map((req, idx) => renderRequestCard(req, 'uniform', true, idx))
               : filteredLeaveRequests.map((req, idx) => renderRequestCard(req, 'leave', true, idx))
             }
@@ -504,7 +579,7 @@ const RequestsScreen = () => {
         animationType="slide"
         onRequestClose={() => setShowFilterModal(false)}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           className="flex-1 justify-end bg-black/50"
           activeOpacity={1}
           onPress={() => setShowFilterModal(false)}
@@ -555,8 +630,12 @@ const RequestsScreen = () => {
               </View>
               <ScrollView className="flex-1">
                 {activeTab === 'uniform'
-                  ? uniformRequests.filter(r => r.status === 'Approved').map((req, idx) => renderRequestCard(req, 'uniform', true, idx))
-                  : leaveRequests.filter(r => r.status === 'Approved').map((req, idx) => renderRequestCard(req, 'leave', true, idx))
+                  ? uniformRequests
+                    .filter(r => r.status === 'Active')
+                    .map((req, idx) => renderRequestCard(req, 'uniform', true, idx))
+                  : leaveRequests
+                    .filter(r => r.status === 'Approved' && r.approvedBy)
+                    .map((req, idx) => renderRequestCard(req, 'leave', true, idx))
                 }
               </ScrollView>
             </View>
