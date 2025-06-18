@@ -77,7 +77,7 @@ const PayrollScreen = () => {
     };
     BackHandler.addEventListener('hardwareBackPress', onBackPress);
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-  }, [role, empId]);
+  }, []);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F9F9F9' }}>

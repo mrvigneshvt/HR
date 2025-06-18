@@ -503,7 +503,7 @@ const RequestsScreen = () => {
     };
     BackHandler.addEventListener('hardwareBackPress', onBackPress);
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-  }, [role, empId]);
+  }, []);
 
   return (
     <View className="flex-1 bg-gray-50">
