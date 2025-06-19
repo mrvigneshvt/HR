@@ -124,18 +124,18 @@ export default function LoginPage() {
   //   checkToken();
   // }, []);
 
-  useEffect(() => {
-    setTimeout(() => {
-      router.replace({
-        // pathname: '/(tabs)/dashboard',
-        pathname: '/(admin)/home',
-        params: {
-          role: 'employee',
-          empId: 'SFM993',
-        },
-      });
-    }, 50);
-  }, []);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     router.replace({
+  //       pathname: '/(tabs)/dashboard',
+  //       // pathname: '/(admin)/home',
+  //       params: {
+  //         role: 'employee',
+  //         empId: 'SFM993',
+  //       },
+  //     });
+  //   }, 50);
+  // }, []);
 
   return (
     <>
