@@ -83,3 +83,25 @@ export const validateClientForm = (data: Partial<Client>): ValidationErrors => {
 export function getTodayDateString(): string {
   return new Date().toISOString().split('T')[0];
 } 
+
+export const convertFormet = (date:Date) => {
+  const now = new Date(date);
+  const day = String(now.getDate()).padStart(2, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // getMonth() is 0-based
+  const year = now.getFullYear();
+
+  const formattedDate = `${day}-${month}-${year}`;
+  return formattedDate
+}
+
+
+export function convertTo12HourFormat(time24:string) {
+  const [hourStr, minuteStr] = time24.split(':');
+  let hour = parseInt(hourStr, 10);
+  const minute = minuteStr;
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+
+  hour = hour % 12 || 12; // Convert '0' to '12'
+
+  return `${hour}:${minute} ${ampm}`;
+}

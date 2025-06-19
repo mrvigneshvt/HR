@@ -9,7 +9,8 @@ import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { customPlugins } from 'plugins/plug';
 import { router } from 'expo-router';
 import axios, { AxiosError } from 'axios';
-import { getTodayDateString } from '../utils/validation';
+import { convertFormet, convertTo12HourFormat, getTodayDateString } from '../utils/validation';
+import { useEmployeeStore } from 'Memory/Employee';
 
 const manImage = require('../assets/man.webp');
 
@@ -37,24 +38,25 @@ const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
   const [attendance, setAttendance] = useState<Attendance | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const employees = useEmployeeStore((state) => state.employee);
 
   const dashboard = DashMemory((state) => state.dashboard?.user?.dailyAttendance);
 
   const getEmployeeId = async () => {
-    return await AsyncStorage.getItem('employeeId');
+    return employees?.employee_id;
   };
 
   const fetchAttendance = async () => {
     setLoading(true);
     const employeeId = await getEmployeeId();
-    const date = getTodayDateString();
     try {
+      const today=convertFormet(new Date())
       const res = await axios.get(`${API_BASE}/getAttendanceDetails`, {
-        params: { employeeId, date },
+        params: { employeeId },
       });
-      setAttendance(res.data.data[0]);
+      const todayAttendance=res?.data?.data?.filter((i:any)=>i?.attendance_date === today);
+      setAttendance(todayAttendance?.[0]);
     } catch (err) {
-      Alert.alert('Error', 'Failed to fetch attendance');
       setAttendance(null);
     } finally {
       setLoading(false);
@@ -72,7 +74,6 @@ const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
     if (!attendance.check_out_time) return 'checkOut';
     return null;
   };
-
   const handleAction = async () => {
     if (!isNear) {
       Alert.alert('You are not inside the location.');
@@ -133,7 +134,7 @@ const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
   const nextAction = getNextAction();
   let buttonLabel = '';
   if (nextAction === 'checkIn') buttonLabel = 'Clock IN';
-  else if (nextAction === 'lunchIn') buttonLabel = 'Lunch IN';
+  else if (nextAction === 'lunchIn') buttonLabel = 'Lunch';
   else if (nextAction === 'checkOut') buttonLabel = 'Clock OUT';
 
   return (
@@ -159,17 +160,24 @@ const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
         <View className={` mt-2 flex-col gap-4 bg-red-50 p-2`}>
           <View className="flex-row justify-between">
             <Text className="text-xl font-bold">Check In</Text>
+            <Text className="text-xl font-bold">Lunch</Text>
             <Text className="text-xl font-bold">Check Out</Text>
+
           </View>
           <View className="flex-row justify-between">
             <View className="flex-row items-center">
               <Text className={`text-lga mx-2 font-semibold text-[${configFile.colorGreen}]`}>
-                {attendance?.check_in_time || dashboard?.checkIn || '--:--'}
+                {attendance?.check_in_time ? convertTo12HourFormat(attendance?.check_in_time): '--:--'}
               </Text>
             </View>
             <View>
               <Text className={`text-lga mx-2 font-semibold text-[${configFile.colorGreen}]`}>
-                {attendance?.check_out_time || dashboard?.checkOut || '--:--'}
+                {attendance?.lunch_in_time ? convertTo12HourFormat(attendance?.lunch_in_time): '--:--'}
+              </Text>
+            </View> 
+            <View>
+              <Text className={`text-lga mx-2 font-semibold text-[${configFile.colorGreen}]`}>
+                {attendance?.check_out_time ? convertTo12HourFormat(attendance?.check_out_time): '--:--'}
               </Text>
             </View>
           </View>
