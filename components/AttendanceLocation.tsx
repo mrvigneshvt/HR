@@ -7,7 +7,7 @@ import { DashMemory } from '../Memory/DashMem';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { customPlugins } from 'plugins/plug';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import axios, { AxiosError } from 'axios';
 import { convertFormet, convertTo12HourFormat, getTodayDateString } from '../utils/validation';
 import { useEmployeeStore } from 'Memory/Employee';
@@ -50,12 +50,24 @@ const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
     setLoading(true);
     const employeeId = await getEmployeeId();
     try {
-      const today=convertFormet(new Date())
+      const today = convertFormet(new Date())
       const res = await axios.get(`${API_BASE}/getAttendanceDetails`, {
         params: { employeeId },
       });
-      const todayAttendance=res?.data?.data?.filter((i:any)=>i?.attendance_date === today);
+      const todayAttendance = res?.data?.data?.filter((i: any) => i?.attendance_date === today);
       setAttendance(todayAttendance?.[0]);
+      if (todayAttendance?.length === 0) {
+        Alert.alert("You don't have an schedule today", "please contact manager",
+          [{
+            text: 'OK', onPress: () => {
+              router.push({
+                pathname: `dashboard`,
+              })
+            }
+          },
+          ]
+        )
+      }
     } catch (err) {
       setAttendance(null);
     } finally {
@@ -63,9 +75,11 @@ const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
     }
   };
 
-  useEffect(() => {
-    fetchAttendance();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchAttendance();
+    }, [])
+  )
 
   const getNextAction = () => {
     if (!attendance) return null;
@@ -167,17 +181,17 @@ const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
           <View className="flex-row justify-between">
             <View className="flex-row items-center">
               <Text className={`text-lga mx-2 font-semibold text-[${configFile.colorGreen}]`}>
-                {attendance?.check_in_time ? convertTo12HourFormat(attendance?.check_in_time): '--:--'}
+                {attendance?.check_in_time ? convertTo12HourFormat(attendance?.check_in_time) : '--:--'}
               </Text>
             </View>
             <View>
               <Text className={`text-lga mx-2 font-semibold text-[${configFile.colorGreen}]`}>
-                {attendance?.lunch_in_time ? convertTo12HourFormat(attendance?.lunch_in_time): '--:--'}
+                {attendance?.lunch_in_time ? convertTo12HourFormat(attendance?.lunch_in_time) : '--:--'}
               </Text>
-            </View> 
+            </View>
             <View>
               <Text className={`text-lga mx-2 font-semibold text-[${configFile.colorGreen}]`}>
-                {attendance?.check_out_time ? convertTo12HourFormat(attendance?.check_out_time): '--:--'}
+                {attendance?.check_out_time ? convertTo12HourFormat(attendance?.check_out_time) : '--:--'}
               </Text>
             </View>
           </View>
