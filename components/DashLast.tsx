@@ -54,7 +54,7 @@ const DashLast = ({ role, cardSize, empId, isMale }: Props) => {
                   names[i] === 'Pay slip' ||
                   names[i] === 'Leave Request'
                     ? router.push({
-                        pathname: `emp-plugins/${names[i].toLowerCase().replace(' ', '_')}`,
+                        pathname: `/emp-plugins/${names[i].toLowerCase().replace(' ', '_')}`,
                         params: {
                           role,
                           empId,
