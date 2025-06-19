@@ -1,13 +1,15 @@
-import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Image } from 'expo-image';
 import { configFile } from '../config';
-import { DashMemory } from 'Memory/DashMem';
+import { DashMemory } from '../Memory/DashMem';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { customPlugins } from 'plugins/plug';
 import { router } from 'expo-router';
+import axios, { AxiosError } from 'axios';
+import { getTodayDateString } from '../utils/validation';
 
 const manImage = require('../assets/man.webp');
 
@@ -22,18 +24,117 @@ type Props = {
   Address?: string;
 };
 
+type Attendance = {
+  check_in_time: string | null;
+  lunch_in_time: string | null;
+  check_out_time: string | null;
+  // ...other fields as needed
+};
+
+const API_BASE = 'https://sdce.lyzooapp.co.in:31313/api/attendance';
+
 const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
-  // console.log(Region, 'regg');
+  const [attendance, setAttendance] = useState<Attendance | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+
   const dashboard = DashMemory((state) => state.dashboard?.user?.dailyAttendance);
 
-  const handleClocking = () => {
-    if (!isNear) {
-      Alert.alert('You are Not Inside the Location. Get Inside the given Location and Try');
-      return;
-    } else {
-      router.push('/emp-plugins/Camera');
+  const getEmployeeId = async () => {
+    return await AsyncStorage.getItem('employeeId');
+  };
+
+  const fetchAttendance = async () => {
+    setLoading(true);
+    const employeeId = await getEmployeeId();
+    const date = getTodayDateString();
+    try {
+      const res = await axios.get(`${API_BASE}/getAttendanceDetails`, {
+        params: { employeeId, date },
+      });
+      setAttendance(res.data.data[0]);
+    } catch (err) {
+      Alert.alert('Error', 'Failed to fetch attendance');
+      setAttendance(null);
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchAttendance();
+  }, []);
+
+  const getNextAction = () => {
+    if (!attendance) return null;
+    if (!attendance.check_in_time) return 'checkIn';
+    if (!attendance.lunch_in_time) return 'lunchIn';
+    if (!attendance.check_out_time) return 'checkOut';
+    return null;
+  };
+
+  const handleAction = async () => {
+    if (!isNear) {
+      Alert.alert('You are not inside the location.');
+      return;
+    }
+    setActionLoading(true);
+    const employeeId = await getEmployeeId();
+    const date = getTodayDateString();
+    const latitude = Region.latitude;
+    const longitude = Region.longitude;
+    let url = '';
+    let body: any = { employeeId, date, latitude, longitude };
+
+    const now = new Date();
+    const timeString = now.toTimeString().slice(0, 8);
+
+    try {
+      let res;
+      switch (getNextAction()) {
+        case 'checkIn':
+          url = `${API_BASE}/checkIn`;
+          body = { ...body, check_in_time: timeString };
+          res = await axios.post(url, body);
+          Alert.alert('Success', res.data.message || 'Check-in successful');
+          break;
+        case 'lunchIn':
+          url = `${API_BASE}/lunchIn`;
+          body = { ...body, lunch_in_time: timeString };
+          res = await axios.post(url, body);
+          Alert.alert('Success', res.data.message || 'Lunch-in successful');
+          break;
+        case 'checkOut':
+          url = `${API_BASE}/checkOut`;
+          body = { ...body, check_out_time: timeString };
+          res = await axios.post(url, body);
+          Alert.alert('Success', res.data.message || 'Check-out successful');
+          break;
+        default:
+          Alert.alert('All actions completed for today.');
+          return;
+      }
+      fetchAttendance();
+    } catch (err) {
+      if (err instanceof AxiosError && err.response?.data?.message) {
+        Alert.alert('Error', err.response.data.message);
+      } else {
+        Alert.alert('Error', 'Something went wrong');
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <ActivityIndicator size="large" />;
+  }
+
+  const nextAction = getNextAction();
+  let buttonLabel = '';
+  if (nextAction === 'checkIn') buttonLabel = 'Clock IN';
+  else if (nextAction === 'lunchIn') buttonLabel = 'Lunch IN';
+  else if (nextAction === 'checkOut') buttonLabel = 'Clock OUT';
 
   return (
     <ScrollView
@@ -63,31 +164,35 @@ const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
           <View className="flex-row justify-between">
             <View className="flex-row items-center">
               <Text className={`text-lga mx-2 font-semibold text-[${configFile.colorGreen}]`}>
-                {dashboard?.checkIn ? dashboard.checkIn : '--:--'}
+                {attendance?.check_in_time || dashboard?.checkIn || '--:--'}
               </Text>
             </View>
             <View>
               <Text className={`text-lga mx-2 font-semibold text-[${configFile.colorGreen}]`}>
-                {dashboard?.checkOut ? dashboard.checkOut : '--:--'}
+                {attendance?.check_out_time || dashboard?.checkOut || '--:--'}
               </Text>
             </View>
           </View>
         </View>
-        <TouchableOpacity
-          onPress={() => handleClocking()}
-          className="flex-row items-center justify-center gap-2 self-center rounded-3xl bg-gray-200 p-2">
-          <Text className="text-lg font-bold " style={{ color: configFile.colorGreen }}>
-            {!dashboard?.checkIn ? 'Clock IN' : 'Clock OUT'}
-          </Text>
-          <MaterialIcons
-            name="location-history"
-            size={moderateScale(30)}
-            color={configFile.colorGreen}
-          />
-        </TouchableOpacity>
-        <View className="flex-row justify-center">
-          <Text className="text-gray-400">{`(Above Button isnt Functional Yet)`}</Text>
-        </View>
+        {nextAction ? (
+          <TouchableOpacity
+            onPress={handleAction}
+            disabled={actionLoading}
+            className="flex-row items-center justify-center gap-2 self-center rounded-3xl bg-gray-200 p-2">
+            <Text className="text-lg font-bold " style={{ color: configFile.colorGreen }}>
+              {actionLoading ? 'Processing...' : buttonLabel}
+            </Text>
+            <MaterialIcons
+              name="location-history"
+              size={moderateScale(30)}
+              color={configFile.colorGreen}
+            />
+          </TouchableOpacity>
+        ) : (
+          <View className="flex-row justify-center mt-2">
+            <Text className="text-gray-400">All actions completed for today.</Text>
+          </View>
+        )}
       </View>
     </ScrollView>
   );

@@ -79,3 +79,7 @@ export const validateClientForm = (data: Partial<Client>): ValidationErrors => {
 
   return errors;
 }; 
+
+export function getTodayDateString(): string {
+  return new Date().toISOString().split('T')[0];
+} 
