@@ -8,21 +8,21 @@ import {
   KeyboardAvoidingView,
   Pressable,
 } from 'react-native';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import ProfileStack from 'Stacks/HeaderStack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { scale, verticalScale } from 'react-native-size-matters';
 import { configFile } from '../../config';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useEmployeeStore } from 'Memory/Employee';
-import { useLocalSearchParams } from 'expo-router';
+import { format } from 'date-fns';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Api } from 'class/HandleApi';
+import PopupMessage from 'plugins/popupz';
 
 const Uniform = () => {
-  const { empId, role } = useLocalSearchParams();
-
+  const { empId, role } = useLocalSearchParams<{ empId: string; role: string }>();
   const employee = useEmployeeStore((state) => state.employee);
-  console.log(employee?.gender);
   const isMale = employee?.gender?.toLowerCase() === 'male';
 
   const accessories = useMemo(
@@ -32,6 +32,9 @@ const Uniform = () => {
         : ['belt', 'lanyard', 'whistle', 'idCard', 'cap'],
     [isMale]
   );
+
+  const [popupVisible, setPopupVisible] = useState(false);
+  const [popupMessage, setPopupMessage] = useState('');
 
   const [state, setState] = useState({
     empId,
@@ -57,13 +60,50 @@ const Uniform = () => {
   };
 
   const postUniformRequest = async () => {
-    console.log('Posting uniform request', state);
-    const api = await Api.postUniReq({
-      gender: employee?.gender,
-      empId,
-      site: '',
-    });
-    // await Api.postUniform(state)
+    try {
+      const accessoriesSelected = accessories.filter((key) => state[key as keyof typeof state]);
+      const payload = {
+        empId: String(empId),
+        name: employee?.name || '',
+        designation: employee?.designation || 'Not Assigned',
+        site: employee?.site || 'Not Assigned',
+        location: 'Not Assigned',
+        gender: isMale ? 'Male' : 'Female',
+        status: 'Active',
+        requestedDate: format(new Date(), 'yyyy/MM/dd'),
+        shirtSize: isMale ? parseInt(state.shirtSize || '0') : 0,
+        pantSize: isMale ? parseInt(state.pantSize || '0') : 0,
+        shoeSize: isMale ? parseInt(state.shoeSize || '0') : 0,
+        chuditharSize: !isMale ? parseInt(state.chudiSize || '0') : 0,
+        femaleShoeSize: !isMale ? parseInt(state.shoeSize || '0') : 0,
+        accessories: isMale ? accessoriesSelected : [],
+        femaleAccessories: !isMale ? accessoriesSelected : [],
+      };
+
+      const response = await Api.postUniReq(payload);
+      console.log(response, '/////////Responseeeeeee');
+
+      if (response.status) {
+        setPopupMessage('Uniform request submitted successfully!');
+        setTimeout(() => {
+          router.replace({
+            pathname: '/(tabs)/dashboard/',
+            params: {
+              empId,
+              role,
+            },
+          });
+        }, 2000);
+      } else {
+        setPopupMessage(response?.message || 'Something went wrong');
+      }
+
+      setPopupVisible(true);
+    } catch (error) {
+      console.error('Uniform request failed:', error);
+      setPopupMessage('Failed to submit uniform request.');
+      setPopupVisible(true);
+    }
   };
 
   return (
@@ -76,11 +116,7 @@ const Uniform = () => {
           keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}>
           <ScrollView
             style={{ flex: 1, backgroundColor: 'white' }}
-            contentContainerStyle={{
-              flexGrow: 1,
-              padding: scale(16),
-              paddingBottom: 40,
-            }}>
+            contentContainerStyle={{ flexGrow: 1, padding: scale(16), paddingBottom: 40 }}>
             {/* Read-only fields */}
             {['empId', 'role'].map((field) => (
               <View key={field} style={{ marginBottom: verticalScale(12) }}>
@@ -121,7 +157,7 @@ const Uniform = () => {
               }}
             />
 
-            {/* Boolean checkboxes */}
+            {/* Accessories */}
             {accessories.map((key) => (
               <View
                 key={key}
@@ -153,6 +189,10 @@ const Uniform = () => {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      {popupVisible && (
+        <PopupMessage message={popupMessage} onClose={() => setPopupVisible(false)} />
+      )}
     </>
   );
 };
