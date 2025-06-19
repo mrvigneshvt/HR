@@ -7,15 +7,25 @@ import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 
 type Props = {
   role: string;
-  name: string;
-  employeeId: number;
+  name?: string;
+  empId: string;
+  img?: string;
 };
 
 const IconImage = require('../assets/profile.png');
 
-const DashTop = ({ role, name, employeeId }: Props) => {
+const DashTop = ({ role, name, empId, img }: Props) => {
   return (
-    <Pressable onPress={() => router.push('/profile')}>
+    <Pressable
+      onPress={() =>
+        router.push({
+          pathname: '/profile',
+          params: {
+            role,
+            empId,
+          },
+        })
+      }>
       <View
         style={{
           marginHorizontal: scale(16),
@@ -34,7 +44,7 @@ const DashTop = ({ role, name, employeeId }: Props) => {
         }}>
         {/* Profile Image */}
         <Image
-          source={IconImage}
+          source={!img ? IconImage : img}
           style={{
             height: scale(60),
             width: scale(60),
@@ -45,24 +55,27 @@ const DashTop = ({ role, name, employeeId }: Props) => {
         />
 
         <View>
-          <Text
-            style={{
-              fontSize: moderateScale(12),
-              color: '#6b7280',
-              marginBottom: verticalScale(4),
-            }}>
-            Welcome back
-          </Text>
+          <View className="flex flex-row">
+            <Text
+              style={{
+                fontSize: moderateScale(12),
+                color: '#6b7280',
+                marginBottom: verticalScale(4),
+              }}>
+              Welcome back
+            </Text>
+            <Text className="text-md "> {role.toUpperCase()}</Text>
+          </View>
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale(8) }}>
-            <Text
+            {/* <Text
               style={{
                 fontSize: moderateScale(18),
                 fontWeight: 'bold',
                 color: '#000',
               }}>
-              {role}
-            </Text>
+              {role.toUpperCase()}
+            </Text> */}
             <Text
               style={{
                 fontSize: moderateScale(18),
@@ -78,9 +91,9 @@ const DashTop = ({ role, name, employeeId }: Props) => {
               marginTop: verticalScale(4),
               fontSize: moderateScale(12),
               fontWeight: '600',
-              color: configFile.colorGreen,
+              color: 'black',
             }}>
-            ID: {employeeId}
+            {empId}
           </Text>
         </View>
       </View>

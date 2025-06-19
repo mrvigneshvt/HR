@@ -9,14 +9,13 @@ import MailCard from 'components/MailCard';
 import NotifTop from 'components/NotifTop';
 import ApprovalCard from 'components/ApprovalCard';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
+import { useEmployeeStore } from 'Memory/Employee';
 
 const NotificationScreen = () => {
-  const { role } = useLocalSearchParams();
   console.log('role:::', role);
+  const { employee_id, role, name } = useEmployeeStore((state) => state.employee);
 
   const { height, width } = Dimensions.get('window');
-
-  const getNotification = DashMemory((state) => state.getNotification());
 
   const [getNotificationApp, setGetNotificationApp] = useState<any[]>([]);
 
@@ -26,12 +25,14 @@ const NotificationScreen = () => {
     setState(data);
   };
 
-  useEffect(() => {
-    if (role === 'Executive') {
-      const notifApp = DashMemory.getState().getNotificationApp();
-      setGetNotificationApp(notifApp);
-    }
-  }, [role]);
+  useEffect(() => {}, []);
+
+  // useEffect(() => {
+  //   if (role === 'Executive') {
+  //     const notifApp = DashMemory.getState().getNotificationApp();
+  //     setGetNotificationApp(notifApp);
+  //   }
+  // }, [role]);
 
   const showEmptyScreen = getNotification.length < 1 && getNotificationApp.length < 1;
 

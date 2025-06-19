@@ -54,9 +54,7 @@ const PayrollScreen = () => {
 
   useEffect(() => {
     setFiltered(
-      payrolls.filter(item =>
-        item.employeeName.toLowerCase().includes(search.toLowerCase())
-      )
+      payrolls.filter((item) => item.employeeName.toLowerCase().includes(search.toLowerCase()))
     );
   }, [search, payrolls]);
 
@@ -64,8 +62,6 @@ const PayrollScreen = () => {
     setSelectedDate(day.dateString);
     setShowFilterModal(false);
   };
-
-  if (loading) return <ActivityIndicator color="#4A90E2" size="large" />;
 
   useEffect(() => {
     const onBackPress = () => {
@@ -79,6 +75,8 @@ const PayrollScreen = () => {
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
   }, []);
 
+  if (loading) return <ActivityIndicator color="#4A90E2" size="large" />;
+
   return (
     <View style={{ flex: 1, backgroundColor: '#F9F9F9' }}>
       <Stack.Screen
@@ -87,13 +85,12 @@ const PayrollScreen = () => {
           title: 'Payroll',
           headerStyle: { backgroundColor: configFile.colorGreen },
           headerTintColor: 'white',
-          headerRight: () => (
+          headerRight: () =>
             !readOnly && (
               <Pressable onPress={() => setShowFilterModal(true)} style={{ marginRight: 16 }}>
                 <MaterialIcons name="filter-list" size={24} color="white" />
               </Pressable>
-            )
-          ),
+            ),
         }}
       />
 
@@ -105,9 +102,10 @@ const PayrollScreen = () => {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={{ backgroundColor: '#fff', margin: 8, padding: 16, borderRadius: 8 }}
-            onPress={() => setSelectedPayroll(item)}
-          >
-            <Text>{item.employeeName} - {item.month}</Text>
+            onPress={() => setSelectedPayroll(item)}>
+            <Text>
+              {item.employeeName} - {item.month}
+            </Text>
             <Text>₹{item.amount}</Text>
           </TouchableOpacity>
         )}
@@ -118,8 +116,7 @@ const PayrollScreen = () => {
         visible={!!selectedPayroll}
         transparent
         animationType="fade"
-        onRequestClose={() => setSelectedPayroll(null)}
-      >
+        onRequestClose={() => setSelectedPayroll(null)}>
         <View
           style={{
             flex: 1,
@@ -127,8 +124,7 @@ const PayrollScreen = () => {
             justifyContent: 'center',
             alignItems: 'center',
             padding: 20,
-          }}
-        >
+          }}>
           <View
             style={{
               backgroundColor: '#fff',
@@ -137,8 +133,7 @@ const PayrollScreen = () => {
               maxWidth: 400,
               padding: 24,
               elevation: 5,
-            }}
-          >
+            }}>
             <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Payroll Details</Text>
             <Text style={{ marginVertical: 4 }}>Name: {selectedPayroll?.employeeName}</Text>
             <Text style={{ marginVertical: 4 }}>Month: {selectedPayroll?.month}</Text>
@@ -155,8 +150,7 @@ const PayrollScreen = () => {
                 paddingHorizontal: 16,
                 borderRadius: 6,
                 marginTop: 16,
-              }}
-            >
+              }}>
               <Text style={{ color: 'white', textAlign: 'center' }}>Download PDF</Text>
             </Pressable>
 
@@ -165,8 +159,7 @@ const PayrollScreen = () => {
               style={{
                 marginTop: 12,
                 alignSelf: 'flex-end',
-              }}
-            >
+              }}>
               <Text style={{ color: '#4A90E2' }}>Close</Text>
             </Pressable>
           </View>
@@ -178,18 +171,20 @@ const PayrollScreen = () => {
         visible={showFilterModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowFilterModal(false)}
-      >
+        onRequestClose={() => setShowFilterModal(false)}>
         <TouchableOpacity
           activeOpacity={1}
           style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}
-          onPress={() => setShowFilterModal(false)}
-        >
+          onPress={() => setShowFilterModal(false)}>
           <TouchableOpacity
             activeOpacity={1}
             onPress={(e) => e.stopPropagation()}
-            style={{ backgroundColor: 'white', padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
-          >
+            style={{
+              backgroundColor: 'white',
+              padding: 20,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+            }}>
             <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12 }}>Select Date</Text>
 
             <AdminCalendar
@@ -205,8 +200,7 @@ const PayrollScreen = () => {
                 paddingHorizontal: 24,
                 borderRadius: 8,
                 marginTop: 16,
-              }}
-            >
+              }}>
               <Text style={{ color: 'white' }}>Apply Filter</Text>
             </Pressable>
           </TouchableOpacity>

@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, Modal, Pressable, StyleSheet, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
+  Modal,
+  Pressable,
+  StyleSheet,
+  ScrollView,
+} from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { BackHandler } from 'react-native';
 import SearchBar from '../../../components/search';
@@ -57,7 +67,9 @@ const AttendanceScreen = () => {
   const [selectedAttendance, setSelectedAttendance] = useState<AttendanceData | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [detailedAttendance, setDetailedAttendance] = useState<AttendanceData | null>(null);
-  const [attendanceSummary, setAttendanceSummary] = useState<AttendanceResponse['summary'] | null>(null);
+  const [attendanceSummary, setAttendanceSummary] = useState<AttendanceResponse['summary'] | null>(
+    null
+  );
   const params = useLocalSearchParams();
   const role = params.role as string | undefined;
   const empId = params.empId as string | undefined;
@@ -68,7 +80,9 @@ const AttendanceScreen = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get<AttendanceResponse>(`${BASE_URL}/attendance/getAttendanceDetails`);
+      const response = await axios.get<AttendanceResponse>(
+        `${BASE_URL}/attendance/getAttendanceDetails`
+      );
       setAttendance(response.data.data);
       setFiltered(response.data.data);
     } catch (err) {
@@ -86,11 +100,14 @@ const AttendanceScreen = () => {
       if (date) {
         params.date = date;
       }
-      
-      const response = await axios.get<AttendanceResponse>(`${BASE_URL}/attendance/getAttendanceDetails`, {
-        params
-      });
-      
+
+      const response = await axios.get<AttendanceResponse>(
+        `${BASE_URL}/attendance/getAttendanceDetails`,
+        {
+          params,
+        }
+      );
+
       if (response.data.data.length > 0) {
         setDetailedAttendance(response.data.data[0]);
         setAttendanceSummary(response.data.summary);
@@ -113,20 +130,31 @@ const AttendanceScreen = () => {
 
   useEffect(() => {
     setFiltered(
-      attendance.filter(item =>
-        item.employee_name.toLowerCase().includes(search.toLowerCase()) ||
-        item.employee_id.toLowerCase().includes(search.toLowerCase()) ||
-        item.attendance_date.includes(search)
+      attendance.filter(
+        (item) =>
+          item.employee_name.toLowerCase().includes(search.toLowerCase()) ||
+          item.employee_id.toLowerCase().includes(search.toLowerCase()) ||
+          item.attendance_date.includes(search)
       )
     );
   }, [search, attendance]);
 
+  useEffect(() => {
+    const onBackPress = () => {
+      router.replace({
+        pathname: '/home',
+        params: { role, empId },
+      });
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, []);
+
   const handleCalendarDayPress = (day: any) => {
     const selected = day.dateString;
     setSelectedDate(selected);
-    setFiltered(
-      attendance.filter((item) => item.attendance_date === selected)
-    );
+    setFiltered(attendance.filter((item) => item.attendance_date === selected));
     setShowFilterModal(false);
   };
 
@@ -167,18 +195,6 @@ const AttendanceScreen = () => {
     );
   }
 
-  useEffect(() => {
-    const onBackPress = () => {
-      router.replace({
-        pathname: '/home',
-        params: { role, empId },
-      });
-      return true;
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-  }, []);
-
   return (
     <View style={styles.container}>
       <Stack.Screen
@@ -191,34 +207,34 @@ const AttendanceScreen = () => {
           headerTintColor: 'white',
           headerRight: () => (
             <View style={styles.headerRight}>
-              {
-                readOnly &&
-              <Pressable onPress={() => setShowFilterModal(true)} style={styles.filterButton}>
-                <MaterialIcons name="filter-list" size={24} color="white" />
-              </Pressable>
-              }
+              {readOnly && (
+                <Pressable onPress={() => setShowFilterModal(true)} style={styles.filterButton}>
+                  <MaterialIcons name="filter-list" size={24} color="white" />
+                </Pressable>
+              )}
             </View>
           ),
         }}
       />
 
-      <SearchBar 
-        value={search} 
-        onChangeText={setSearch} 
-        placeholder="Search by name, ID or date..." 
+      <SearchBar
+        value={search}
+        onChangeText={setSearch}
+        placeholder="Search by name, ID or date..."
       />
 
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => handleCardPress(item)}
-          >
+          <TouchableOpacity style={styles.card} onPress={() => handleCardPress(item)}>
             <View style={styles.cardHeader}>
               <Text style={styles.employeeName}>{item.employee_name}</Text>
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.overall_status) }]}>
+              <View
+                style={[
+                  styles.statusBadge,
+                  { backgroundColor: getStatusColor(item.overall_status) },
+                ]}>
                 <Text style={styles.statusText}>{item.overall_status}</Text>
               </View>
             </View>
@@ -238,8 +254,7 @@ const AttendanceScreen = () => {
           setSelectedAttendance(null);
           setDetailedAttendance(null);
           setAttendanceSummary(null);
-        }}
-      >
+        }}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             {loadingDetails ? (
@@ -251,7 +266,11 @@ const AttendanceScreen = () => {
               <>
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>{detailedAttendance.employee_name}</Text>
-                  <View style={[styles.statusBadge, { backgroundColor: getStatusColor(detailedAttendance.overall_status) }]}>
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      { backgroundColor: getStatusColor(detailedAttendance.overall_status) },
+                    ]}>
                     <Text style={styles.statusText}>{detailedAttendance.overall_status}</Text>
                   </View>
                 </View>
@@ -281,15 +300,21 @@ const AttendanceScreen = () => {
                     </View>
                     <View style={styles.detailRow}>
                       <Text style={styles.detailLabel}>Check-in:</Text>
-                      <Text style={styles.detailValue}>{detailedAttendance.check_in_time || 'N/A'}</Text>
+                      <Text style={styles.detailValue}>
+                        {detailedAttendance.check_in_time || 'N/A'}
+                      </Text>
                     </View>
                     <View style={styles.detailRow}>
                       <Text style={styles.detailLabel}>Lunch:</Text>
-                      <Text style={styles.detailValue}>{detailedAttendance.lunch_in_time || 'N/A'}</Text>
+                      <Text style={styles.detailValue}>
+                        {detailedAttendance.lunch_in_time || 'N/A'}
+                      </Text>
                     </View>
                     <View style={styles.detailRow}>
                       <Text style={styles.detailLabel}>Check-out:</Text>
-                      <Text style={styles.detailValue}>{detailedAttendance.check_out_time || 'N/A'}</Text>
+                      <Text style={styles.detailValue}>
+                        {detailedAttendance.check_out_time || 'N/A'}
+                      </Text>
                     </View>
                   </View>
 
@@ -314,7 +339,9 @@ const AttendanceScreen = () => {
                       </View>
                       {Object.entries(attendanceSummary.statusBreakdown).map(([status, count]) => (
                         <View key={status} style={styles.detailRow}>
-                          <Text style={styles.detailLabel}>{status.charAt(0).toUpperCase() + status.slice(1)}:</Text>
+                          <Text style={styles.detailLabel}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}:
+                          </Text>
                           <Text style={styles.detailValue}>{count}</Text>
                         </View>
                       ))}
@@ -325,11 +352,15 @@ const AttendanceScreen = () => {
                     <Text style={styles.sectionTitle}>Timestamps</Text>
                     <View style={styles.detailRow}>
                       <Text style={styles.detailLabel}>Created:</Text>
-                      <Text style={styles.detailValue}>{new Date(detailedAttendance.created_at).toLocaleString()}</Text>
+                      <Text style={styles.detailValue}>
+                        {new Date(detailedAttendance.created_at).toLocaleString()}
+                      </Text>
                     </View>
                     <View style={styles.detailRow}>
                       <Text style={styles.detailLabel}>Updated:</Text>
-                      <Text style={styles.detailValue}>{new Date(detailedAttendance.updated_at).toLocaleString()}</Text>
+                      <Text style={styles.detailValue}>
+                        {new Date(detailedAttendance.updated_at).toLocaleString()}
+                      </Text>
                     </View>
                   </View>
                 </ScrollView>
@@ -340,8 +371,7 @@ const AttendanceScreen = () => {
                     setSelectedAttendance(null);
                     setDetailedAttendance(null);
                     setAttendanceSummary(null);
-                  }}
-                >
+                  }}>
                   <Text style={styles.closeButtonText}>Close</Text>
                 </TouchableOpacity>
               </>
@@ -357,24 +387,23 @@ const AttendanceScreen = () => {
         visible={showFilterModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowFilterModal(false)}
-      >
+        onRequestClose={() => setShowFilterModal(false)}>
         <TouchableOpacity
           style={styles.filterModalOverlay}
           activeOpacity={1}
-          onPress={() => setShowFilterModal(false)}
-        >
+          onPress={() => setShowFilterModal(false)}>
           <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
             <View style={styles.filterModalContent}>
               <Text style={styles.filterTitle}>Select Date</Text>
               <AdminCalendar
                 onDayPress={handleCalendarDayPress}
-                markedDates={{ [selectedDate]: { selected: true, selectedColor: configFile.colorGreen } }}
+                markedDates={{
+                  [selectedDate]: { selected: true, selectedColor: configFile.colorGreen },
+                }}
               />
               <TouchableOpacity
                 style={styles.applyButton}
-                onPress={() => setShowFilterModal(false)}
-              >
+                onPress={() => setShowFilterModal(false)}>
                 <Text style={styles.applyButtonText}>Apply Filter</Text>
               </TouchableOpacity>
             </View>
@@ -569,4 +598,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AttendanceScreen; 
+export default AttendanceScreen;

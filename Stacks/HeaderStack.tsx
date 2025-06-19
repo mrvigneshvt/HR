@@ -137,7 +137,7 @@ const options = (
       headerRight: () => (
         <>
           <View className="flex-row gap-4">
-            <Pressable
+            {/* <Pressable
               onPress={() =>
                 router.push({
                   pathname: '/emp-plugins/notification',
@@ -147,7 +147,7 @@ const options = (
                 })
               }>
               <Ionicons name="notifications" size={24} color="black" />
-            </Pressable>
+            </Pressable> */}
             <Pressable onPress={() => router.replace('/')}>
               <MaterialIcons name="logout" size={24} color="black" />
             </Pressable>

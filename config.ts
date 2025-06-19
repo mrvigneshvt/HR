@@ -28,6 +28,14 @@ export const configFile = {
       getEmpData(id: any) {
         return `${backendBaseUrl}api/employees/${id}`;
       },
+
+      postLeaveReq() {
+        return `${backendBaseUrl}api/Leaves`; //post
+      },
+
+      postUniformReq() {
+        return `${backendBaseUrl}api/Uniforms`;
+      },
     },
   },
 };

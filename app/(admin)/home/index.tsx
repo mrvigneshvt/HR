@@ -8,13 +8,13 @@ const HomeScreen = () => {
   const router = useRouter();
   const { role, empId } = useLocalSearchParams();
   console.log(role, '/rollle///empId', empId);
-  
+
   const handleClientsPress = () => {
     router.push({
       pathname: '/clients',
       params: {
         role,
-        empId
+        empId,
       },
     });
   };
@@ -24,7 +24,7 @@ const HomeScreen = () => {
       pathname: '/employees',
       params: {
         role,
-        empId
+        empId,
       },
     });
   };
@@ -34,7 +34,7 @@ const HomeScreen = () => {
       pathname: '/requests',
       params: {
         role,
-        empId
+        empId,
       },
     });
   };
@@ -44,17 +44,17 @@ const HomeScreen = () => {
       pathname: '/attendance',
       params: {
         role,
-        empId
+        empId,
       },
     });
   };
 
   const handleEmployeeIdPRess = () => {
     router.push({
-      pathname: '/attendance',
+      pathname: '/employeeIdCard',
       params: {
         role,
-        empId
+        empId,
       },
     });
   };
@@ -64,7 +64,7 @@ const HomeScreen = () => {
       pathname: '/payroll',
       params: {
         role,
-        empId
+        empId,
       },
     });
   };

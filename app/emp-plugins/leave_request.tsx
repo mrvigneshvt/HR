@@ -11,63 +11,92 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
-import { DashMemory } from 'Memory/DashMem';
+import { useEmployeeStore } from 'Memory/Employee';
 import { Image } from 'expo-image';
 import { configFile } from 'config';
 import { router, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import DropDownPicker from 'react-native-dropdown-picker';
+import { Api } from 'class/HandleApi';
+import { format } from 'date-fns'; // ✅ For formatting date
+import PopupMessage from 'plugins/popupz';
 
 const LeaveRequest = () => {
   const [confirm, setConfirm] = useState(false);
+  const [showPop, setShowPop] = useState(false);
   const [sent, setSent] = useState(false);
-  const { id, role, name } = DashMemory((state) => state.dashboard?.user.details);
+  const { employee_id, role, name } = useEmployeeStore((state) => state.employee);
 
   const [leaveReason, setLeaveReason] = useState('');
   const [fromDate, setFromDate] = useState<Date | null>(null);
   const [toDate, setToDate] = useState<Date | null>(null);
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [showToPicker, setShowToPicker] = useState(false);
+  const [apiMsg, setApiMsg] = useState('');
 
-  const formatDate = (date: Date) =>
-    date.toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState('Other');
+  const [items, setItems] = useState([
+    { label: 'Sick', value: 'Sick' },
+    { label: 'Vacation', value: 'Vacation' },
+    { label: 'Casual', value: 'Casual' },
+    { label: 'Maternity', value: 'Maternity' },
+    { label: 'Other', value: 'Other' },
+  ]);
+
+  const formatDateString = (date: Date) => format(date, 'yyyy/MM/dd');
+
+  useEffect(() => {
+    setLeaveReason(value);
+  }, [value]);
 
   useEffect(() => {
     if (!sent) return;
+    console.log('returning to /');
     const clear = setTimeout(() => {
       router.replace({
         pathname: '/dashboard',
-        params: {
-          role: 'Employee',
-        },
+        params: { role, empId: employee_id },
       });
     }, 2000);
-
     return () => clearTimeout(clear);
   }, [sent]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!leaveReason || !fromDate || !toDate) {
       Alert.alert('Missing Fields', 'Please fill all the fields.');
       return;
-    } else {
-      setConfirm(true);
+    }
+
+    const startDate = formatDateString(fromDate);
+    const endDate = formatDateString(toDate);
+
+    console.log({ startDate, endDate, leaveReason });
+
+    const data = await Api.postLeaveReq({
+      employeeId: employee_id,
+      employeeName: name,
+      leaveType: leaveReason,
+      startDate,
+      endDate,
+    });
+
+    if (data?.status) {
+      setApiMsg(data.message);
+      setShowPop(true);
       setSent(true);
+
       return;
+    } else {
+      setApiMsg(data?.message);
+      setShowPop(true);
     }
   };
 
   if (confirm && sent) {
     return (
       <>
-        <Stack.Screen
-          options={{
-            headerShown: false,
-          }}
-        />
+        <Stack.Screen options={{ headerShown: false }} />
         <View
           style={{
             flex: 1,
@@ -77,7 +106,7 @@ const LeaveRequest = () => {
             backgroundColor: '#f0f4f7',
           }}>
           <Image
-            source={require('../../assets/leaveSent.svg')} // use PNG or a compatible format with `Image`
+            source={require('../../assets/leaveSent.svg')}
             style={{
               width: scale(220),
               height: verticalScale(220),
@@ -107,11 +136,7 @@ const LeaveRequest = () => {
   if (!confirm) {
     return (
       <>
-        <Stack.Screen
-          options={{
-            headerShown: false,
-          }}
-        />
+        <Stack.Screen options={{ headerShown: false }} />
         <View
           style={{
             flex: 1,
@@ -121,7 +146,7 @@ const LeaveRequest = () => {
             backgroundColor: '#f0f4f7',
           }}>
           <Image
-            source={require('../../assets/leave.svg')} // use PNG or a compatible format with `Image`
+            source={require('../../assets/leave.svg')}
             style={{
               width: scale(220),
               height: verticalScale(220),
@@ -147,18 +172,9 @@ const LeaveRequest = () => {
               paddingVertical: verticalScale(12),
               paddingHorizontal: scale(30),
               borderRadius: moderateScale(10),
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.2,
-              shadowRadius: 3,
               elevation: 3,
             }}>
-            <Text
-              style={{
-                color: '#fff',
-                fontSize: moderateScale(16),
-                fontWeight: 'bold',
-              }}>
+            <Text style={{ color: '#fff', fontSize: moderateScale(16), fontWeight: 'bold' }}>
               Yes, I Confirm!
             </Text>
           </TouchableOpacity>
@@ -172,12 +188,7 @@ const LeaveRequest = () => {
       <KeyboardAvoidingView style={{ flex: 1 }}>
         <Stack.Screen options={{ headerShown: false }} />
         <ScrollView>
-          <View
-            style={{
-              flex: 1,
-              padding: moderateScale(20),
-              backgroundColor: '#f9f9f9',
-            }}>
+          <View style={{ flex: 1, padding: moderateScale(20), backgroundColor: '#f9f9f9' }}>
             <Text
               style={{
                 fontSize: scale(22),
@@ -189,125 +200,36 @@ const LeaveRequest = () => {
               Leave Request Form
             </Text>
 
-            {/* Name (disabled) */}
-            <Text
-              style={{
-                fontSize: scale(14),
-                fontWeight: '600',
-                marginBottom: verticalScale(6),
-                color: '#444',
-              }}>
-              Name:
-            </Text>
-            <TextInput
-              value={name || ''}
-              editable={false}
-              style={{
-                borderWidth: 1,
-                borderColor: '#ccc',
-                padding: moderateScale(10),
-                borderRadius: moderateScale(6),
-                marginBottom: verticalScale(15),
-                backgroundColor: '#eee',
-                color: '#555',
-              }}
-            />
+            {/* Name */}
+            <Text>Name:</Text>
+            <TextInput value={name || ''} editable={false} style={inputStyle} />
 
-            {/* Employee ID (disabled) */}
-            <Text
-              style={{
-                fontSize: scale(14),
-                fontWeight: '600',
-                marginBottom: verticalScale(6),
-                color: '#444',
-              }}>
-              Employee ID:
-            </Text>
-            <TextInput
-              value={id || ''}
-              editable={false}
-              style={{
-                borderWidth: 1,
-                borderColor: '#ccc',
-                padding: moderateScale(10),
-                borderRadius: moderateScale(6),
-                marginBottom: verticalScale(15),
-                backgroundColor: '#eee',
-                color: '#555',
-              }}
-            />
+            {/* Employee ID */}
+            <Text>Employee ID:</Text>
+            <TextInput value={employee_id || ''} editable={false} style={inputStyle} />
 
-            {/* Role (disabled) */}
-            <Text
-              style={{
-                fontSize: scale(14),
-                fontWeight: '600',
-                marginBottom: verticalScale(6),
-                color: '#444',
-              }}>
-              Role:
-            </Text>
-            <TextInput
-              value={role || ''}
-              editable={false}
-              style={{
-                borderWidth: 1,
-                borderColor: '#ccc',
-                padding: moderateScale(10),
-                borderRadius: moderateScale(6),
-                marginBottom: verticalScale(15),
-                backgroundColor: '#eee',
-                color: '#555',
-              }}
-            />
+            {/* Role */}
+            <Text>Role:</Text>
+            <TextInput value={role || ''} editable={false} style={inputStyle} />
 
-            {/* Leave Reason */}
-            <Text
-              style={{
-                fontSize: scale(14),
-                fontWeight: '600',
-                marginBottom: verticalScale(6),
-                color: '#444',
-              }}>
-              Leave Reason:
-            </Text>
-            <TextInput
-              placeholder="E.g., Marriage, Sick, Travel..."
-              value={leaveReason}
-              onChangeText={setLeaveReason}
-              style={{
-                borderWidth: 1,
-                borderColor: '#ccc',
-                padding: moderateScale(10),
-                borderRadius: moderateScale(6),
-                marginBottom: verticalScale(15),
-                backgroundColor: '#fff',
-              }}
+            {/* Reason */}
+            <Text>Leave Reason:</Text>
+            <DropDownPicker
+              open={open}
+              value={value}
+              items={items}
+              setOpen={setOpen}
+              setValue={setValue}
+              setItems={setItems}
+              placeholder="Select leave reason"
+              style={inputStyle}
+              dropDownContainerStyle={{ borderColor: '#ccc' }}
             />
 
             {/* From Date */}
-            <Text
-              style={{
-                fontSize: scale(14),
-                fontWeight: '600',
-                marginBottom: verticalScale(6),
-                color: '#444',
-              }}>
-              From Date:
-            </Text>
-            <TouchableOpacity
-              style={{
-                borderWidth: 1,
-                borderColor: '#bbb',
-                padding: moderateScale(10),
-                borderRadius: moderateScale(6),
-                marginBottom: verticalScale(15),
-                backgroundColor: '#fff',
-              }}
-              onPress={() => setShowFromPicker(true)}>
-              <Text style={{ fontSize: scale(14), color: '#555' }}>
-                {fromDate ? formatDate(fromDate) : 'Select From Date'}
-              </Text>
+            <Text>From Date:</Text>
+            <TouchableOpacity style={inputStyle} onPress={() => setShowFromPicker(true)}>
+              <Text>{fromDate ? formatDateString(fromDate) : 'Select From Date'}</Text>
             </TouchableOpacity>
             {showFromPicker && (
               <DateTimePicker
@@ -323,28 +245,9 @@ const LeaveRequest = () => {
             )}
 
             {/* To Date */}
-            <Text
-              style={{
-                fontSize: scale(14),
-                fontWeight: '600',
-                marginBottom: verticalScale(6),
-                color: '#444',
-              }}>
-              To Date:
-            </Text>
-            <TouchableOpacity
-              style={{
-                borderWidth: 1,
-                borderColor: '#bbb',
-                padding: moderateScale(10),
-                borderRadius: moderateScale(6),
-                marginBottom: verticalScale(15),
-                backgroundColor: '#fff',
-              }}
-              onPress={() => setShowToPicker(true)}>
-              <Text style={{ fontSize: scale(14), color: '#555' }}>
-                {toDate ? formatDate(toDate) : 'Select To Date'}
-              </Text>
+            <Text>To Date:</Text>
+            <TouchableOpacity style={inputStyle} onPress={() => setShowToPicker(true)}>
+              <Text>{toDate ? formatDateString(toDate) : 'Select To Date'}</Text>
             </TouchableOpacity>
             {showToPicker && (
               <DateTimePicker
@@ -359,7 +262,7 @@ const LeaveRequest = () => {
               />
             )}
 
-            {/* Submit Button */}
+            {/* Submit */}
             <TouchableOpacity
               style={{
                 backgroundColor: '#4CAF50',
@@ -369,20 +272,26 @@ const LeaveRequest = () => {
                 marginTop: verticalScale(20),
               }}
               onPress={handleSubmit}>
-              <Text
-                style={{
-                  color: '#fff',
-                  fontSize: scale(16),
-                  fontWeight: 'bold',
-                }}>
+              <Text style={{ color: '#fff', fontSize: scale(16), fontWeight: 'bold' }}>
                 Submit Request
               </Text>
             </TouchableOpacity>
+            {showPop && <PopupMessage message={apiMsg} onClose={() => setShowPop(false)} />}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
+};
+
+const inputStyle = {
+  borderWidth: 1,
+  borderColor: '#ccc',
+  padding: moderateScale(10),
+  borderRadius: moderateScale(6),
+  marginBottom: verticalScale(15),
+  backgroundColor: '#fff',
+  color: '#555',
 };
 
 export default LeaveRequest;

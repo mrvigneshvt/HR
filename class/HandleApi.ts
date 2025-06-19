@@ -5,7 +5,7 @@ import axios from 'axios';
 import { PopUpTypes } from '../app/index';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-
+import { useEmployeeStore } from 'Memory/Employee';
 export class Api {
   private static async handleApi(options: {
     url: string;
@@ -99,6 +99,111 @@ export class Api {
         }
     }
   }
+
+  //   {
+  // "empId":"SMF1",
+  // "name":"mohinth",
+  // "designation":"traveler",
+  // "site":"chennai",
+  // "location":"chennai",
+  // "gender":"Male",      // ['Male', 'Female']
+  // "status":"Active",    // ['Active', 'Inactive']
+  // "shirtSize":"42",
+  // "pantSize":"28",
+  // "shoeSize":"11",
+  // "chuditharSize":"",
+  // "femaleShoeSize":"",
+  // "accessories":[],
+  // "femaleAccessories":[],
+  // "requestedDate":"1/2/25",
+  // "flab":""
+  // }
+
+  public static async postLeaveReq(options: {
+    employeeId: string;
+    employeeName: string;
+    leaveType: 'Casual' | 'Sick' | 'Vacation' | 'Maternity' | 'Other';
+    startDate: string;
+    endDate: string; //'2/1/25';
+    status: 'Pending';
+  }) {
+    try {
+      console.log('received options data', options);
+
+      const url = configFile.api.common.postLeaveReq();
+
+      const api = await this.handleApi({
+        url,
+        type: 'POST',
+        payload: {
+          employeeId: options.employeeId,
+          employeeName: options.employeeName,
+          leaveType: options.leaveType,
+          startDate: options.startDate,
+          endDate: options.endDate, //'2/1/25';
+          status: 'Pending',
+        },
+      });
+
+      console.log(api, 'apiResssssssssssssssssssss');
+
+      switch (api.status) {
+        case 200:
+          return { status: true, message: 'success' };
+
+        case 400:
+          return { status: false, message: api.data.message };
+
+        case 500:
+          return { status: false, message: api.data.message };
+      }
+    } catch (error) {
+      console.log('error in leaveRequest', error);
+      return { status: false, message: 'Error in Post Request' };
+    }
+  }
+
+  public static async postUniReq(options: {
+    gender: 'Male' | 'Female';
+    empId: string;
+    site: string;
+    location: string;
+    status: 'Active'; // ['Active', 'Inactive']
+    shirtSize: number;
+    pantSize: number;
+    shoeSize: number;
+    chuditharSize: number;
+    femaleShoeSize: number;
+    accessories: [];
+    femaleAccessories: [];
+    requsedDate: '20/02/25';
+  }) {
+    try {
+      const url = configFile.api.common.postUniformReq();
+
+      console.log(options, 'optionsssssssssssss');
+      // const api = await this.handleApi({ url, type: 'POST', payload: options });
+
+      // console.log(api, '//////////////////////////////api');
+
+      // switch (api.status) {
+      //   case 200:
+      //     return { status: true, message: 'success' };
+      //   case 400:
+      //     return { status: false, message: api.data.message };
+      //   case 500:
+      //     return { status: false, message: api.data.message };
+      // }
+    } catch (error) {
+      console.log('postUniReq', error);
+      return { status: false, message: 'Error' };
+    }
+  }
+
+  public static async zustand() {
+    const employee = useEmployeeStore((state) => state.employee);
+    return employee;
+  }
   public static async handleAuthV1(options: {
     empId: string;
     setApiLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -126,16 +231,20 @@ export class Api {
 
       switch (api.status) {
         case 200:
-          options.setOtpToNumber(api.data.smsResponse.phone);
           const role = api.data.authInfo.role.toLowerCase();
           console.log(role, 'r0le');
 
           if (api.data.smsResponse) {
-            options.setIsOtp(true);
             options.setOtpToNumber(api.data.smsResponse.phoneNumber);
+            options.setIsOtp(true);
+            // options.setOtpToNumber(api.data.smsResponse.phoneNumber);
             return;
           } else {
-            router.replace({ pathname: '/ApiContex/fetchNparse', params: { role } });
+            router.replace({
+              pathname: '/ApiContex/fetchNparse',
+              params: { role, empId: options.empId },
+            });
+            return;
           }
 
         case 404:
@@ -207,6 +316,26 @@ export class Api {
     }
   }
 
+  public static async getEmpData(id: string): Promise<Record<string, any>> {
+    try {
+      const apiUrl = configFile.api.common.getEmpData(id);
+      const api = await this.handleApi({ url: apiUrl, type: 'GET' });
+      console.log(api, '/////apiEMp');
+      switch (api.status) {
+        case 200:
+          return api.data;
+        case 404:
+          return {};
+        case 500:
+          return {};
+      }
+      return {};
+    } catch (error) {
+      console.log('getEmpData', error);
+      return {};
+    }
+  }
+
   public static async handleEmpData(id: string) {
     try {
       const apiUrl = configFile.api.common.getEmpData(id);
@@ -218,9 +347,12 @@ export class Api {
           let status = api.data.status.toLowerCase();
           let role = api.data.role.toLowerCase();
           console.log(status, '////', role);
-          if (status == 'active') {
+          if (status == 'active' || status == 'working') {
             if (role == 'employee') {
-              router.replace('/quarantine');
+              router.replace({
+                pathname: '/(tabs)/dashboard/attendance',
+                params: { role, empId: api.data.employee_id },
+              });
               return;
             }
             // router.replace('/(admin)/home');

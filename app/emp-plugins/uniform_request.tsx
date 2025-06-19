@@ -8,37 +8,43 @@ import {
   KeyboardAvoidingView,
   Pressable,
 } from 'react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import ProfileStack from 'Stacks/HeaderStack';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
+import { scale, verticalScale } from 'react-native-size-matters';
 import { configFile } from '../../config';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useEmployeeStore } from 'Memory/Employee';
+import { useLocalSearchParams } from 'expo-router';
+import { Api } from 'class/HandleApi';
+
 const Uniform = () => {
-  const [isMale, setIsMale] = useState<boolean>(true);
+  const { empId, role } = useLocalSearchParams();
+
+  const employee = useEmployeeStore((state) => state.employee);
+  console.log(employee?.gender);
+  const isMale = employee?.gender?.toLowerCase() === 'male';
+
+  const accessories = useMemo(
+    () =>
+      isMale
+        ? ['belt', 'lanyard', 'whistle', 'idCard', 'cap', 'flab']
+        : ['belt', 'lanyard', 'whistle', 'idCard', 'cap'],
+    [isMale]
+  );
 
   const [state, setState] = useState({
-    empId: 'EMP123',
-    designation: 'Engineer',
-    site: 'Site A',
-    location: 'Chennai',
-    ...(isMale
-      ? {
-          shirtSize: '',
-          pantSize: '',
-        }
-      : {
-          chudiSize: '',
-        }),
+    empId,
+    role,
+    ...(isMale ? { shirtSize: '', pantSize: '' } : { chudiSize: '' }),
     shoeSize: '',
     belt: false,
     lanyard: false,
     whistle: false,
     idCard: false,
     cap: false,
+    flab: false,
   });
-
-  //console.log(state);
 
   const toggleSwitch = (key: keyof typeof state) => {
     setState((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -50,10 +56,19 @@ const Uniform = () => {
     }
   };
 
+  const postUniformRequest = async () => {
+    console.log('Posting uniform request', state);
+    const api = await Api.postUniReq({
+      gender: employee?.gender,
+      empId,
+      site: '',
+    });
+    // await Api.postUniform(state)
+  };
+
   return (
     <>
       <ProfileStack Uniform={true} />
-
       <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
@@ -66,105 +81,74 @@ const Uniform = () => {
               padding: scale(16),
               paddingBottom: 40,
             }}>
-            <View className="flex-row items-center justify-center gap-2">
-              <Text>Male:</Text>
-              <Switch value={isMale} onValueChange={() => setIsMale((d) => !d)} />
-              <Text>'(This is for Testing)'</Text>
-            </View>
             {/* Read-only fields */}
-            {['empId', 'designation', 'site', 'location'].map((field, index) => (
-              <View key={index} style={{ marginBottom: verticalScale(12) }}>
+            {['empId', 'role'].map((field) => (
+              <View key={field} style={{ marginBottom: verticalScale(12) }}>
                 <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>{field.toUpperCase()}</Text>
-                <Text
-                  style={{
-                    borderColor: '#ccc',
-                    borderWidth: 1,
-                    padding: 10,
-                    borderRadius: 8,
-                    backgroundColor: '#f2f2f2',
-                  }}>
-                  {state[field as keyof typeof state]}
-                </Text>
+                <Text style={styles.readOnly}>{state[field as keyof typeof state]}</Text>
               </View>
             ))}
 
+            {/* Conditional Inputs */}
             {isMale ? (
               <>
-                <View style={{ marginBottom: verticalScale(12) }}>
-                  <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>Shirt Size</Text>
-                  <TextInput
-                    keyboardType="number-pad"
-                    maxLength={2}
-                    value={state.shirtSize}
-                    onChangeText={(text) => handleInput('shirtSize', text, 2)}
-                    style={styles.input}
-                  />
-                </View>
-
-                <View style={{ marginBottom: verticalScale(12) }}>
-                  <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>Pant Size</Text>
-                  <TextInput
-                    keyboardType="number-pad"
-                    maxLength={2}
-                    value={state.pantSize}
-                    onChangeText={(text) => handleInput('pantSize', text, 2)}
-                    style={styles.input}
-                  />
-                </View>
+                <CustomInput
+                  label="Shirt Size"
+                  value={state.shirtSize}
+                  onChangeText={(text) => handleInput('shirtSize', text, 2)}
+                />
+                <CustomInput
+                  label="Pant Size"
+                  value={state.pantSize}
+                  onChangeText={(text) => handleInput('pantSize', text, 2)}
+                />
               </>
             ) : (
-              <>
-                <View style={{ marginBottom: verticalScale(12) }}>
-                  <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>Chudi Size</Text>
-                  <TextInput
-                    keyboardType="number-pad"
-                    maxLength={2}
-                    value={state.chudiSize}
-                    onChangeText={(text) => handleInput('chudiSize', text, 2)}
-                    style={styles.input}
-                  />
-                </View>
-              </>
-            )}
-            <View style={{ marginBottom: verticalScale(12) }}>
-              <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>Shoe Size</Text>
-              <TextInput
-                keyboardType="number-pad"
-                maxLength={2}
-                value={state.shoeSize}
-                onChangeText={(text) => {
-                  if (/^\d*$/.test(text) && parseInt(text || '0') <= 20) {
-                    setState((prev) => ({ ...prev, shoeSize: text }));
-                  }
-                }}
-                style={styles.input}
+              <CustomInput
+                label="Chudi Size"
+                value={state.chudiSize}
+                onChangeText={(text) => handleInput('chudiSize', text, 2)}
               />
-            </View>
+            )}
+
+            <CustomInput
+              label="Shoe Size"
+              value={state.shoeSize}
+              onChangeText={(text) => {
+                if (/^\d*$/.test(text) && parseInt(text || '0') <= 20) {
+                  setState((prev) => ({ ...prev, shoeSize: text }));
+                }
+              }}
+            />
 
             {/* Boolean checkboxes */}
-            {['belt', 'lanyard', 'whistle', 'idCard', 'cap'].map((key, index) => (
+            {accessories.map((key) => (
               <View
-                key={index}
+                key={key}
                 style={{
                   flexDirection: 'row',
                   justifyContent: 'space-between',
                   marginBottom: verticalScale(12),
                 }}>
-                <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>{key.toUpperCase()}</Text>
+                <Text style={{ fontWeight: 'bold' }}>{key.toUpperCase()}</Text>
                 <Switch
                   value={state[key as keyof typeof state] as boolean}
                   onValueChange={() => toggleSwitch(key as keyof typeof state)}
                 />
               </View>
             ))}
+
             <Pressable
-              className={`bg-[${configFile.colorGreen}] flex-row items-center justify-center gap-1.5 self-center rounded-xl p-4 text-white`}>
+              onPress={postUniformRequest}
+              className="flex-row items-center justify-center self-center rounded-xl p-4"
+              style={{ backgroundColor: configFile.colorGreen }}>
               <Text className="font-semibold text-white">Request Uniform</Text>
-              {isMale ? (
-                <FontAwesome name="male" size={24} color="white" />
-              ) : (
-                <FontAwesome name="female" size={24} color="white" />
-              )}
+              <FontAwesome
+                name={isMale ? 'male' : 'female'}
+                size={24}
+                color="white"
+                style={{ marginLeft: 8 }}
+              />
             </Pressable>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -173,6 +157,27 @@ const Uniform = () => {
   );
 };
 
+const CustomInput = ({
+  label,
+  value,
+  onChangeText,
+}: {
+  label: string;
+  value: string;
+  onChangeText: (text: string) => void;
+}) => (
+  <View style={{ marginBottom: verticalScale(12) }}>
+    <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>{label}</Text>
+    <TextInput
+      keyboardType="number-pad"
+      maxLength={2}
+      value={value}
+      onChangeText={onChangeText}
+      style={styles.input}
+    />
+  </View>
+);
+
 const styles = {
   input: {
     borderColor: '#ccc',
@@ -180,6 +185,13 @@ const styles = {
     padding: Platform.OS === 'android' ? 8 : 10,
     borderRadius: 8,
     marginTop: 4,
+  },
+  readOnly: {
+    borderColor: '#ccc',
+    borderWidth: 1,
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: '#f2f2f2',
   },
 };
 
