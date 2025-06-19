@@ -164,11 +164,13 @@ export class Api {
   }
 
   public static async postUniReq(options: {
-    gender: 'Male' | 'Female';
     empId: string;
+    name: string;
+    designation: string;
     site: string;
     location: string;
-    status: 'Active'; // ['Active', 'Inactive']
+    gender: 'Male' | 'Female';
+    status: 'Active';
     shirtSize: number;
     pantSize: number;
     shoeSize: number;
@@ -176,24 +178,38 @@ export class Api {
     femaleShoeSize: number;
     accessories: [];
     femaleAccessories: [];
-    requsedDate: '20/02/25';
+    requsedDate: string;
+
+    // gender: 'Male' | 'Female';
+    // empId: string;
+    // site: string;
+    // location: string;
+    // status: 'Active'; // ['Active', 'Inactive']
+    // shirtSize: number;
+    // pantSize: number;
+    // shoeSize: number;
+    // chuditharSize: number;
+    // femaleShoeSize: number;
+    // accessories: [];
+    // femaleAccessories: [];
+    // requsedDate: '20/02/25';
   }) {
     try {
       const url = configFile.api.common.postUniformReq();
 
       console.log(options, 'optionsssssssssssss');
-      // const api = await this.handleApi({ url, type: 'POST', payload: options });
+      const api = await this.handleApi({ url, type: 'POST', payload: options });
 
-      // console.log(api, '//////////////////////////////api');
+      console.log(api, '//////////////////////////////api');
 
-      // switch (api.status) {
-      //   case 200:
-      //     return { status: true, message: 'success' };
-      //   case 400:
-      //     return { status: false, message: api.data.message };
-      //   case 500:
-      //     return { status: false, message: api.data.message };
-      // }
+      switch (api.status) {
+        case 201:
+          return { status: true, message: 'success' };
+        case 400:
+          return { status: false, message: api.data.message };
+        case 500:
+          return { status: false, message: api.data.message };
+      }
     } catch (error) {
       console.log('postUniReq', error);
       return { status: false, message: 'Error' };
