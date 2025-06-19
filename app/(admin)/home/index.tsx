@@ -171,6 +171,16 @@ const HomeScreen = () => {
           </Text>
           <Text className="mt-1 text-gray-600">ID: {empId}</Text>
         </View>
+        <Pressable
+          onPress={(() => router.replace({ pathname: "/dashboard/attendance"}))}
+          >
+        <View className="flex-row items-center mb-3 bg-white p-6">
+          <Text className="grow text-2xl font-bold">
+            Mark, Your Attendence Here
+          </Text>
+          <Ionicons name="chevron-forward" size={24} color="#666" />
+        </View>
+        </Pressable>
 
         {/* Menu Cards */}
         {menuCards.map(renderMenuCard)}

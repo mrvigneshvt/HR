@@ -60,9 +60,7 @@ const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
         Alert.alert("You don't have an schedule today", "please contact manager",
           [{
             text: 'OK', onPress: () => {
-              router.push({
-                pathname: `dashboard`,
-              })
+              router.back()
             }
           },
           ]

@@ -127,8 +127,8 @@ export default function LoginPage() {
   useEffect(() => {
     setTimeout(() => {
       router.replace({
-        pathname: '/(tabs)/dashboard',
-        // pathname: '/(admin)/home',
+        // pathname: '/(tabs)/dashboard',
+        pathname: '/(admin)/home',
         params: {
           role: 'employee',
           empId: 'SFM993',
