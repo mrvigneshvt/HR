@@ -101,7 +101,7 @@ export default function ProfileScreen() {
         style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ padding: 20 }}>
           <View className="mb-4 items-center">
-            <ImageCom img={employees.profile_image} ProfileScreen={true} />
+            <ImageCom img={employees.profile_image || null} ProfileScreen={true} />
           </View>
 
           <Text

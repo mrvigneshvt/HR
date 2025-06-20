@@ -23,6 +23,7 @@ type Props = {
     longitudeDelta?: number | undefined;
   };
   Address?: string;
+  cbLocation: ({ lat, lon }: { lat: number; lon: number }) => void;
 };
 
 type Attendance = {
@@ -34,13 +35,13 @@ type Attendance = {
 
 const API_BASE = 'https://sdce.lyzooapp.co.in:31313/api/attendance';
 
-const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
+const AttendanceLocation = ({ Region, Address, isNear, cbLocation }: Props) => {
   const [attendance, setAttendance] = useState<Attendance | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const employees = useEmployeeStore((state) => state.employee);
 
-  const dashboard = DashMemory((state) => state.dashboard?.user?.dailyAttendance);
+  // const dashboard = DashMemory((state) => state.dashboard?.user?.dailyAttendance);
 
   const getEmployeeId = async () => {
     return employees?.employee_id;
@@ -50,34 +51,53 @@ const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
     setLoading(true);
     const employeeId = await getEmployeeId();
     try {
-      const today = convertFormet(new Date())
+      const today = convertFormet(new Date());
       const res = await axios.get(`${API_BASE}/getAttendanceDetails`, {
         params: { employeeId },
       });
+      // console.log('////////////', res.data, 'resss');
+      console.log(today, 'todaydate');
       const todayAttendance = res?.data?.data?.filter((i: any) => i?.attendance_date === today);
+      console.log(todayAttendance, 'prrrrrrrrrrrrrrr');
       setAttendance(todayAttendance?.[0]);
+      console.log(attendance, 'todayyy');
+
       if (todayAttendance?.length === 0) {
-        Alert.alert("You don't have an schedule today", "please contact manager",
-          [{
-            text: 'OK', onPress: () => {
-              router.back()
-            }
+        Alert.alert("You don't have an schedule today", 'please contact manager', [
+          {
+            text: 'OK',
+            onPress: () => {
+              router.back();
+            },
           },
-          ]
-        )
+        ]);
       }
     } catch (err) {
       setAttendance(null);
+      console.log('error in fetchAttendance', error);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    console.log('use fom');
+    // setInterval(() => {
+    if (attendance && attendance.latitude && attendance.longitude) {
+      console.log('gets in');
+      cbLocation({
+        lat: Number(attendance.latitude),
+        lon: Number(attendance.longitude),
+      });
+    }
+    // }, 3000);
+  }, [attendance]); // ✅ only run when `attendance` updates
+
   useFocusEffect(
     React.useCallback(() => {
       fetchAttendance();
     }, [])
-  )
+  );
 
   const getNextAction = () => {
     if (!attendance) return null;
@@ -87,10 +107,10 @@ const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
     return null;
   };
   const handleAction = async () => {
-    if (!isNear) {
-      Alert.alert('You are not inside the location.');
-      return;
-    }
+    // if (!isNear) {
+    //   Alert.alert('You are not inside the location.');
+    //   return;
+    // }
     setActionLoading(true);
     const employeeId = await getEmployeeId();
     const date = getTodayDateString();
@@ -106,22 +126,29 @@ const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
       let res;
       switch (getNextAction()) {
         case 'checkIn':
+          if (!isNear) return Alert.alert('You Are Not Inside the Location');
           url = `${API_BASE}/checkIn`;
           body = { ...body, check_in_time: timeString };
+          console.log('////////', body, '/////body');
           res = await axios.post(url, body);
           Alert.alert('Success', res.data.message || 'Check-in successful');
+          router.reload();
           break;
         case 'lunchIn':
+          if (!isNear) return Alert.alert('You Are Not Inside the Location');
           url = `${API_BASE}/lunchIn`;
           body = { ...body, lunch_in_time: timeString };
           res = await axios.post(url, body);
           Alert.alert('Success', res.data.message || 'Lunch-in successful');
+          router.reload();
           break;
         case 'checkOut':
+          if (!isNear) return Alert.alert('You Are Not Inside the Location');
           url = `${API_BASE}/checkOut`;
           body = { ...body, check_out_time: timeString };
           res = await axios.post(url, body);
           Alert.alert('Success', res.data.message || 'Check-out successful');
+          router.reload();
           break;
         default:
           Alert.alert('All actions completed for today.');
@@ -162,11 +189,21 @@ const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
               <>
                 <Text className={`text-sm text-gray-400 `}>{`Lat: ${Region.latitude}`}</Text>
                 <Text className={`text-sm text-gray-400 `}>{`Long: ${Region.longitude}`}</Text>
+                <Text className={`text-sm text-gray-800 `}>{'(Yours)'}</Text>
               </>
             ) : (
               <></>
             )}
           </View>
+          {attendance && attendance.latitude && attendance.longitude ? (
+            <View className="flex-row">
+              <Text className={`text-sm text-gray-400 `}>{`Lat: ${attendance.latitude}`}</Text>
+              <Text className={`text-sm text-gray-400 `}>{`Long: ${attendance.longitude}`}</Text>
+              <Text className={`text-sm text-gray-800 `}>{'(Assigned Location)'}</Text>
+            </View>
+          ) : (
+            <></>
+          )}
         </View>
 
         <View className={` mt-2 flex-col gap-4 bg-red-50 p-2`}>
@@ -174,22 +211,27 @@ const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
             <Text className="text-xl font-bold">Check In</Text>
             <Text className="text-xl font-bold">Lunch</Text>
             <Text className="text-xl font-bold">Check Out</Text>
-
           </View>
           <View className="flex-row justify-between">
             <View className="flex-row items-center">
               <Text className={`text-lga mx-2 font-semibold text-[${configFile.colorGreen}]`}>
-                {attendance?.check_in_time ? convertTo12HourFormat(attendance?.check_in_time) : '--:--'}
+                {attendance?.check_in_time
+                  ? convertTo12HourFormat(attendance?.check_in_time)
+                  : '--:--'}
               </Text>
             </View>
             <View>
               <Text className={`text-lga mx-2 font-semibold text-[${configFile.colorGreen}]`}>
-                {attendance?.lunch_in_time ? convertTo12HourFormat(attendance?.lunch_in_time) : '--:--'}
+                {attendance?.lunch_in_time
+                  ? convertTo12HourFormat(attendance?.lunch_in_time)
+                  : '--:--'}
               </Text>
             </View>
             <View>
               <Text className={`text-lga mx-2 font-semibold text-[${configFile.colorGreen}]`}>
-                {attendance?.check_out_time ? convertTo12HourFormat(attendance?.check_out_time) : '--:--'}
+                {attendance?.check_out_time
+                  ? convertTo12HourFormat(attendance?.check_out_time)
+                  : '--:--'}
               </Text>
             </View>
           </View>
@@ -209,7 +251,7 @@ const AttendanceLocation = ({ Region, Address, isNear }: Props) => {
             />
           </TouchableOpacity>
         ) : (
-          <View className="flex-row justify-center mt-2">
+          <View className="mt-2 flex-row justify-center">
             <Text className="text-gray-400">All actions completed for today.</Text>
           </View>
         )}

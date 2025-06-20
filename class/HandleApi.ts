@@ -148,7 +148,7 @@ export class Api {
       console.log(api, 'apiResssssssssssssssssssss');
 
       switch (api.status) {
-        case 200:
+        case 201:
           return { status: true, message: 'success' };
 
         case 400:

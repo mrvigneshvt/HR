@@ -123,6 +123,7 @@ export default function LoginPage() {
   // useEffect(() => {
   //   checkToken();
   // }, []);
+  //////////////////////////////////////////////////////////
 
   // useEffect(() => {
   //   setTimeout(() => {
@@ -131,12 +132,12 @@ export default function LoginPage() {
   //       // pathname: '/(admin)/home',
   //       params: {
   //         role: 'employee',
-  //         empId: 'SFM993',
+  //         empId: 'SFM1457',
   //       },
   //     });
   //   }, 50);
   // }, []);
-
+  ////////////////////////////////////////////////////////////
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -151,7 +152,7 @@ export default function LoginPage() {
               contentFit="contain"
             />
           </View>
-          <Text style={styles.title}>{!isOtp ? 'Employeee Login' : `Verify OTP`}</Text>
+          <Text style={styles.title}>{!isOtp ? 'Employee Login' : `Verify OTP`}</Text>
 
           <TextInput
             style={styles.input}

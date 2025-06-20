@@ -7,8 +7,9 @@ import {
   Platform,
   KeyboardAvoidingView,
   Pressable,
+  BackHandler,
 } from 'react-native';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import ProfileStack from 'Stacks/HeaderStack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { scale, verticalScale } from 'react-native-size-matters';
@@ -18,10 +19,24 @@ import { useEmployeeStore } from 'Memory/Employee';
 import { format } from 'date-fns';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Api } from 'class/HandleApi';
+
 import PopupMessage from 'plugins/popupz';
 
 const Uniform = () => {
   const { empId, role } = useLocalSearchParams<{ empId: string; role: string }>();
+
+  useEffect(() => {
+    const onBackPress = () => {
+      router.replace({
+        pathname: '/(tabs)/dashboard/',
+        params: { role, empId },
+      });
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, []);
+
   const employee = useEmployeeStore((state) => state.employee);
   const isMale = employee?.gender?.toLowerCase() === 'male';
 

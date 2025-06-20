@@ -64,7 +64,7 @@ const DashTop = ({ role, name, empId, img }: Props) => {
               }}>
               Welcome back
             </Text>
-            <Text className="text-md "> {role.toUpperCase()}</Text>
+            <Text className="text-md  font-bold "> {role.toUpperCase()}</Text>
           </View>
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale(8) }}>
@@ -93,7 +93,7 @@ const DashTop = ({ role, name, empId, img }: Props) => {
               fontWeight: '600',
               color: 'black',
             }}>
-            {empId}
+            ID: {empId}
           </Text>
         </View>
       </View>

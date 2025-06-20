@@ -8,6 +8,7 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
+  BackHandler,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
@@ -47,6 +48,18 @@ const LeaveRequest = () => {
   const formatDateString = (date: Date) => format(date, 'yyyy/MM/dd');
 
   useEffect(() => {
+    const onBackPress = () => {
+      router.replace({
+        pathname: '/(tabs)/dashboard/',
+        params: { role, empId: employee_id },
+      });
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, []);
+
+  useEffect(() => {
     setLeaveReason(value);
   }, [value]);
 
@@ -81,11 +94,20 @@ const LeaveRequest = () => {
       endDate,
     });
 
-    if (data?.status) {
-      setApiMsg(data.message);
-      setShowPop(true);
-      setSent(true);
+    console.log(data, '.......dat////////////');
 
+    if (data?.status || data?.status == true) {
+      setApiMsg(data?.message);
+      setShowPop(true);
+      setTimeout(() => {
+        router.replace({
+          pathname: '/(tabs)/dashboard/',
+          params: {
+            empId: employee_id,
+            role,
+          },
+        });
+      }, 2000);
       return;
     } else {
       setApiMsg(data?.message);

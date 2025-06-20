@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, ActivityIndicator, TouchableOpacity, Text, Modal, Pressable, TextInput } from 'react-native';
+import {
+  View,
+  FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
+  Text,
+  Modal,
+  Pressable,
+  TextInput,
+} from 'react-native';
 import SearchBar from '../../../components/search';
 import FilterIcon from '../../../components/filterIcons';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -19,7 +28,11 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false); // For the filter modal
   const [selectedDate, setSelectedDate] = useState<string>(''); // To store selected date
-  const [newEmployee, setNewEmployee] = useState({ name: '', emergencyContact: '', idCardNumber: '' }); // New employee form state
+  const [newEmployee, setNewEmployee] = useState({
+    name: '',
+    emergencyContact: '',
+    idCardNumber: '',
+  }); // New employee form state
 
   // NEW: State to hold selected employee and show detail modal
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
@@ -29,6 +42,18 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
   const empId = params.empId as string | undefined;
   const readOnly = isReadOnlyRole(role);
   console.log('EmployeeIdCardScreen readOnly:', readOnly, 'role:', role);
+
+  useEffect(() => {
+    const onBackPress = () => {
+      router.replace({
+        pathname: '/home',
+        params: { role, empId },
+      });
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, []);
 
   useEffect(() => {
     setTimeout(() => {
@@ -54,9 +79,10 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
 
   useEffect(() => {
     setFiltered(
-      employees.filter(item =>
-        item.name.toLowerCase().includes(search.toLowerCase()) ||
-        item.idCardNumber.toLowerCase().includes(search.toLowerCase())
+      employees.filter(
+        (item) =>
+          item.name.toLowerCase().includes(search.toLowerCase()) ||
+          item.idCardNumber.toLowerCase().includes(search.toLowerCase())
       )
     );
   }, [search, employees]);
@@ -85,18 +111,6 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
 
   if (loading) return <ActivityIndicator color="#4A90E2" size="large" />;
 
-  useEffect(() => {
-    const onBackPress = () => {
-      router.replace({
-        pathname: '/home',
-        params: { role, empId },
-      });
-      return true;
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-  }, []);
-
   return (
     <View style={{ flex: 1, backgroundColor: '#F9F9F9' }}>
       <Stack.Screen
@@ -111,11 +125,11 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               {!readOnly && (
                 <Pressable onPress={() => setShowFilterModal(true)} style={{ marginRight: 16 }}>
-                <MaterialIcons name="filter-list" size={24} color="white" />
-              </Pressable>
+                  <MaterialIcons name="filter-list" size={24} color="white" />
+                </Pressable>
               )}
-              
-              { !readOnly && (
+
+              {!readOnly && (
                 <Pressable onPress={() => setShowAddModal(true)}>
                   <MaterialIcons name="add" size={24} color="white" />
                 </Pressable>
@@ -146,8 +160,7 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
         visible={!!selectedEmployee}
         transparent
         animationType="fade"
-        onRequestClose={() => setSelectedEmployee(null)}
-      >
+        onRequestClose={() => setSelectedEmployee(null)}>
         <View
           style={{
             flex: 1,
@@ -155,8 +168,7 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
             justifyContent: 'center',
             alignItems: 'center',
             padding: 20,
-          }}
-        >
+          }}>
           <View
             style={{
               backgroundColor: '#fff',
@@ -165,8 +177,7 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
               maxWidth: 400,
               padding: 24,
               elevation: 5,
-            }}
-          >
+            }}>
             <EmployeeIdCardDetail employee={selectedEmployee} />
 
             <Text
@@ -180,27 +191,23 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
                 paddingVertical: 8,
                 borderRadius: 6,
                 textAlign: 'center',
-              }}
-            >
+              }}>
               Close
             </Text>
           </View>
         </View>
       </Modal>
 
-
       {/* Filter Modal with Calendar */}
       <Modal
         visible={showFilterModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowFilterModal(false)}
-      >
+        onRequestClose={() => setShowFilterModal(false)}>
         <TouchableOpacity
           className="flex-1 justify-end bg-black/50"
           activeOpacity={1}
-          onPress={() => setShowFilterModal(false)}
-        >
+          onPress={() => setShowFilterModal(false)}>
           <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
             <View style={{ backgroundColor: 'white', padding: 16, borderRadius: 12 }}>
               <Text style={{ fontWeight: 'bold', fontSize: 18 }}>Select Date</Text>
@@ -216,8 +223,7 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
                   paddingHorizontal: 24,
                   borderRadius: 8,
                   marginTop: 16,
-                }}
-              >
+                }}>
                 <Text style={{ color: 'white' }}>Apply Filter</Text>
               </Pressable>
             </View>
@@ -226,24 +232,28 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
       </Modal>
 
       {/* Add Employee Modal */}
-      { !readOnly && (
+      {!readOnly && (
         <Modal
           visible={showAddModal}
           transparent
           animationType="slide"
-          onRequestClose={() => setShowAddModal(false)}
-        >
+          onRequestClose={() => setShowAddModal(false)}>
           <TouchableOpacity
             activeOpacity={1}
             style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}
-            onPress={() => setShowAddModal(false)}
-          >
+            onPress={() => setShowAddModal(false)}>
             <TouchableOpacity
               activeOpacity={1}
               onPress={(e) => e.stopPropagation()}
-              style={{ backgroundColor: 'white', padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
-            >
-              <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>Add Employee</Text>
+              style={{
+                backgroundColor: 'white',
+                padding: 20,
+                borderTopLeftRadius: 20,
+                borderTopRightRadius: 20,
+              }}>
+              <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>
+                Add Employee
+              </Text>
 
               {/* Input Fields */}
               <View style={{ marginBottom: 12 }}>
@@ -260,7 +270,9 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
                 <Text style={{ marginBottom: 4 }}>Emergency Contact</Text>
                 <TextInput
                   value={newEmployee.emergencyContact}
-                  onChangeText={(text) => setNewEmployee({ ...newEmployee, emergencyContact: text })}
+                  onChangeText={(text) =>
+                    setNewEmployee({ ...newEmployee, emergencyContact: text })
+                  }
                   style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 6, padding: 8 }}
                   placeholder="Enter contact number"
                   keyboardType="phone-pad"
@@ -288,8 +300,7 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
                     paddingVertical: 8,
                     borderRadius: 6,
                     marginRight: 12,
-                  }}
-                >
+                  }}>
                   <Text style={{ color: '#4A90E2' }}>Cancel</Text>
                 </Pressable>
 
@@ -300,8 +311,7 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
                     paddingHorizontal: 16,
                     paddingVertical: 8,
                     borderRadius: 6,
-                  }}
-                >
+                  }}>
                   <Text style={{ color: 'white' }}>Add</Text>
                 </Pressable>
               </View>

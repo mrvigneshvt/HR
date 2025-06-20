@@ -8,8 +8,28 @@ import TimeDetails from 'components/TimeDetails';
 import AttendanceLocation from 'components/AttendanceLocation';
 import { DashMemory } from 'Memory/DashMem';
 import { customPlugins } from 'plugins/plug';
+import { useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
+import { BackHandler } from 'react-native';
 
 const LocationWithDate = () => {
+  const { role, empId } = useLocalSearchParams();
+  const [lolcation, setLocalCation] = useState({
+    lat: 0,
+    lon: 0,
+  });
+  useEffect(() => {
+    const path = role.toLowerCase() == 'employee' ? '/(tabs)/dashboard' : '/(admin)/home';
+    const onBackPress = () => {
+      router.replace({
+        pathname: path,
+        params: { role, empId },
+      });
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, []);
   const [location, setLocation] = useState(null);
   const [address, setAddress] = useState('');
   const [region, setRegion] = useState({
@@ -20,9 +40,8 @@ const LocationWithDate = () => {
   });
 
   const [isNear, setIsNear] = useState(false);
-  const lolcation = DashMemory((state) => state.dashboard?.user.dailyAttendance.location);
+  // const lolcation = DashMemory((state) => state.dashboard?.user.dailyAttendance.location);
   const [state, setState] = useState('Loc');
-
   const toggleButton = (val) => setState(val);
 
   const getCurrentLocation = async () => {
@@ -37,21 +56,30 @@ const LocationWithDate = () => {
         accuracy: Location.Accuracy.Highest,
       });
 
-      const { latitude, longitude } = loc.coords;
+      let { latitude, longitude } = loc.coords;
+      // latitude = 13.0540762;
+      // longitude = 80.2418275;
+      // console.log(loc.coords, '////LocCooords');
       setLocation(loc);
+      // console.log(latitude, longitude, 'location///////////');
       setRegion({
         latitude,
         longitude,
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
       });
+      // console.log(region, '////////////?????Regiojsaidosadjsa');
 
+      console.log(
+        `invoking near\n\nfrom us: ${latitude} ${longitude}}\nto Api:${lolcation.lat}${lolcation.lon}`
+      );
       const nearby = customPlugins.isWithinRadius(
-        Number(lolcation?.lat),
-        Number(lolcation?.lon),
+        lolcation?.lat,
+        lolcation?.lon,
         latitude,
         longitude
       );
+      console.log(nearby, '/////////NEARByyy');
 
       setIsNear(nearby);
 
@@ -65,13 +93,21 @@ const LocationWithDate = () => {
     }
   };
 
+  const handleCbL = (options: { lat: number; lon: number }) => {
+    console.log('Triggering HANDLE CBL::: ', options.lat, '////', options.lon);
+    setLocalCation(options);
+  };
+
   useEffect(() => {
+    if (!lolcation.lat || !lolcation.lon) return;
+
+    console.log('lolcation::', lolcation);
     const setInt = setInterval(() => {
       getCurrentLocation();
-    }, 4000); // Increased to 4s to reduce jitter
+    }, 4000); // polling every 4s
 
     return () => clearInterval(setInt);
-  }, []);
+  }, [lolcation]); // ✅ trigger when `lolcation` is updated
 
   return (
     <View style={{ flex: 1 }}>
@@ -83,9 +119,9 @@ const LocationWithDate = () => {
             title={`You are here ${isNear ? '(Inside Location)' : '(Outside Location)'}`}
             pinColor="green"
           />
-          {!isNear && lolcation?.lat && lolcation?.lon ? (
+          {lolcation?.lat && lolcation?.lon ? (
             <Circle
-              center={{ latitude: Number(lolcation.lat), longitude: Number(lolcation.lon) }}
+              center={{ latitude: lolcation.lat, longitude: lolcation.lon }}
               radius={60} // Slight buffer added
               strokeWidth={2}
               strokeColor="rgba(0,0,255,0.5)"
@@ -117,7 +153,12 @@ const LocationWithDate = () => {
           <TimeDetails />
         ) : (
           <ScrollView>
-            <AttendanceLocation Region={region} Address={address} isNear={isNear} />
+            <AttendanceLocation
+              Region={region}
+              Address={address}
+              isNear={isNear}
+              cbLocation={handleCbL}
+            />
           </ScrollView>
         )}
       </View>

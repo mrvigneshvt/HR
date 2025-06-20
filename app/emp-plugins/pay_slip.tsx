@@ -1,5 +1,5 @@
 import { View, Text, Pressable, ScrollView } from 'react-native';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MonthYearPickerHeader from 'components/monthCalendar';
 import SalarySlip from 'components/SalarySlip';
@@ -10,14 +10,28 @@ import { captureRef } from 'react-native-view-shot';
 import * as Print from 'expo-print';
 import { customPlugins } from 'plugins/plug';
 import * as Sharing from 'expo-sharing';
+import { useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
+import { BackHandler } from 'react-native';
 const PaySlip = () => {
+  const { role, empId } = useLocalSearchParams();
   const [dates, setDates] = useState<{ year: number; month: number }>({
     year: 2025,
     month: 0,
   });
+  useEffect(() => {
+    const onBackPress = () => {
+      router.replace({
+        pathname: '/(tabs)/dashboard/',
+        params: { role, empId },
+      });
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, []);
 
   const captureRefView = useRef(null);
-
   const downloadPayslip = async () => {
     try {
       const permission = await MediaLib.requestPermissionsAsync();

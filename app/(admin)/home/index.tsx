@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, ScrollView, Alert } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { configFile } from '../../../config';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+
 import { Ionicons } from '@expo/vector-icons';
 
 const HomeScreen = () => {
@@ -158,6 +160,18 @@ const HomeScreen = () => {
           headerStyle: {
             backgroundColor: configFile.colorGreen,
           },
+          headerRight: () => (
+            <>
+              <Pressable
+                className=""
+                onPress={() => {
+                  console.log('invoking logout');
+                  router.replace('/');
+                }}>
+                <MaterialIcons name="logout" size={24} color="black" />
+              </Pressable>
+            </>
+          ),
           headerTintColor: 'white',
         }}
       />
@@ -172,14 +186,19 @@ const HomeScreen = () => {
           <Text className="mt-1 text-gray-600">ID: {empId}</Text>
         </View>
         <Pressable
-          onPress={(() => router.replace({ pathname: "/dashboard/attendance"}))}
-          >
-        <View className="flex-row items-center mb-3 bg-white p-6">
-          <Text className="grow text-2xl font-bold">
-            Mark, Your Attendence Here
-          </Text>
-          <Ionicons name="chevron-forward" size={24} color="#666" />
-        </View>
+          onPress={() =>
+            router.replace({
+              pathname: '/dashboard/attendance',
+              params: {
+                role,
+                empId,
+              },
+            })
+          }>
+          <View className="mb-3 flex-row items-center bg-white p-6">
+            <Text className="grow text-2xl font-bold">Mark, Your Attendence Here</Text>
+            <Ionicons name="chevron-forward" size={24} color="#666" />
+          </View>
         </Pressable>
 
         {/* Menu Cards */}

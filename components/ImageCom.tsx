@@ -27,7 +27,11 @@ const ImageCom = ({ img, ProfileScreen }: Props) => {
             backgroundColor: configFile.colorGreen, // optional background
             borderColor: 'black',
           }}>
-          <Image source={img} contentFit="cover" style={{ height: '100%', width: '100%' }} />
+          <Image
+            source={img || defaultImage}
+            contentFit="cover"
+            style={{ height: '100%', width: '100%' }}
+          />
         </View>
 
         {/* <Image
