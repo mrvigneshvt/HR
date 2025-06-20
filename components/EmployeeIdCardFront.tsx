@@ -55,8 +55,8 @@ const EmployeeIdCardFront: React.FC<EmployeeIdCardFrontProps> = ({ employee }) =
 
 const styles = StyleSheet.create({
   card: {
-    width: 320,
-    height: 500,
+    width: '100%',
+    aspectRatio: 320 / 500,
     backgroundColor: 'white',
     borderRadius: 20,
     overflow: 'hidden',
@@ -67,7 +67,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 5 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
-    margin: 10,
   },
   header: {
     alignItems: 'center',

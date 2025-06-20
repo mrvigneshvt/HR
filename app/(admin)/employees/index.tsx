@@ -13,6 +13,7 @@ import {
   StyleSheet,
   ViewStyle,
   TextStyle,
+  Dimensions,
 } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -25,6 +26,7 @@ import { router } from 'expo-router';
 import EmployeeIdCardFront from '../../../components/EmployeeIdCardFront';
 import EmployeeIdCardDetail from '../../../components/employeeIdCardDetails';
 
+const { width: screenWidth } = Dimensions.get('window');
 const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
 
 interface Employee {
@@ -1414,22 +1416,23 @@ const EmployeesScreen = () => {
           animationType="slide"
           onRequestClose={() => setSelectedEmployee(null)}>
           <View style={styles.modalContainer}>
-            <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+            <View>
               <ScrollView
                 horizontal
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.idCardScrollView}
               >
-                {/* Front Side */}
-                <EmployeeIdCardFront employee={selectedEmployee} />
-                {/* Back Side */}
-                <EmployeeIdCardDetail employee={selectedEmployee} />
+                <View style={styles.idCardPage}>
+                  <EmployeeIdCardFront employee={selectedEmployee} />
+                </View>
+                <View style={styles.idCardPage}>
+                  <EmployeeIdCardDetail employee={selectedEmployee} />
+                </View>
               </ScrollView>
               <TouchableOpacity onPress={() => setSelectedEmployee(null)}>
                 <Text style={styles.closeButton}>Close</Text>
               </TouchableOpacity>
-            </TouchableOpacity>
+            </View>
           </View>
         </Modal>
       )}
@@ -1552,9 +1555,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
-  idCardScrollView: {
-    alignItems: 'center',
+  idCardPage: {
+    width: screenWidth,
     justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
   },
   closeButton: {
     color: 'white',
