@@ -383,11 +383,11 @@ export class Api {
           return;
 
         case 404:
-          router.replace('/');
+          router.replace('/login');
           return;
 
         case 500:
-          router.replace('/');
+          router.replace('/login');
           return;
       }
     } catch (error) {

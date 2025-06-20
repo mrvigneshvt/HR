@@ -33,6 +33,7 @@ type Attendance = {
   // ...other fields as needed
 };
 
+const CLIENT_API_BASE = `https://sdce.lyzooapp.co.in:31313/api/clients/`;
 const API_BASE = 'https://sdce.lyzooapp.co.in:31313/api/attendance';
 
 const AttendanceLocation = ({ Region, Address, isNear, cbLocation }: Props) => {

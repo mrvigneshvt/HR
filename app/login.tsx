@@ -125,19 +125,18 @@ export default function LoginPage() {
   // }, []);
   //////////////////////////////////////////////////////////
 
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     router.replace({
-  //       pathname: '/(admin)/home',
-  //       // pathname: '/(admin)/home',
-  //       params: {
-  //         role: 'superadmin',
-  //         empId: 'SFM43899',
-  //       },
-  //     });
-  //   }, 50);
-  // }, []);
-
+  //   useEffect(() => {
+  //     setTimeout(() => {
+  //       router.replace({
+  //         pathname: '/(admin)/home',
+  //         // pathname: '/(admin)/home',
+  //         params: {
+  //           role: 'superadmin',
+  //           empId: 'SFM43899',
+  //         },
+  //       });
+  //     }, 50);
+  //   }, []);
   ////////////////////////////////////////////////////////////
   return (
     <>

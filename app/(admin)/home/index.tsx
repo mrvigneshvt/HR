@@ -166,7 +166,7 @@ const HomeScreen = () => {
                 className=""
                 onPress={() => {
                   console.log('invoking logout');
-                  router.replace('/');
+                  router.replace('/login');
                 }}>
                 <MaterialIcons name="logout" size={24} color="black" />
               </Pressable>

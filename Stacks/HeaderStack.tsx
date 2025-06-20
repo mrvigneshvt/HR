@@ -64,7 +64,7 @@ const options = (
                   className="bg-white"
                   onPress={() => {
                     console.log('invoking logout');
-                    router.replace('/');
+                    router.replace('/login');
                   }}>
                   <MaterialIcons name="logout" size={24} color="black" />
                 </Pressable>
@@ -148,7 +148,7 @@ const options = (
               }>
               <Ionicons name="notifications" size={24} color="black" />
             </Pressable> */}
-            <Pressable onPress={() => router.replace('/')}>
+            <Pressable onPress={() => router.replace('/login')}>
               <MaterialIcons name="logout" size={24} color="black" />
             </Pressable>
           </View>
