@@ -36,18 +36,20 @@ const EmployeeIdCard = ({ employee }: { employee: any }) => {
         <View style={styles.curveShape} />
         <Text style={styles.name}>{employee.name.toUpperCase()}</Text>
       </View> */}
-            <View style={{ width: '100%', height: 100, position: 'relative' }}>
-  <Svg width="100%" height="100%" viewBox="0 0 300 100" style={{ position: 'absolute', top: 0 }}>
-    <Path
-      d="M0 0 C 75 150, 225 150, 300 0 L300 100 L0 100 Z"
-      fill="#2E8B57"
-    />
-  </Svg>
+            <View style={styles.container}>
+      {/* Green Curve Background */}
+      <Svg height="100%" width="100%" viewBox="0 0 400 200" style={StyleSheet.absoluteFill}>
+        <Path
+          d="M0 50 Q 200 200 400 50 L400 200 L0 200 Z"
+          fill="#2E8B57"
+        />
+      </Svg>
 
-  <View style={styles.nameWrapper}>
-    <Text style={styles.name}>MADHUMITHA V</Text>
-  </View>
-</View>
+      {/* Name Text on Top of Curve */}
+      <View style={styles.textContainer}>
+        <Text style={styles.name}>MADHUMITHA V</Text>
+      </View>
+    </View>
 
 
             {/* Details */}
@@ -123,21 +125,24 @@ const styles = StyleSheet.create({
         backgroundColor: '#00B46E',
         transform: [{ scaleY: -1 }],
     },
-    nameWrapper: {
+    container: {
+        width: '100%',
+        height: 120,
+        position: 'relative',
+        overflow: 'hidden',
+      },
+      textContainer: {
         position: 'absolute',
-        bottom: 20,
+        bottom: 30, // push text into the curve
         width: '100%',
         alignItems: 'center',
-        backgroundColor: 'transparent', // No white box
-        paddingVertical: 4,
       },
       name: {
         fontSize: 20,
         fontWeight: 'bold',
         color: '#000',
-        backgroundColor: 'transparent', // Ensures text background blends with curve
+        textAlign: 'center',
       },
-      
     detailsSection: {
         alignItems: 'center',
         marginTop: 20,
