@@ -1,150 +1,170 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, Dimensions } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 
 const { width } = Dimensions.get('window');
 
 const EmployeeIdCard = ({ employee }: { employee: any }) => {
-  if (!employee) return null;
+    if (!employee) return null;
 
-  const getProfileImage = () => {
-    if (employee.profile_image) return { uri: employee.profile_image };
-    return employee.gender === 'Female'
-      ? require('../assets/profile.png')
-      : require('../assets/man.webp');
-  };
+    const getProfileImage = () => {
+        if (employee.profile_image) return { uri: employee.profile_image };
+        return employee.gender === 'Female'
+            ? require('../assets/profile.png')
+            : require('../assets/man.webp');
+    };
 
-  return (
-    <View style={styles.card}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Image source={require('../assets/SDLOGO.png')} style={styles.logo} />
-        <Text style={styles.companyText}>
-          SDCE Facilities{"\n"}Management Pvt.Ltd
-        </Text>
-      </View>
+    return (
+        <View style={styles.card}>
+            {/* Header */}
+            <View style={styles.header}>
+                <Image source={require('../assets/SDLOGO.png')} style={styles.logo} />
+                <Text style={styles.companyText}>
+                    SDCE Facilities{"\n"}Management Pvt.Ltd
+                </Text>
+            </View>
 
-      {/* Profile Section */}
-      <View style={styles.photoContainer}>
-        <View style={styles.photoBorder}>
-          <Image source={getProfileImage()} style={styles.photo} />
-        </View>
-      </View>
+            {/* Profile Section */}
+            <View style={styles.photoContainer}>
+                <View style={styles.photoBorder}>
+                    <Image source={getProfileImage()} style={styles.photo} />
+                </View>
+            </View>
 
-      {/* Curve and Name */}
-      <View style={styles.curveContainer}>
+            {/* Curve and Name */}
+            {/* <View style={styles.curveContainer}>
         <View style={styles.curveShape} />
         <Text style={styles.name}>{employee.name.toUpperCase()}</Text>
-      </View>
+      </View> */}
+            <View style={{ width: '100%', height: 100 }}>
+                <Svg width="100%" height="100%" viewBox="0 0 300 100">
+                    <Path
+                        d="M0 0 C 75 150, 225 150, 300 0 L300 100 L0 100 Z"
+                        fill="#2E8B57"
+                    />
+                </Svg>
+                <View style={styles.nameContainer}>
+                    <Text style={styles.name}>{employee.name.toUpperCase()}</Text>
+                </View>
+            </View>
 
-      {/* Details */}
-      <View style={styles.detailsSection}>
-        <Text style={styles.designation}>{employee.designation}</Text>
-        <Text style={styles.empId}>{employee.employee_id}</Text>
-      </View>
 
-      {/* Footer */}
-      <View style={styles.footer}>
-        <Image source={require('../assets/icon.png')} style={styles.webIcon} />
-        <Text style={styles.website}>www.sdcefm.com</Text>
-      </View>
-    </View>
-  );
+            {/* Details */}
+            <View style={styles.detailsSection}>
+                <Text style={styles.designation}>{employee.designation}</Text>
+                <Text style={styles.empId}>{employee.employee_id}</Text>
+            </View>
+
+            {/* Footer */}
+            <View style={styles.footer}>
+                <Image source={require('../assets/icon.png')} style={styles.webIcon} />
+                <Text style={styles.website}>www.sdcefm.com</Text>
+            </View>
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    width: '100%',
-    aspectRatio: 320 / 500,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    alignItems: 'center',
-    paddingVertical: 20,
-    overflow: 'hidden',
-  },
-  header: {
-    alignItems: 'center',
-  },
-  logo: {
-    width: 60,
-    height: 60,
-    resizeMode: 'contain',
-  },
-  companyText: {
-    color: '#00723F',
-    fontWeight: 'bold',
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 5,
-  },
-  photoContainer: {
-    marginTop: 20,
-    alignItems: 'center',
-    zIndex: 1,
-  },
-  photoBorder: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    borderWidth: 5,
-    borderColor: '#0C204B',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'white',
-  },
-  photo: {
-    width: '90%',
-    height: '90%',
-    borderRadius: 60,
-  },
-  curveContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginTop: -70,
-  },
-  curveShape: {
-    width: width * 1.8,
-    height: 100,
-    borderBottomLeftRadius: width,
-    borderBottomRightRadius: width,
-    backgroundColor: '#00B46E',
-    transform: [{ scaleY: -1 }],
-  },
-  name: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: 'black',
-    marginTop: 25,
-  },
-  detailsSection: {
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  designation: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000',
-  },
-  empId: {
-    fontSize: 16,
-    color: '#000',
-    fontWeight: 'bold',
-    marginTop: 5,
-  },
-  footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    position: 'absolute',
-    bottom: 20,
-  },
-  webIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 6,
-  },
-  website: {
-    fontSize: 14,
-    color: '#00B46E',
-  },
+    card: {
+        width: '100%',
+        aspectRatio: 320 / 500,
+        backgroundColor: 'white',
+        borderRadius: 20,
+        alignItems: 'center',
+        paddingVertical: 20,
+        overflow: 'hidden',
+    },
+    header: {
+        alignItems: 'center',
+    },
+    logo: {
+        width: 60,
+        height: 60,
+        resizeMode: 'contain',
+    },
+    companyText: {
+        color: '#00723F',
+        fontWeight: 'bold',
+        fontSize: 16,
+        textAlign: 'center',
+        marginTop: 5,
+    },
+    photoContainer: {
+        marginTop: 20,
+        alignItems: 'center',
+        zIndex: 1,
+    },
+    photoBorder: {
+        width: 140,
+        height: 140,
+        borderRadius: 70,
+        borderWidth: 5,
+        borderColor: '#0C204B',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'white',
+    },
+    photo: {
+        width: '90%',
+        height: '90%',
+        borderRadius: 60,
+    },
+    curveContainer: {
+        width: '100%',
+        alignItems: 'center',
+        marginTop: -70,
+    },
+    curveShape: {
+        width: width * 1.8,
+        height: 100,
+        borderBottomLeftRadius: width,
+        borderBottomRightRadius: width,
+        backgroundColor: '#00B46E',
+        transform: [{ scaleY: -1 }],
+    },
+    nameContainer: {
+        position: 'absolute',
+        bottom: 20,
+        width: '100%',
+        alignItems: 'center',
+      },
+      
+    name: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: 'black',
+        marginTop: 25,
+    },
+    detailsSection: {
+        alignItems: 'center',
+        marginTop: 20,
+    },
+    designation: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#000',
+    },
+    empId: {
+        fontSize: 16,
+        color: '#000',
+        fontWeight: 'bold',
+        marginTop: 5,
+    },
+    footer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        position: 'absolute',
+        bottom: 20,
+    },
+    webIcon: {
+        width: 20,
+        height: 20,
+        marginRight: 6,
+    },
+    website: {
+        fontSize: 14,
+        color: '#00B46E',
+    },
 });
 
 export default EmployeeIdCard;
