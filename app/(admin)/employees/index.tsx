@@ -22,6 +22,8 @@ import axios from 'axios';
 import { isReadOnlyRole } from 'utils/roleUtils';
 import { BackHandler } from 'react-native';
 import { router } from 'expo-router';
+import EmployeeIdCardFront from '../../../components/EmployeeIdCardFront';
+import EmployeeIdCardDetail from '../../../components/employeeIdCardDetails';
 
 const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
 
@@ -631,6 +633,9 @@ const EmployeesScreen = () => {
           </Pressable>
         </View>
       )}
+      <TouchableOpacity onPress={() => setSelectedEmployee(item)}>
+        <MaterialIcons name="badge" size={24} color="#4A90E2" />
+      </TouchableOpacity>
     </View>
   );
 
@@ -1400,6 +1405,34 @@ const EmployeesScreen = () => {
           </TouchableOpacity>
         </Modal>
       )}
+
+      {/* ID Card Modal */}
+      {selectedEmployee && (
+        <Modal
+          visible={!!selectedEmployee}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setSelectedEmployee(null)}>
+          <View style={styles.modalContainer}>
+            <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+              <ScrollView
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.idCardScrollView}
+              >
+                {/* Front Side */}
+                <EmployeeIdCardFront employee={selectedEmployee} />
+                {/* Back Side */}
+                <EmployeeIdCardDetail employee={selectedEmployee} />
+              </ScrollView>
+              <TouchableOpacity onPress={() => setSelectedEmployee(null)}>
+                <Text style={styles.closeButton}>Close</Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </View>
+        </Modal>
+      )}
     </View>
   );
 };
@@ -1512,6 +1545,28 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     marginLeft: 4,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  idCardScrollView: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeButton: {
+    color: 'white',
+    backgroundColor: '#4A90E2',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+    overflow: 'hidden',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 16,
   },
 });
 

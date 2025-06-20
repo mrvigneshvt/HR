@@ -4,7 +4,7 @@ import QRCode from 'react-native-qrcode-svg';
 
 interface Employee {
   name?: string;
-  emergencyContact: string;
+  emergency_contact_phone: string;
   [key: string]: any;
 }
 
@@ -23,7 +23,7 @@ const EmployeeIdCardDetail: React.FC<Props> = ({ employee }) => {
         <QRCode
           value={JSON.stringify({
             name: employee.name,
-            emergencyContact: employee.emergencyContact,
+            emergencyContact: employee.emergency_contact_phone,
           })}
           size={200}
         />
@@ -36,7 +36,7 @@ const EmployeeIdCardDetail: React.FC<Props> = ({ employee }) => {
 
       {/* Emergency Contact */}
       <Text style={styles.label}>Emergency Contact:</Text>
-      <Text style={styles.value}>{employee.emergencyContact}</Text>
+      <Text style={styles.value}>{employee.emergency_contact_phone}</Text>
 
       {/* Company Info */}
       <View style={styles.companyInfo}>
