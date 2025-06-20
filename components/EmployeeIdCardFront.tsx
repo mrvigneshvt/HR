@@ -1,19 +1,9 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, Dimensions } from 'react-native';
 
-interface Employee {
-  employee_id: string;
-  name: string;
-  profile_image: string | null;
-  designation: string;
-  gender: 'Male' | 'Female';
-}
+const { width } = Dimensions.get('window');
 
-interface EmployeeIdCardFrontProps {
-  employee: Employee | null;
-}
-
-const EmployeeIdCardFront: React.FC<EmployeeIdCardFrontProps> = ({ employee }) => {
+const EmployeeIdCard = ({ employee }: { employee: any }) => {
   if (!employee) return null;
 
   const getProfileImage = () => {
@@ -25,26 +15,35 @@ const EmployeeIdCardFront: React.FC<EmployeeIdCardFrontProps> = ({ employee }) =
 
   return (
     <View style={styles.card}>
+      {/* Header */}
       <View style={styles.header}>
         <Image source={require('../assets/SDLOGO.png')} style={styles.logo} />
-        <Text style={styles.companyName}>SDCE Facilities{"\n"}Management Pvt.Ltd</Text>
+        <Text style={styles.companyText}>
+          SDCE Facilities{"\n"}Management Pvt.Ltd
+        </Text>
       </View>
 
+      {/* Profile Section */}
       <View style={styles.photoContainer}>
         <View style={styles.photoBorder}>
           <Image source={getProfileImage()} style={styles.photo} />
         </View>
       </View>
 
-      <View style={styles.curvedGreenBox}>
-        <Text style={styles.name}>{employee.name.toUpperCase()}</Text>
+      {/* Curve Background for Name */}
+      <View style={styles.curveContainer}>
+        <View style={styles.curveShape}>
+          <Text style={styles.name}>{employee.name.toUpperCase()}</Text>
+        </View>
       </View>
 
-      <View style={styles.details}>
+      {/* Details */}
+      <View style={styles.detailsSection}>
         <Text style={styles.designation}>{employee.designation}</Text>
-        <Text style={styles.employeeId}>{employee.employee_id}</Text>
+        <Text style={styles.empId}>{employee.employee_id}</Text>
       </View>
 
+      {/* Footer */}
       <View style={styles.footer}>
         <Image source={require('../assets/icon.png')} style={styles.webIcon} />
         <Text style={styles.website}>www.sdcefm.com</Text>
@@ -55,17 +54,13 @@ const EmployeeIdCardFront: React.FC<EmployeeIdCardFrontProps> = ({ employee }) =
 
 const styles = StyleSheet.create({
   card: {
-    width: 320,
-    height: 500,
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    width: '100%',
+    aspectRatio: 320 / 500,
+    backgroundColor: 'white',
+    borderRadius: 20,
     alignItems: 'center',
-    paddingVertical: 10,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    paddingVertical: 20,
+    overflow: 'hidden',
   },
   header: {
     alignItems: 'center',
@@ -75,77 +70,83 @@ const styles = StyleSheet.create({
     height: 60,
     resizeMode: 'contain',
   },
-  companyName: {
-    fontSize: 14,
+  companyText: {
+    color: '#00723F',
     fontWeight: 'bold',
-    color: '#006A4E',
+    fontSize: 16,
     textAlign: 'center',
     marginTop: 5,
   },
   photoContainer: {
-    marginTop: 12,
-    marginBottom: 6,
+    marginTop: 20,
+    alignItems: 'center',
   },
   photoBorder: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     borderWidth: 5,
-    borderColor: '#1E3269',
+    borderColor: '#0C204B',
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  photo: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+  },
+  curveContainer: {
+    position: 'relative',
+    marginTop: -20,
+    width: '100%',
+    height: 120,
     alignItems: 'center',
     overflow: 'hidden',
   },
-  photo: {
-    width: 130,
-    height: 130,
-    borderRadius: 65,
-  },
-  curvedGreenBox: {
-    backgroundColor: '#00A86B',
-    width: '100%',
-    height: 100,
-    borderTopLeftRadius: 160,
-    borderTopRightRadius: 160,
-    marginTop: -30,
-    justifyContent: 'center',
+  curveShape: {
+    backgroundColor: '#00B46E',
+    width: width * 1.2,
+    height: 200,
+    borderTopLeftRadius: width * 1.2,
+    borderTopRightRadius: width * 1.2,
+    justifyContent: 'flex-end',
     alignItems: 'center',
+    paddingBottom: 20,
   },
   name: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#000',
   },
-  details: {
-    marginTop: 10,
+  detailsSection: {
     alignItems: 'center',
+    marginTop: 10,
   },
   designation: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '600',
     color: '#000',
   },
-  employeeId: {
+  empId: {
     fontSize: 16,
-    fontWeight: 'bold',
     color: '#000',
-    marginTop: 4,
+    fontWeight: 'bold',
+    marginTop: 5,
   },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 'auto',
-    paddingBottom: 10,
+    marginTop: 20,
   },
   webIcon: {
-    width: 18,
-    height: 18,
+    width: 20,
+    height: 20,
     marginRight: 6,
   },
   website: {
     fontSize: 14,
-    color: '#00723F',
+    color: '#00B46E',
   },
 });
 
-export default EmployeeIdCardFront;
+export default EmployeeIdCard;
