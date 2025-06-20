@@ -23,7 +23,7 @@ import axios from 'axios';
 import { isReadOnlyRole } from 'utils/roleUtils';
 import { BackHandler } from 'react-native';
 import { router } from 'expo-router';
-import EmployeeIdCardFront from '../../../components/EmployeeIdCardFront';
+import EmployeeIdCard from '../../../components/EmployeeIdCardFront';
 import EmployeeIdCardDetail from '../../../components/employeeIdCardDetails';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -1423,7 +1423,7 @@ const EmployeesScreen = () => {
                 showsHorizontalScrollIndicator={false}
               >
                 <View style={styles.idCardPage}>
-                  <EmployeeIdCardFront employee={selectedEmployee} />
+                  <EmployeeIdCard employee={selectedEmployee} />
                 </View>
                 <View style={styles.idCardPage}>
                   <EmployeeIdCardDetail employee={selectedEmployee} />

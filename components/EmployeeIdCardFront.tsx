@@ -30,11 +30,10 @@ const EmployeeIdCard = ({ employee }: { employee: any }) => {
         </View>
       </View>
 
-      {/* Curve Background for Name */}
+      {/* Curve and Name */}
       <View style={styles.curveContainer}>
-        <View style={styles.curveShape}>
-          <Text style={styles.name}>{employee.name.toUpperCase()}</Text>
-        </View>
+        <View style={styles.curveShape} />
+        <Text style={styles.name}>{employee.name.toUpperCase()}</Text>
       </View>
 
       {/* Details */}
@@ -80,6 +79,7 @@ const styles = StyleSheet.create({
   photoContainer: {
     marginTop: 20,
     alignItems: 'center',
+    zIndex: 1,
   },
   photoBorder: {
     width: 140,
@@ -89,38 +89,35 @@ const styles = StyleSheet.create({
     borderColor: '#0C204B',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'white',
   },
   photo: {
-    width: 120,
-    height: 120,
+    width: '90%',
+    height: '90%',
     borderRadius: 60,
   },
   curveContainer: {
-    position: 'relative',
-    marginTop: -20,
     width: '100%',
-    height: 120,
     alignItems: 'center',
-    overflow: 'hidden',
+    marginTop: -70,
   },
   curveShape: {
+    width: width * 1.8,
+    height: 100,
+    borderBottomLeftRadius: width,
+    borderBottomRightRadius: width,
     backgroundColor: '#00B46E',
-    width: width * 1.2,
-    height: 200,
-    borderTopLeftRadius: width * 1.2,
-    borderTopRightRadius: width * 1.2,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    paddingBottom: 20,
+    transform: [{ scaleY: -1 }],
   },
   name: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#000',
+    color: 'black',
+    marginTop: 25,
   },
   detailsSection: {
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 20,
   },
   designation: {
     fontSize: 18,
@@ -136,7 +133,8 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
+    position: 'absolute',
+    bottom: 20,
   },
   webIcon: {
     width: 20,
