@@ -37,19 +37,19 @@ const EmployeeIdCard = ({ employee }: { employee: any }) => {
         <Text style={styles.name}>{employee.name.toUpperCase()}</Text>
       </View> */}
             <View style={styles.container}>
-      {/* Green Curve Background */}
-      <Svg height="100%" width="100%" viewBox="0 0 400 200" style={StyleSheet.absoluteFill}>
-        <Path
-          d="M0 50 Q 200 200 400 50 L400 200 L0 200 Z"
-          fill="#2E8B57"
-        />
-      </Svg>
+                {/* Wider Green Curve */}
+                <Svg height="100%" width="100%" viewBox="0 0 500 200" style={StyleSheet.absoluteFill}>
+                    <Path
+                        d="M0 50 Q 250 200 500 50 L500 200 L0 200 Z"
+                        fill="#2E8B57"
+                    />
+                </Svg>
 
-      {/* Name Text on Top of Curve */}
-      <View style={styles.textContainer}>
-        <Text style={styles.name}>MADHUMITHA V</Text>
-      </View>
-    </View>
+                {/* Name inside the curve */}
+                <View style={styles.textContainer}>
+                    <Text style={styles.name}>MADHUMITHA V</Text>
+                </View>
+            </View>
 
 
             {/* Details */}
@@ -130,19 +130,21 @@ const styles = StyleSheet.create({
         height: 120,
         position: 'relative',
         overflow: 'hidden',
-      },
-      textContainer: {
+    },
+    textContainer: {
         position: 'absolute',
-        bottom: 30, // push text into the curve
+        bottom: 30,
         width: '100%',
         alignItems: 'center',
-      },
-      name: {
+    },
+    name: {
         fontSize: 20,
         fontWeight: 'bold',
         color: '#000',
         textAlign: 'center',
-      },
+    },
+
+
     detailsSection: {
         alignItems: 'center',
         marginTop: 20,
