@@ -36,17 +36,18 @@ const EmployeeIdCard = ({ employee }: { employee: any }) => {
         <View style={styles.curveShape} />
         <Text style={styles.name}>{employee.name.toUpperCase()}</Text>
       </View> */}
-            <View style={{ width: '100%', height: 100 }}>
-                <Svg width="100%" height="100%" viewBox="0 0 300 100">
-                    <Path
-                        d="M0 0 C 75 150, 225 150, 300 0 L300 100 L0 100 Z"
-                        fill="#2E8B57"
-                    />
-                </Svg>
-                <View style={styles.nameContainer}>
-                    <Text style={styles.name}>{employee.name.toUpperCase()}</Text>
-                </View>
-            </View>
+            <View style={{ width: '100%', height: 100, position: 'relative' }}>
+  <Svg width="100%" height="100%" viewBox="0 0 300 100" style={{ position: 'absolute', top: 0 }}>
+    <Path
+      d="M0 0 C 75 150, 225 150, 300 0 L300 100 L0 100 Z"
+      fill="#2E8B57"
+    />
+  </Svg>
+
+  <View style={styles.nameWrapper}>
+    <Text style={styles.name}>MADHUMITHA V</Text>
+  </View>
+</View>
 
 
             {/* Details */}
@@ -122,19 +123,21 @@ const styles = StyleSheet.create({
         backgroundColor: '#00B46E',
         transform: [{ scaleY: -1 }],
     },
-    nameContainer: {
+    nameWrapper: {
         position: 'absolute',
         bottom: 20,
         width: '100%',
         alignItems: 'center',
+        backgroundColor: 'transparent', // No white box
+        paddingVertical: 4,
       },
-      
-    name: {
+      name: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: 'black',
-        marginTop: 25,
-    },
+        color: '#000',
+        backgroundColor: 'transparent', // Ensures text background blends with curve
+      },
+      
     detailsSection: {
         alignItems: 'center',
         marginTop: 20,
