@@ -13,6 +13,8 @@ interface Props {
 }
 
 const EmployeeIdCardDetail: React.FC<Props> = ({ employee }) => {
+console.log(employee,"employee")
+
   return (
     <View style={styles.card}>
       {/* Header */}
@@ -36,7 +38,7 @@ const EmployeeIdCardDetail: React.FC<Props> = ({ employee }) => {
 
       {/* Emergency Contact */}
       <Text style={styles.label}>Emergency Contact:</Text>
-      <Text style={styles.value}>{employee.emergencyContact}</Text>
+      <Text style={styles.value}>{employee.emergency_contact_phone}</Text>
 
       {/* Company Info */}
       <View style={styles.companyInfo}>

@@ -47,7 +47,7 @@ const EmployeeIdCard = ({ employee }: { employee: any }) => {
 
                 {/* Name inside the curve */}
                 <View style={styles.textContainer}>
-                    <Text style={styles.name}>MADHUMITHA V</Text>
+                    <Text style={styles.name}>{employee?.name}</Text>
                 </View>
             </View>
 
