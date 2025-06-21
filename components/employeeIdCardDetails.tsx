@@ -12,7 +12,7 @@ interface Employee {
   address_district: string;
   address_state: string;
   address_zip: string;
-  [key: string]: any;
+  [key:string]: any;
 }
 
 interface Props {
@@ -142,4 +142,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EmployeeIdCardDetail;
+export default EmployeeIdCardDetail; 
