@@ -51,15 +51,15 @@ const HomeScreen = () => {
     });
   };
 
-  const handleEmployeeIdPRess = () => {
-    router.push({
-      pathname: '/employeeIdCard',
-      params: {
-        role,
-        empId,
-      },
-    });
-  };
+  // const handleEmployeeIdPRess = () => {
+  //   router.push({
+  //     pathname: '/employeeIdCard',
+  //     params: {
+  //       role,
+  //       empId,
+  //     },
+  //   });
+  // };
 
   const handlePayrollPress = () => {
     router.push({
@@ -107,15 +107,15 @@ const HomeScreen = () => {
       onPress: handlePayrollPress,
       role,
     },
-    {
-      title: 'Employee ID Card',
-      icon: 'card',
-      route: '/employeeIdCard',
-      color: '#50C878',
-      description: 'View and generate employee ID cards',
-      onPress: handleEmployeeIdPRess,
-      role,
-    },
+    // {
+    //   title: 'Employee ID Card',
+    //   icon: 'card',
+    //   route: '/employeeIdCard',
+    //   color: '#50C878',
+    //   description: 'View and generate employee ID cards',
+    //   onPress: handleEmployeeIdPRess,
+    //   role,
+    // },
     {
       title: 'Attendance',
       icon: 'calendar',
@@ -195,7 +195,7 @@ const HomeScreen = () => {
               },
             })
           }>
-          <View className="mb-3 flex-row items-center bg-white p-6">
+          <View className="mb-3 flex-row items-center bg-white rounded-lg shadow-sm p-6">
             <Text className="grow text-2xl font-bold">Mark, Your Attendence Here</Text>
             <Ionicons name="chevron-forward" size={24} color="#666" />
           </View>
