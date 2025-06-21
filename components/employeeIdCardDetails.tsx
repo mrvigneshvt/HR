@@ -3,63 +3,40 @@ import { View, Text, StyleSheet } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
 interface Employee {
-  employee_id: string;
   name?: string;
-  emergency_contact_phone: string;
-  dob: string | null;
-  address_house: string;
-  address_street: string;
-  address_district: string;
-  address_state: string;
-  address_zip: string;
-  [key:string]: any;
+  emergencyContact: string;
+  [key: string]: any;
 }
 
 interface Props {
   employee: Employee;
 }
 
-const DetailRow: React.FC<{ label: string; value: string | undefined | null }> = ({ label, value }) => (
-  <View style={styles.detailRow}>
-    <Text style={styles.label}>{label}:</Text>
-    <Text style={styles.value} numberOfLines={2} ellipsizeMode="tail">{value || 'N/A'}</Text>
-  </View>
-);
-
 const EmployeeIdCardDetail: React.FC<Props> = ({ employee }) => {
-  const formattedAddress = [
-    employee.address_house,
-    employee.address_street,
-    employee.address_district,
-    employee.address_state,
-  ]
-    .filter(Boolean)
-    .join(', ') + (employee.address_zip ? ` - ${employee.address_zip}` : '');
-
-  const qrData = JSON.stringify({
-    employeeId: employee.employee_id,
-    name: employee.name,
-    emergencyContact: employee.emergency_contact_phone,
-  });
-
   return (
     <View style={styles.card}>
+      {/* Header */}
+      <Text style={styles.title}>Employee Details</Text>
+
       {/* QR Code */}
       <View style={styles.qrContainer}>
-        <QRCode value={qrData} size={120} />
+        <QRCode
+          value={JSON.stringify({
+            name: employee.name,
+            emergencyContact: employee.emergencyContact,
+          })}
+          size={200}
+        />
       </View>
 
-      {/* Details */}
-      <View style={styles.detailsContainer}>
-        <DetailRow label="Employee ID" value={employee.employee_id} />
-        <DetailRow label="Name" value={employee.name} />
-        <DetailRow label="Emergency Contact" value={employee.emergency_contact_phone} />
-        <DetailRow 
-          label="Date of Birth" 
-          value={employee.dob ? new Date(employee.dob).toLocaleDateString() : 'N/A'} 
-        />
-        <DetailRow label="Address" value={formattedAddress} />
-      </View>
+      {/* Name (if exists) */}
+      {employee.name && (
+        <Text style={styles.name}>Name: {employee.name}</Text>
+      )}
+
+      {/* Emergency Contact */}
+      <Text style={styles.label}>Emergency Contact:</Text>
+      <Text style={styles.value}>{employee.emergencyContact}</Text>
 
       {/* Company Info */}
       <View style={styles.companyInfo}>
@@ -78,56 +55,45 @@ const EmployeeIdCardDetail: React.FC<Props> = ({ employee }) => {
 
 const styles = StyleSheet.create({
   card: {
-    width: '100%',
-    aspectRatio: 320 / 500,
     backgroundColor: '#fff',
-    borderRadius: 20,
+    borderRadius: 12,
     alignItems: 'center',
-    padding: 20,
-    justifyContent: 'space-between',
+    padding: 24,
+    width: '100%',
+  },
+  title: {
+    fontWeight: 'bold',
+    fontSize: 20,
+    marginBottom: 16,
+    textAlign: 'center',
   },
   qrContainer: {
-    padding: 8,
-    backgroundColor: 'white',
-    borderRadius: 8,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: '#000',
+    padding: 10,
+    marginBottom: 20,
   },
-  detailsContainer: {
-    width: '100%',
-    marginTop: 10,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-    paddingHorizontal: 10,
+  name: {
+    fontSize: 18,
+    fontWeight: '500',
+    marginBottom: 12,
+    textAlign: 'center',
   },
   label: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#333',
-    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
   },
   value: {
-    fontSize: 14,
-    color: '#555',
-    flex: 2,
-    textAlign: 'right',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 24,
   },
   companyInfo: {
     alignItems: 'center',
-    marginTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    paddingTop: 10,
-    width: '100%',
+    marginTop: 8,
   },
   companyName: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
   },
@@ -135,11 +101,11 @@ const styles = StyleSheet.create({
     color: '#228B22',
   },
   address: {
-    fontSize: 12,
+    fontSize: 14,
     textAlign: 'center',
     marginTop: 4,
-    lineHeight: 18,
+    lineHeight: 20,
   },
 });
 
-export default EmployeeIdCardDetail; 
+export default EmployeeIdCardDetail;
