@@ -8,6 +8,7 @@ import {
   Platform,
   StyleSheet,
   Keyboard,
+  BackHandler,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
@@ -34,6 +35,15 @@ export type PopUpTypes =
 
 export default function LoginPage() {
   // const setDashboard = DashMemory((state) => state.setDashboard);
+  const onBackPress = () => {
+    router.replace({ pathname: '/login' });
+    return true;
+  };
+
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, []);
 
   const router = useRouter();
   const [empId, setEmpId] = useState('');
@@ -125,18 +135,18 @@ export default function LoginPage() {
   // }, []);
   //////////////////////////////////////////////////////////
 
-  useEffect(() => {
-    setTimeout(() => {
-      router.replace({
-        // pathname: '/(tabs)/dashboard',
-        pathname: '/(admin)/home',
-        params: {
-          role: 'superadmin',
-          empId: 'SFM43899',
-        },
-      });
-    }, 50);
-  }, []);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     router.replace({
+  //       // pathname: '/(tabs)/dashboard',
+  //       pathname: '/(admin)/home',
+  //       params: {
+  //         role: 'HR',
+  //         empId: 'SFM396',
+  //       },
+  //     });
+  //   }, 50);
+  // }, []);
 
   ////////////////////////////////////////////////////////////
   return (

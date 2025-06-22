@@ -5,19 +5,20 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import { configFile } from '../config';
 
 type Props = {
-  onChange: (data: { year: number; month: number }) => void;
+  onChange: (data: { year: string; month: string }) => void;
 };
 
 export default function MonthYearPickerHeader({ onChange }: Props) {
   const [currentDate, setCurrentDate] = useState(new Date());
+  console.log(currentDate, 'curre');
 
   const handlePrev = () => {
     const newDate = subMonths(currentDate, 1);
     setCurrentDate(newDate);
 
     onChange({
-      year: newDate.getFullYear(),
-      month: newDate.getMonth(),
+      year: newDate.getFullYear().toString(),
+      month: String(newDate.getMonth() + 1).padStart(2, '0'), // ensures '01', '02', etc.
     });
   };
 
@@ -26,8 +27,8 @@ export default function MonthYearPickerHeader({ onChange }: Props) {
     setCurrentDate(newDate);
 
     onChange({
-      year: newDate.getFullYear(),
-      month: newDate.getMonth(),
+      year: newDate.getFullYear().toString(),
+      month: String(newDate.getMonth() + 1).padStart(2, '0'), // ensures '01', '02', etc.
     });
   };
 

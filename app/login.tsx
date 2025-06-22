@@ -8,6 +8,7 @@ import {
   Platform,
   StyleSheet,
   Keyboard,
+  BackHandler,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
@@ -33,6 +34,15 @@ export type PopUpTypes =
   | 'Too Late Try Again From First !';
 
 export default function LoginPage() {
+  const onBackPress = () => {
+    router.replace({ pathname: '/login' });
+    return true;
+  };
+
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, []);
   // const setDashboard = DashMemory((state) => state.setDashboard);
 
   const router = useRouter();
