@@ -12,8 +12,7 @@ interface Props {
   employee: Employee;
 }
 
-const EmployeeIdCardDetail: React.FC<Props> = ({ employee }) => {
-console.log(employee,"employee")
+const EmployeeIdCardDetail: React.FC<Props> = ({ employee }:any) => {
 
   return (
     <View style={styles.card}>

@@ -54,6 +54,7 @@ interface Employee {
   contact_mobile_no: string;
   emergency_contact_name: string;
   emergency_contact_phone: string;
+  emergencyContact: string;
   communication_address: string;
   marital_status: string;
   status: string;
@@ -159,6 +160,7 @@ const initialEmployeeState: Employee = {
   contact_mobile_no: '',
   emergency_contact_name: '',
   emergency_contact_phone: '',
+  emergencyContact: '',
   communication_address: '',
   marital_status: 'Not Provided',
   status: 'Active',

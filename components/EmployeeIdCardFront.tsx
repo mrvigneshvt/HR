@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, Dimensions } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
+import { View, Text, Image, StyleSheet, Dimensions, ImageBackground } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -18,7 +17,7 @@ const EmployeeIdCard = ({ employee }: { employee: any }) => {
         <View style={styles.card}>
             {/* Header */}
             <View style={styles.header}>
-                <Image source={require('../assets/SDLOGO.png')} style={styles.logo} />
+                <Image source={require('../assets/sdce-logo.JPG')} style={styles.logo} />
                 <Text style={styles.companyText}>
                     SDCE Facilities{"\n"}Management Pvt.Ltd
                 </Text>
@@ -32,24 +31,11 @@ const EmployeeIdCard = ({ employee }: { employee: any }) => {
             </View>
 
             {/* Curve and Name */}
-            {/* <View style={styles.curveContainer}>
-        <View style={styles.curveShape} />
-        <Text style={styles.name}>{employee.name.toUpperCase()}</Text>
-      </View> */}
-            <View style={styles.container}>
-                {/* Wider Green Curve */}
-                <Svg height="100%" width="100%" viewBox="0 0 500 200" style={StyleSheet.absoluteFill}>
-                    <Path
-                        d="M0 50 Q 250 200 500 50 L500 200 L0 200 Z"
-                        fill="#2E8B57"
-                    />
-                </Svg>
-
-                {/* Name inside the curve */}
+            <ImageBackground source={require('../assets/curve.png')} style={styles.curveImageContainer} resizeMode="cover">
                 <View style={styles.textContainer}>
                     <Text style={styles.name}>{employee?.name}</Text>
                 </View>
-            </View>
+            </ImageBackground>
 
 
             {/* Details */}
@@ -112,35 +98,20 @@ const styles = StyleSheet.create({
         height: '90%',
         borderRadius: 60,
     },
-    curveContainer: {
-        width: '100%',
-        alignItems: 'center',
-        marginTop: -70,
-    },
-    curveShape: {
-        width: width * 1.8,
-        height: 100,
-        borderBottomLeftRadius: width,
-        borderBottomRightRadius: width,
-        backgroundColor: '#00B46E',
-        transform: [{ scaleY: -1 }],
-    },
-    container: {
+    curveImageContainer: {
         width: '100%',
         height: 120,
-        position: 'relative',
-        overflow: 'hidden',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: -30,
     },
     textContainer: {
-        position: 'absolute',
-        bottom: 10,
-        width: '100%',
         alignItems: 'center',
     },
     name: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#000',
+        color: '#FFFFFF',
         textAlign: 'center',
     },
 

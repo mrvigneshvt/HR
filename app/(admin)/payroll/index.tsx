@@ -17,8 +17,6 @@ import { configFile } from '../../../config';
 import { isReadOnlyRole } from '../../../utils/roleUtils';
 import { BackHandler } from 'react-native';
 import moment from 'moment';
-import api from '../../../services/api';
-import NetInfo from '@react-native-community/netinfo';
 
 const PayslipDetail = ({ detail }: { detail: any }) => {
   if (!detail || !detail.payslips || detail.payslips.length === 0) {
@@ -129,134 +127,30 @@ const PayrollScreen = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [payslipDetail, setPayslipDetail] = useState<any>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
-  const [isConnected, setIsConnected] = useState(true);
 
   const params = useLocalSearchParams();
   const role = params.role as string | undefined;
   const empId = params.empId as string | undefined;
   const readOnly = isReadOnlyRole(role);
 
-  // Check network connectivity
-  useEffect(() => {
-    const checkConnection = async () => {
-      try {
-        const state = await NetInfo.fetch();
-        setIsConnected(state.isConnected || false);
-      } catch (error) {
-        console.error('Error checking network connectivity:', error);
-        setIsConnected(false);
-      }
-    };
-
-    checkConnection();
-    const unsubscribe = NetInfo.addEventListener((state: any) => {
-      setIsConnected(state.isConnected || false);
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const handleNetworkError = (error: any, operation: string) => {
-    console.error(`Network error in ${operation}:`, error);
-    
-    if (!isConnected) {
-      Alert.alert(
-        'No Internet Connection',
-        'Please check your internet connection and try again.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Retry', 
-            onPress: () => {
-              if (operation === 'fetchPayrolls') {
-                fetchPayrolls(selectedDate);
-              } else if (operation === 'fetchEmployeePayslip' && selectedEmployee) {
-                fetchEmployeePayslip(selectedEmployee.employee_id);
-              }
-            }
-          }
-        ]
-      );
-      return;
-    }
-    
-    if (error.code === 'NETWORK_ERROR' || error.code === 'ECONNABORTED') {
-      Alert.alert(
-        'Network Error',
-        'Unable to connect to the server. Please check your internet connection and try again.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Retry', 
-            onPress: () => {
-              if (operation === 'fetchPayrolls') {
-                fetchPayrolls(selectedDate);
-              } else if (operation === 'fetchEmployeePayslip' && selectedEmployee) {
-                fetchEmployeePayslip(selectedEmployee.employee_id);
-              }
-            }
-          }
-        ]
-      );
-    } else if (error.response?.status === 404) {
-      Alert.alert('Not Found', 'The requested data was not found.');
-    } else if (error.response?.status >= 500) {
-      Alert.alert('Server Error', 'Server is currently unavailable. Please try again later.');
-    } else if (error.code === 'ERR_NETWORK') {
-      Alert.alert(
-        'Connection Failed',
-        'Failed to connect to the server. Please check your internet connection.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Retry', 
-            onPress: () => {
-              if (operation === 'fetchPayrolls') {
-                fetchPayrolls(selectedDate);
-              } else if (operation === 'fetchEmployeePayslip' && selectedEmployee) {
-                fetchEmployeePayslip(selectedEmployee.employee_id);
-              }
-            }
-          }
-        ]
-      );
-    } else {
-      Alert.alert('Error', error.response?.data?.message || 'An unexpected error occurred.');
-    }
-  };
-
   const fetchPayrolls = React.useCallback(async (month: string) => {
     setLoading(true);
     setPayrolls([]);
     setFilteredPayrolls([]);
-    
     try {
-      console.log('Fetching payrolls for month:', month);
-      console.log('API URL:', `/payroll/payslips/?month=${month}`);
-      
-      const response = await api.get(`/payroll/payslips/?month=${month}`, {
-        timeout: 15000, // 15 seconds timeout
-      });
-      
-      console.log('Payroll API response:', response.data);
-      
-      if (response.data.success) {
-        setPayrolls(response.data.data.payslips || []);
-        setFilteredPayrolls(response.data.data.payslips || []);
-        setRetryCount(0);
+      const response = await fetch(
+        `https://sdceweb.lyzooapp.co.in:31313/api/payroll/payslips/?month=${month}`
+      );
+      const result = await response.json();
+      if (result.success) {
+        setPayrolls(result.data.payslips);
+        setFilteredPayrolls(result.data.payslips);
       } else {
-        Alert.alert('Error', response.data.message || 'Failed to fetch payslips.');
+        Alert.alert('Error', result.message || 'Failed to fetch payslips.');
       }
-    } catch (error: any) {
-      console.error('Detailed error:', {
-        message: error.message,
-        code: error.code,
-        status: error.response?.status,
-        data: error.response?.data,
-        config: error.config
-      });
-      handleNetworkError(error, 'fetchPayrolls');
+    } catch (error) {
+      console.error('Error fetching payrolls:', error);
+      Alert.alert('Error', 'An unexpected error occurred while fetching payslips.');
     } finally {
       setLoading(false);
     }
@@ -281,31 +175,19 @@ const PayrollScreen = () => {
     if (!employeeId) return;
     setDetailLoading(true);
     setPayslipDetail(null);
-    
     try {
-      console.log('Fetching employee payslip for:', employeeId, 'month:', selectedDate);
-      console.log('API URL:', `/payroll/employees/${employeeId}?month=${selectedDate}`);
-      
-      const response = await api.get(`/payroll/employees/${employeeId}?month=${selectedDate}`, {
-        timeout: 15000, // 15 seconds timeout
-      });
-      
-      console.log('Employee payslip API response:', response.data);
-      
-      if (response.data.success) {
-        setPayslipDetail(response.data.data);
+      const response = await fetch(
+        `https://sdce.lyzooapp.co.in:31313/api/payroll/employees/${employeeId}?month=${selectedDate}`
+      );
+      const result = await response.json();
+      if (result.success) {
+        setPayslipDetail(result.data);
       } else {
-        Alert.alert('Error', response.data.message || 'Failed to fetch payslip details.');
+        Alert.alert('Error', result.message || 'Failed to fetch payslip details.');
       }
-    } catch (error: any) {
-      console.error('Detailed error:', {
-        message: error.message,
-        code: error.code,
-        status: error.response?.status,
-        data: error.response?.data,
-        config: error.config
-      });
-      handleNetworkError(error, 'fetchEmployeePayslip');
+    } catch (error) {
+      console.error('Error fetching employee payslip:', error);
+      Alert.alert('Error', 'An unexpected error occurred while fetching payslip details.');
     } finally {
       setDetailLoading(false);
     }
@@ -342,47 +224,17 @@ const PayrollScreen = () => {
           headerStyle: { backgroundColor: configFile.colorGreen },
           headerTintColor: 'white',
           headerRight: () => (
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              {!isConnected && (
-                <MaterialIcons 
-                  name="wifi-off" 
-                  size={20} 
-                  color="white" 
-                  style={{ marginRight: 8 }}
-                />
-              )}
-              <Pressable onPress={() => setShowFilterModal(true)} style={{ marginRight: 16 }}>
-                <MaterialIcons name="filter-list" size={24} color="white" />
-              </Pressable>
-            </View>
+            <Pressable onPress={() => setShowFilterModal(true)} style={{ marginRight: 16 }}>
+              <MaterialIcons name="filter-list" size={24} color="white" />
+            </Pressable>
           ),
         }}
       />
 
       <SearchBar value={search} onChangeText={setSearch} placeholder="Search employee..." />
 
-      {!isConnected && (
-        <View style={{ 
-          backgroundColor: '#FFE6E6', 
-          padding: 12, 
-          marginHorizontal: 8, 
-          marginTop: 8, 
-          borderRadius: 6,
-          flexDirection: 'row',
-          alignItems: 'center'
-        }}>
-          <MaterialIcons name="wifi-off" size={20} color="#D32F2F" />
-          <Text style={{ color: '#D32F2F', marginLeft: 8, flex: 1 }}>
-            No internet connection. Please check your network settings.
-          </Text>
-        </View>
-      )}
-
       {loading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator color="#4A90E2" size="large" />
-          <Text style={{ marginTop: 10, color: '#666' }}>Loading payslips...</Text>
-        </View>
+        <ActivityIndicator style={{ marginTop: 20 }} color="#4A90E2" size="large" />
       ) : (
         <FlatList
           data={filteredPayrolls}
@@ -406,28 +258,9 @@ const PayrollScreen = () => {
             </TouchableOpacity>
           )}
           ListEmptyComponent={
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 50 }}>
-              <MaterialIcons name="receipt-long" size={64} color="#ccc" />
-              <Text style={{ textAlign: 'center', marginTop: 16, fontSize: 16, color: '#666' }}>
-                {!isConnected 
-                  ? 'No internet connection. Please connect to view payslips.'
-                  : `No payslips found for ${moment(selectedDate).format('MMMM YYYY')}`
-                }
-              </Text>
-              <Pressable
-                onPress={() => fetchPayrolls(selectedDate)}
-                style={{
-                  marginTop: 16,
-                  backgroundColor: '#4A90E2',
-                  paddingHorizontal: 20,
-                  paddingVertical: 10,
-                  borderRadius: 6,
-                }}>
-                <Text style={{ color: 'white', fontWeight: 'bold' }}>
-                  {!isConnected ? 'Check Connection' : 'Retry'}
-                </Text>
-              </Pressable>
-            </View>
+            <Text style={{ textAlign: 'center', marginTop: 30, fontSize: 16 }}>
+              No payslips found for {moment(selectedDate).format('MMMM YYYY')}.
+            </Text>
           }
         />
       )}
@@ -443,10 +276,7 @@ const PayrollScreen = () => {
             padding: 20,
           }}>
           {detailLoading ? (
-            <View style={{ backgroundColor: '#fff', padding: 20, borderRadius: 12 }}>
-              <ActivityIndicator color="#4A90E2" size="large" />
-              <Text style={{ marginTop: 10, textAlign: 'center' }}>Loading payslip details...</Text>
-            </View>
+            <ActivityIndicator color="#fff" size="large" />
           ) : (
             <>
               <PayslipDetail detail={payslipDetail} />
@@ -455,7 +285,7 @@ const PayrollScreen = () => {
                   <Pressable
                     onPress={() => {
                       // Add download logic here
-                      Alert.alert('Download', 'PDF download feature will be implemented soon.');
+                      alert('Download initiated');
                     }}
                     style={{
                       backgroundColor: '#4A90E2',
