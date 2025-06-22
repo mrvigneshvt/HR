@@ -6,6 +6,7 @@ export interface Client {
   id?: number;
   clientName: string;
   companyName: string;
+  companyNumber?: string;
   phoneNumber: string;
   gstNumber: string;
   site: string;

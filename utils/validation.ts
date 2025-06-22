@@ -15,6 +15,10 @@ export const validateClientForm = (data: Partial<Client>): ValidationErrors => {
     errors.companyName = 'Company name is required';
   }
 
+  if (!data.companyNumber?.trim()) {
+    errors.companyNumber = 'Company number is required';
+  }
+
   if (!data.phoneNumber?.trim()) {
     errors.phoneNumber = 'Phone number is required';
   } else if (!/^\d{10}$/.test(data.phoneNumber)) {
@@ -105,3 +109,85 @@ export function convertTo12HourFormat(time24:string) {
 
   return `${hour}:${minute} ${ampm}`;
 }
+
+// Assign Work validation
+export interface AssignWorkFormData {
+  employeeId: string;
+  companyNumber: string;
+  fromDate: string;
+  toDate: string;
+}
+
+export const validateAssignWorkForm = (data: AssignWorkFormData): ValidationErrors => {
+  const errors: ValidationErrors = {};
+
+  if (!data.employeeId?.trim()) {
+    errors.employeeId = 'Employee ID is required';
+  }
+
+  if (!data.companyNumber?.trim()) {
+    errors.companyNumber = 'Company number is required';
+  }
+
+  if (!data.fromDate?.trim()) {
+    errors.fromDate = 'From date is required';
+  } else {
+    const fromDate = new Date(data.fromDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (fromDate < today) {
+      errors.fromDate = 'From date cannot be in the past';
+    }
+  }
+
+  if (!data.toDate?.trim()) {
+    errors.toDate = 'To date is required';
+  } else {
+    const toDate = new Date(data.toDate);
+    const fromDate = data.fromDate ? new Date(data.fromDate) : new Date();
+    
+    if (toDate < fromDate) {
+      errors.toDate = 'To date cannot be before from date';
+    }
+  }
+
+  return errors;
+};
+
+// Client validation for assign work
+export const validateClientForAssignWork = (client: any): ValidationErrors => {
+  const errors: ValidationErrors = {};
+
+  if (!client.latitude?.trim()) {
+    errors.latitude = 'Client latitude is required for work assignment';
+  } else if (isNaN(Number(client.latitude)) || Number(client.latitude) < -90 || Number(client.latitude) > 90) {
+    errors.latitude = 'Invalid latitude value (must be between -90 and 90)';
+  }
+
+  if (!client.longitude?.trim()) {
+    errors.longitude = 'Client longitude is required for work assignment';
+  } else if (isNaN(Number(client.longitude)) || Number(client.longitude) < -180 || Number(client.longitude) > 180) {
+    errors.longitude = 'Invalid longitude value (must be between -180 and 180)';
+  }
+
+  if (!client.checkIn?.trim()) {
+    errors.checkIn = 'Client check-in time is required for work assignment';
+  } else if (!/^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(client.checkIn)) {
+    errors.checkIn = 'Invalid check-in time format (HH:MM:SS)';
+  }
+
+  if (!client.lunch_time?.trim()) {
+    errors.lunch_time = 'Client lunch time is required for work assignment';
+  } else if (!/^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(client.lunch_time)) {
+    errors.lunch_time = 'Invalid lunch time format (HH:MM:SS)';
+  }
+
+  if (!client.check_out?.trim()) {
+    errors.check_out = 'Client check-out time is required for work assignment';
+  } else if (!/^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/.test(client.check_out)) {
+    errors.check_out = 'Invalid check-out time format (HH:MM:SS)';
+  }
+
+  return errors;
+};

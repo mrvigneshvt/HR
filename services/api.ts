@@ -8,4 +8,19 @@ const api = axios.create({
   },
 });
 
+// Assign Work API
+export const assignWork = async (data: {
+  employeeId: string;
+  companyNumber: string;
+  fromDate: string;
+  toDate: string;
+}) => {
+  try {
+    const response = await api.post('/attendance/assignWork', data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export default api;

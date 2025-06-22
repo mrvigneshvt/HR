@@ -8,6 +8,7 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Platform,
 } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -16,9 +17,11 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import SearchBar from 'components/search';
 import { clientService, Client } from '../../../services/clientService';
-import { validateClientForm, ValidationErrors } from '../../../utils/validation';
+import { validateClientForm, ValidationErrors, validateAssignWorkForm, validateClientForAssignWork, AssignWorkFormData } from '../../../utils/validation';
 import { BackHandler } from 'react-native';
 import { router } from 'expo-router';
+import { assignWork } from '../../../services/api';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { isReadOnlyRole } from 'utils/roleUtils';
 
@@ -26,6 +29,7 @@ const ClientsScreen = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAssignWorkModal, setShowAssignWorkModal] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [search, setSearch] = useState('');
   const [clients, setClients] = useState<Client[]>([]);
@@ -33,6 +37,7 @@ const ClientsScreen = () => {
   const [formData, setFormData] = useState<Partial<any>>({
     clientName: '',
     companyName: '',
+    companyNumber: '',
     phoneNumber: '',
     gstNumber: '',
     site: '',
@@ -46,9 +51,19 @@ const ClientsScreen = () => {
     lunch_time: '',
     check_out: '',
   });
+  const [assignWorkFormData, setAssignWorkFormData] = useState<AssignWorkFormData>({
+    employeeId: '',
+    companyNumber: '',
+    fromDate: '',
+    toDate: '',
+  });
   const [errors, setErrors] = useState<ValidationErrors>({});
+  const [assignWorkErrors, setAssignWorkErrors] = useState<ValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isAssigningWork, setIsAssigningWork] = useState(false);
+  const [showFromDatePicker, setShowFromDatePicker] = useState(false);
+  const [showToDatePicker, setShowToDatePicker] = useState(false);
   const params = useLocalSearchParams();
   const role = params.role as string | undefined;
   const empId = params.empId as string | undefined;
@@ -79,6 +94,132 @@ const ClientsScreen = () => {
     }
   };
 
+  const handleAssignWorkInputChange = (field: keyof AssignWorkFormData, value: string) => {
+    setAssignWorkFormData((prev) => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (assignWorkErrors[field]) {
+      setAssignWorkErrors((prev) => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const handleAssignWorkClick = (client: Client) => {
+    // Validate client has required fields for work assignment
+    const clientValidationErrors = validateClientForAssignWork(client);
+    if (Object.keys(clientValidationErrors).length > 0) {
+      const errorMessages = Object.values(clientValidationErrors).join('\n• ');
+      Alert.alert(
+        'Cannot Assign Work',
+        `This client is missing required information:\n\n• ${errorMessages}\n\nPlease update the client information first.`,
+        [
+          { 
+            text: 'Edit Client', 
+            onPress: () => {
+              setSelectedClient(client);
+              setFormData(client);
+              setShowEditModal(true);
+            }
+          },
+          { text: 'Cancel', style: 'cancel' }
+        ]
+      );
+      return;
+    }
+
+    // Check if client is active
+    if (client.status !== 'Active') {
+      Alert.alert(
+        'Cannot Assign Work',
+        'Only active clients can be assigned work. Please activate this client first.',
+        [
+          { 
+            text: 'Edit Client', 
+            onPress: () => {
+              setSelectedClient(client);
+              setFormData(client);
+              setShowEditModal(true);
+            }
+          },
+          { text: 'Cancel', style: 'cancel' }
+        ]
+      );
+      return;
+    }
+
+    setSelectedClient(client);
+    setAssignWorkFormData({
+      employeeId: '',
+      companyNumber: client.companyNumber || '',
+      fromDate: new Date().toISOString().split('T')[0], // Today's date
+      toDate: new Date().toISOString().split('T')[0], // Today's date
+    });
+    setAssignWorkErrors({}); // Clear any previous errors
+    setShowAssignWorkModal(true);
+  };
+
+  const handleAssignWorkSubmit = async () => {
+    const validationErrors = validateAssignWorkForm(assignWorkFormData);
+    if (Object.keys(validationErrors).length > 0) {
+      setAssignWorkErrors(validationErrors);
+      return;
+    }
+
+    // Show confirmation dialog
+    Alert.alert(
+      'Confirm Assignment',
+      `Are you sure you want to assign work to employee ${assignWorkFormData.employeeId} for ${selectedClient?.clientName} from ${assignWorkFormData.fromDate} to ${assignWorkFormData.toDate}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Assign Work', 
+          onPress: async () => {
+            try {
+              setIsAssigningWork(true);
+              setAssignWorkErrors({}); // Clear any previous errors
+              
+              const response = await assignWork(assignWorkFormData);
+              
+              Alert.alert(
+                'Success', 
+                'Work assigned successfully!',
+                [
+                  {
+                    text: 'OK',
+                    onPress: handleAssignWorkModalClose
+                  }
+                ]
+              );
+            } catch (error: any) {
+              console.error('Error assigning work:', error);
+              let errorMessage = 'Failed to assign work. Please try again.';
+              
+              if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+              } else if (error.message) {
+                errorMessage = error.message;
+              }
+              
+              Alert.alert('Error', errorMessage);
+            } finally {
+              setIsAssigningWork(false);
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleAssignWorkModalClose = () => {
+    setShowAssignWorkModal(false);
+    setAssignWorkFormData({
+      employeeId: '',
+      companyNumber: '',
+      fromDate: '',
+      toDate: '',
+    });
+    setAssignWorkErrors({});
+    setSelectedClient(null);
+  };
+
   const handleSubmit = async (isEdit: boolean) => {
     const validationErrors = validateClientForm(formData);
     if (Object.keys(validationErrors).length > 0) {
@@ -102,6 +243,7 @@ const ClientsScreen = () => {
       setFormData({
         clientName: '',
         companyName: '',
+        companyNumber: '',
         phoneNumber: '',
         gstNumber: '',
         site: '',
@@ -167,6 +309,25 @@ const ClientsScreen = () => {
     </View>
   );
 
+  const renderAssignWorkFormField = (
+    label: string,
+    field: keyof AssignWorkFormData,
+    placeholder: string,
+    keyboardType: 'default' | 'numeric' = 'default'
+  ) => (
+    <View className="mb-4">
+      <Text className="mb-1 text-sm font-medium text-gray-700">{label}</Text>
+      <TextInput
+        className={`rounded-lg border p-2 ${assignWorkErrors[field] ? 'border-red-500' : 'border-gray-300'}`}
+        value={assignWorkFormData[field]}
+        onChangeText={(value) => handleAssignWorkInputChange(field, value)}
+        placeholder={placeholder}
+        keyboardType={keyboardType}
+      />
+      {assignWorkErrors[field] && <Text className="mt-1 text-sm text-red-500">{assignWorkErrors[field]}</Text>}
+    </View>
+  );
+
   const renderClientCard = (client: Client) => (
     <View key={client.id} className="mb-4 overflow-hidden rounded-xl bg-white shadow-lg">
       <View className="p-4">
@@ -181,6 +342,11 @@ const ClientsScreen = () => {
           </View>
           {!readOnly && (
             <View className="flex-row gap-2">
+              <Pressable
+                onPress={() => handleAssignWorkClick(client)}
+                className="rounded-full bg-green-100 p-2">
+                <MaterialIcons name="work" size={20} color="#4CAF50" />
+              </Pressable>
               <Pressable
                 onPress={() => {
                   setSelectedClient(client);
@@ -221,6 +387,7 @@ const ClientsScreen = () => {
 
             {renderFormField('Client Name', 'clientName', 'Enter client name')}
             {renderFormField('Company Name', 'companyName', 'Enter company name')}
+            {renderFormField('Company Number', 'companyNumber', 'Enter company number')}
             {renderFormField('Phone Number', 'phoneNumber', 'Enter phone number', 'numeric')}
             {renderFormField('GST Number', 'gstNumber', 'Enter GST number')}
             {renderFormField('Site', 'site', 'Enter site')}
@@ -271,6 +438,107 @@ const ClientsScreen = () => {
                   <ActivityIndicator size="small" color="white" />
                 ) : (
                   <Text className="text-white">{isEdit ? 'Save' : 'Add'}</Text>
+                )}
+              </Pressable>
+            </View>
+          </ScrollView>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
+  );
+
+  const renderAssignWorkModal = () => (
+    <Modal
+      visible={showAssignWorkModal}
+      transparent
+      animationType="slide"
+      onRequestClose={handleAssignWorkModalClose}>
+      <TouchableOpacity
+        className="flex-1 justify-end bg-black/50"
+        activeOpacity={1}
+        onPress={handleAssignWorkModalClose}>
+        <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+          <ScrollView className="max-h-[90vh] rounded-t-3xl bg-white p-6">
+            <Text className="mb-4 text-xl font-bold">Assign Work</Text>
+            <Text className="mb-4 text-sm text-gray-600">
+              Assign work to employee for client: {selectedClient?.clientName}
+            </Text>
+
+            {renderAssignWorkFormField('Employee ID', 'employeeId', 'Enter employee ID')}
+            {renderAssignWorkFormField('Company Number', 'companyNumber', 'Enter company number')}
+            
+            {/* From Date */}
+            <View className="mb-4">
+              <Text className="mb-1 text-sm font-medium text-gray-700">From Date</Text>
+              <Pressable
+                className={`rounded-lg border p-2 ${assignWorkErrors.fromDate ? 'border-red-500' : 'border-gray-300'}`}
+                onPress={() => setShowFromDatePicker(true)}>
+                <Text className={assignWorkFormData.fromDate ? 'text-gray-900' : 'text-gray-500'}>
+                  {assignWorkFormData.fromDate || 'Select from date'}
+                </Text>
+              </Pressable>
+              {assignWorkErrors.fromDate && <Text className="mt-1 text-sm text-red-500">{assignWorkErrors.fromDate}</Text>}
+            </View>
+
+            {/* To Date */}
+            <View className="mb-4">
+              <Text className="mb-1 text-sm font-medium text-gray-700">To Date</Text>
+              <Pressable
+                className={`rounded-lg border p-2 ${assignWorkErrors.toDate ? 'border-red-500' : 'border-gray-300'}`}
+                onPress={() => setShowToDatePicker(true)}>
+                <Text className={assignWorkFormData.toDate ? 'text-gray-900' : 'text-gray-500'}>
+                  {assignWorkFormData.toDate || 'Select to date'}
+                </Text>
+              </Pressable>
+              {assignWorkErrors.toDate && <Text className="mt-1 text-sm text-red-500">{assignWorkErrors.toDate}</Text>}
+            </View>
+
+            {/* Date Pickers */}
+            {showFromDatePicker && (
+              <DateTimePicker
+                value={assignWorkFormData.fromDate ? new Date(assignWorkFormData.fromDate) : new Date()}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                minimumDate={new Date()}
+                onChange={(event, date) => {
+                  setShowFromDatePicker(false);
+                  if (date) {
+                    handleAssignWorkInputChange('fromDate', date.toISOString().split('T')[0]);
+                  }
+                }}
+              />
+            )}
+
+            {showToDatePicker && (
+              <DateTimePicker
+                value={assignWorkFormData.toDate ? new Date(assignWorkFormData.toDate) : new Date()}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                minimumDate={assignWorkFormData.fromDate ? new Date(assignWorkFormData.fromDate) : new Date()}
+                onChange={(event, date) => {
+                  setShowToDatePicker(false);
+                  if (date) {
+                    handleAssignWorkInputChange('toDate', date.toISOString().split('T')[0]);
+                  }
+                }}
+              />
+            )}
+
+            <View className="mb-10 mt-3 flex-row justify-between">
+              <Pressable
+                onPress={handleAssignWorkModalClose}
+                className="rounded-lg bg-gray-200 px-10 py-2"
+                disabled={isAssigningWork}>
+                <Text>Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={handleAssignWorkSubmit}
+                className="rounded-lg bg-green-500 px-10 py-2"
+                disabled={isAssigningWork}>
+                {isAssigningWork ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Text className="text-white">Assign Work</Text>
                 )}
               </Pressable>
             </View>
@@ -334,21 +602,6 @@ const ClientsScreen = () => {
 
   return (
     <View className="flex-1 bg-gray-50">
-      {/* <Stack.Screen
-        options={{
-          headesrShown: true,
-          title: 'Clients',
-          // headerStyle: {
-          //   backgroundColor: configFile.colorGreen,
-          // },
-          headerTintColor: 'white',
-          headerRight: () => (
-            <Pressable onPress={() => setShowAddModal(true)}>
-              <MaterialIcons name="add" size={24} color="white" />
-            </Pressable>
-          ),
-        }}
-      /> */}
       <Stack.Screen
         options={{
           headerShown: true,
@@ -365,6 +618,7 @@ const ClientsScreen = () => {
                   setFormData({
                     clientName: '',
                     companyName: '',
+                    companyNumber: '',
                     phoneNumber: '',
                     gstNumber: '',
                     site: '',
@@ -385,9 +639,8 @@ const ClientsScreen = () => {
             ),
         }}
       />
-      <SearchBar value={search} onChangeText={setSearch} placeholder="Search employee..." />
+      <SearchBar value={search} onChangeText={setSearch} placeholder="Search client..." />
 
-      {/* <SearchBar value={search} onChangeText={setSearch} placeholder="Search client..." /> */}
       {loading ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={configFile.colorGreen} />
@@ -400,6 +653,7 @@ const ClientsScreen = () => {
       {!readOnly && renderFormModal(false)}
       {!readOnly && renderFormModal(true)}
       {!readOnly && renderDeleteModal()}
+      {!readOnly && renderAssignWorkModal()}
     </View>
   );
 };
