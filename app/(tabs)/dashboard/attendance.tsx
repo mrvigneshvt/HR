@@ -30,6 +30,7 @@ const LocationWithDate = () => {
     BackHandler.addEventListener('hardwareBackPress', onBackPress);
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
   }, []);
+
   const [location, setLocation] = useState(null);
   const [address, setAddress] = useState('');
   const [region, setRegion] = useState({
@@ -77,7 +78,8 @@ const LocationWithDate = () => {
         lolcation?.lat,
         lolcation?.lon,
         latitude,
-        longitude
+        longitude,
+        50
       );
       console.log(nearby, '/////////NEARByyy');
 

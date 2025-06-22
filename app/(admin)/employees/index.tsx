@@ -532,9 +532,10 @@ const EmployeesScreen = () => {
   };
 
   const handleEditEmployee = (employee: Employee) => {
+    console.log(employee, '/////EMP');
     setSelectedEmployee(employee);
     setShowEditModal(true);
-  };
+  }; //editEMP
 
   const handleUpdateEmployee = async () => {
     if (!selectedEmployee) return;
@@ -1417,11 +1418,7 @@ const EmployeesScreen = () => {
           onRequestClose={() => setSelectedEmployee(null)}>
           <View style={styles.modalContainer}>
             <View>
-              <ScrollView
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-              >
+              <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false}>
                 <View style={styles.idCardPage}>
                   <EmployeeIdCard employee={selectedEmployee} />
                 </View>

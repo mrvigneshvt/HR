@@ -3,6 +3,7 @@ import { View, Text, Pressable, ScrollView, Alert } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { configFile } from '../../../config';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { BackHandler } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 
@@ -10,6 +11,21 @@ const HomeScreen = () => {
   const router = useRouter();
   const { role, empId } = useLocalSearchParams();
   console.log(role, '/rollle///empId', empId);
+
+  useEffect(() => {
+    const onBackPress = () => {
+      router.replace({
+        pathname: '/(admin)/home',
+        params: {
+          role,
+          empId,
+        },
+      });
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, []);
 
   const handleClientsPress = () => {
     router.push({
@@ -51,15 +67,15 @@ const HomeScreen = () => {
     });
   };
 
-  const handleEmployeeIdPRess = () => {
-    router.push({
-      pathname: '/employeeIdCard',
-      params: {
-        role,
-        empId,
-      },
-    });
-  };
+  // const handleEmployeeIdPRess = () => {
+  //   router.push({
+  //     pathname: '/employeeIdCard',
+  //     params: {
+  //       role,
+  //       empId,
+  //     },
+  //   });
+  // };
 
   const handlePayrollPress = () => {
     router.push({
@@ -107,15 +123,15 @@ const HomeScreen = () => {
       onPress: handlePayrollPress,
       role,
     },
-    {
-      title: 'Employee ID Card',
-      icon: 'card',
-      route: '/employeeIdCard',
-      color: '#50C878',
-      description: 'View and generate employee ID cards',
-      onPress: handleEmployeeIdPRess,
-      role,
-    },
+    // {
+    //   title: 'Employee ID Card',
+    //   icon: 'card',
+    //   route: '/employeeIdCard',
+    //   color: '#50C878',
+    //   description: 'View and generate employee ID cards',
+    //   onPress: handleEmployeeIdPRess,
+    //   role,
+    // },
     {
       title: 'Attendance',
       icon: 'calendar',
@@ -195,7 +211,7 @@ const HomeScreen = () => {
               },
             })
           }>
-          <View className="mb-3 flex-row items-center bg-white p-6">
+          <View className="mb-3 flex-row items-center rounded-lg bg-white p-6 shadow-sm">
             <Text className="grow text-2xl font-bold">Mark, Your Attendence Here</Text>
             <Ionicons name="chevron-forward" size={24} color="#666" />
           </View>

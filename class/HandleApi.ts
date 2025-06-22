@@ -314,8 +314,7 @@ export class Api {
           }
           options.triggerPopup('Too Late Try Again From First !');
           options.setIsOtp(false);
-          router.reload();
-
+          router.replace('/login');
         case 404:
           options.setApiLoading(false);
           options.triggerPopup('EmployeeId not Found');
