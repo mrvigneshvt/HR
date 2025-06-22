@@ -47,7 +47,7 @@ const ClientsScreen = () => {
     latitude: '',
     longitude: '',
     status: 'Active',
-    checkIn: '',
+    check_in: '',
     lunch_time: '',
     check_out: '',
   });
@@ -177,6 +177,7 @@ const ClientsScreen = () => {
               setAssignWorkErrors({}); // Clear any previous errors
               
               const response = await assignWork(assignWorkFormData);
+              console.log(response,"response")
               
               Alert.alert(
                 'Success', 
@@ -253,7 +254,7 @@ const ClientsScreen = () => {
         latitude: '',
         longitude: '',
         status: 'Active',
-        checkIn: '',
+        check_in: '',
         lunch_time: '',
         check_out: '',
       });
@@ -351,6 +352,7 @@ const ClientsScreen = () => {
                 onPress={() => {
                   setSelectedClient(client);
                   setFormData(client);
+                  console.log(client,">?>?>?>?")
                   setShowEditModal(true);
                 }}
                 className="rounded-full bg-blue-100 p-2">
@@ -419,7 +421,7 @@ const ClientsScreen = () => {
               </View>
             </View>
 
-            {renderFormField('Check-in Time', 'checkIn', 'HH:MM:SS')}
+            {renderFormField('Check-in Time', 'check_in', 'HH:MM:SS')}
             {renderFormField('Lunch Time', 'lunch_time', 'HH:MM:SS')}
             {renderFormField('Check-out Time', 'check_out', 'HH:MM:SS')}
 
@@ -628,7 +630,7 @@ const ClientsScreen = () => {
                     latitude: '',
                     longitude: '',
                     status: 'Active',
-                    checkIn: '',
+                    check_in: '',
                     lunch_time: '',
                     check_out: '',
                   });

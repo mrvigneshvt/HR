@@ -214,7 +214,6 @@ const initialEmployeeState: Employee = {
 const EmployeesScreen = () => {
   const params = useLocalSearchParams();
 
-  console.log(params, '/////////');
   const role = params.role as string | undefined;
   const empId = params.empId as string | undefined;
   const readOnly = isReadOnlyRole(role);
