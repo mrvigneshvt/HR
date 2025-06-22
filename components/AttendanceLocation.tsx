@@ -133,7 +133,7 @@ const AttendanceLocation = ({ Region, Address, isNear, cbLocation }: Props) => {
           console.log('////////', body, '/////body');
           res = await axios.post(url, body);
           Alert.alert('Success', res.data.message || 'Check-in successful');
-          router.reload();
+          router.back();
           break;
         case 'lunchIn':
           if (!isNear) return Alert.alert('You Are Not Inside the Location');
@@ -141,7 +141,7 @@ const AttendanceLocation = ({ Region, Address, isNear, cbLocation }: Props) => {
           body = { ...body, lunch_in_time: timeString };
           res = await axios.post(url, body);
           Alert.alert('Success', res.data.message || 'Lunch-in successful');
-          router.reload();
+          router.back();
           break;
         case 'checkOut':
           if (!isNear) return Alert.alert('You Are Not Inside the Location');
@@ -149,7 +149,7 @@ const AttendanceLocation = ({ Region, Address, isNear, cbLocation }: Props) => {
           body = { ...body, check_out_time: timeString };
           res = await axios.post(url, body);
           Alert.alert('Success', res.data.message || 'Check-out successful');
-          router.reload();
+          router.back();
           break;
         default:
           Alert.alert('All actions completed for today.');
@@ -160,6 +160,8 @@ const AttendanceLocation = ({ Region, Address, isNear, cbLocation }: Props) => {
       if (err instanceof AxiosError && err.response?.data?.message) {
         Alert.alert('Error', err.response.data.message);
       } else {
+        console.log(err.response);
+        console.log(err.response.data, 'errrDatra');
         Alert.alert('Error', 'Something went wrong');
       }
     } finally {

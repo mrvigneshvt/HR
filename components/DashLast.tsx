@@ -23,7 +23,6 @@ const icons = [icon1, icon3, icon4, icon5];
 
 const DashLast = ({ role, cardSize, empId, isMale }: Props) => {
   const isOdd = names.length % 2 !== 0;
-
   return (
     <View
       style={[
