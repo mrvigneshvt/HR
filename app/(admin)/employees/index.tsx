@@ -34,16 +34,20 @@ const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
 interface Employee {
   employee_id: string;
   name: string;
-  gender: 'Male' | 'Female';
   father_spouse_name: string;
-  dob: string | null;
-  age: number | null;
-  aadhaar_number: string;
   guardian_name: string;
-  reference_id: string;
-  mobile_verified: boolean;
+  dob: string;
+  gender: 'Male' | 'Female';
+  age: number | null;
+  marital_status: string;
+  aadhaar_number: string;
   is_aadhaar_verified: boolean;
-  profile_image: string | null;
+  mobile_verified: boolean;
+  profile_image: string;
+  contact_email: string;
+  contact_mobile_no: string;
+  emergency_contact_name: string;
+  emergency_contact_phone: string;
   address_country: string;
   address_state: string;
   address_district: string;
@@ -52,66 +56,43 @@ interface Employee {
   address_house: string;
   address_landmark: string;
   address_zip: string;
-  contact_email: string;
-  contact_mobile_no: string;
-  emergency_contact_name: string;
-  emergency_contact_phone: string;
-  emergencyContact: string;
   communication_address: string;
-  marital_status: string;
-  status: string;
-  account_number: string;
-  ifsc: string;
-  bank_name: string;
-  bank_code: string;
-  bank_branch: string;
-  bank_city: string;
-  bank_district: string;
-  bank_state: string;
-  bank_centre: string;
-  iso_code: string;
-  swift_code: string;
-  micr_code: string;
-  upi_enabled: boolean;
-  rtgs_enabled: boolean;
-  neft_enabled: boolean;
-  imps_enabled: boolean;
-  bank_contact: string;
-  bank_address: string;
-  is_bank_verified: boolean;
-  date_of_joining: string | null;
+  date_of_joining: string;
   role: string;
   department: string;
   designation: string;
   branch: string;
   reporting: string;
+  reference_id: string;
+  account_number: string;
+  ifsc: string;
+  bank_name: string;
+  name_at_bank: string;
+  bank_branch: string;
+  is_bank_verified: boolean;
   uan_number: string;
   esi_number: string;
-  esi_card: string | null;
+  esi_card: string;
   pan_number: string;
-  voter_id: string;
+  pan_card: string;
   driving_license: string;
-  name_at_bank: string;
-  pan_card: string | null;
-  voter_id_card: string | null;
-  driving_license_card: string | null;
-  joining_date: string;
-  bank_account_number: string;
-  bank_ifsc_code: string;
-  bank_account_holder_name: string;
-  bank_account_type: string;
-  bank_account_status: string;
-  bank_account_balance: string;
-  bank_account_currency: string;
-  bank_account_opening_date: string;
-  bank_account_closing_date: string;
-  bank_account_remarks: string;
+  driving_license_card: string;
+  status: string;
 }
 
 interface FormErrors {
   employee_id?: string;
   name?: string;
+  father_spouse_name?: string;
+  guardian_name?: string;
+  dob?: string;
   gender?: string;
+  age?: string;
+  marital_status?: string;
+  aadhaar_number?: string;
+  is_aadhaar_verified?: string;
+  mobile_verified?: string;
+  profile_image?: string;
   contact_email?: string;
   contact_mobile_no?: string;
   emergency_contact_name?: string;
@@ -120,38 +101,55 @@ interface FormErrors {
   address_state?: string;
   address_district?: string;
   address_po?: string;
-  name_at_bank?: string;
   address_street?: string;
   address_house?: string;
   address_landmark?: string;
   address_zip?: string;
+  communication_address?: string;
+  date_of_joining?: string;
   role?: string;
   department?: string;
   designation?: string;
   branch?: string;
   reporting?: string;
-  aadhaar_number?: string;
+  reference_id?: string;
+  ifsc?: string;
+  bank_name?: string;
+  name_at_bank?: string;
+  bank_branch?: string;
+  is_bank_verified?: string;
+  uan_number?: string;
+  esi_number?: string;
+  esi_card?: string;
   pan_number?: string;
-  voter_id?: string;
+  pan_card?: string;
   driving_license?: string;
+  driving_license_card?: string;
+  status?: string;
+  voter_id?: string;
   bank_account_number?: string;
   bank_ifsc_code?: string;
   bank_account_holder_name?: string;
+  account_number?: string;
 }
 
 const initialEmployeeState: Employee = {
   employee_id: '',
   name: '',
-  gender: 'Male',
-  father_spouse_name: 'Not Provided',
-  dob: null,
-  age: null,
-  aadhaar_number: '',
+  father_spouse_name: '',
   guardian_name: '',
-  reference_id: '',
-  mobile_verified: false,
+  dob: '',
+  gender: 'Male',
+  age: null,
+  marital_status: '',
+  aadhaar_number: '',
   is_aadhaar_verified: false,
-  profile_image: null,
+  mobile_verified: false,
+  profile_image: '',
+  contact_email: '',
+  contact_mobile_no: '',
+  emergency_contact_name: '',
+  emergency_contact_phone: '',
   address_country: '',
   address_state: '',
   address_district: '',
@@ -160,60 +158,32 @@ const initialEmployeeState: Employee = {
   address_house: '',
   address_landmark: '',
   address_zip: '',
-  contact_email: '',
-  contact_mobile_no: '',
-  name_at_bank: '',
-  emergency_contact_name: '',
-  emergency_contact_phone: '',
-  emergencyContact: '',
   communication_address: '',
-  marital_status: 'Not Provided',
-  status: 'Active',
-  account_number: '',
+  date_of_joining: '',
+  role: '',
+  department: '',
+  designation: '',
+  branch: '',
+  reporting: '',
+  reference_id: '',
   ifsc: '',
   bank_name: '',
-  bank_code: '',
+  name_at_bank: '',
   bank_branch: '',
-  bank_city: '',
-  bank_district: '',
-  bank_state: '',
-  bank_centre: '',
-  iso_code: '',
-  swift_code: '',
-  micr_code: '',
-  upi_enabled: false,
-  rtgs_enabled: false,
-  neft_enabled: false,
-  imps_enabled: false,
-  bank_contact: '',
-  bank_address: '',
   is_bank_verified: false,
-  date_of_joining: null,
-  role: 'Executive',
-  department: 'Not Assigned',
-  designation: 'Operation Executive',
-  branch: 'Chennai',
-  reporting: 'Nithish',
   uan_number: '',
   esi_number: '',
-  esi_card: null,
-  pan_number: 'Not Provided',
-  voter_id: 'Not Provided',
-  driving_license: 'Not Provided',
-  pan_card: null,
-  voter_id_card: null,
-  driving_license_card: null,
-  joining_date: '',
+  esi_card: '',
+  pan_number: '',
+  pan_card: '',
+  driving_license: '',
+  driving_license_card: '',
+  status: 'Active',
+  voter_id: '',
   bank_account_number: '',
   bank_ifsc_code: '',
   bank_account_holder_name: '',
-  bank_account_type: '',
-  bank_account_status: '',
-  bank_account_balance: '',
-  bank_account_currency: '',
-  bank_account_opening_date: '',
-  bank_account_closing_date: '',
-  bank_account_remarks: '',
+  emergency_contact: '',
 };
 
 const EmployeesScreen = () => {
@@ -308,129 +278,157 @@ const EmployeesScreen = () => {
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
-
-    // Basic Information Validation
     if (!newEmployee.employee_id?.trim()) {
       newErrors.employee_id = 'Employee ID is required';
     } else if (!/^[A-Z0-9]{3,10}$/.test(newEmployee.employee_id)) {
       newErrors.employee_id = 'Employee ID must be 3-10 characters (letters and numbers only)';
     }
-
     if (!newEmployee.name?.trim()) {
       newErrors.name = 'Name is required';
-    } else if (newEmployee.name.length < 2 || newEmployee.name.length > 50) {
-      newErrors.name = 'Name must be between 2 and 50 characters';
     }
-
+    if (!newEmployee.father_spouse_name?.trim()) {
+      newErrors.father_spouse_name = 'Father/Spouse Name is required';
+    }
+    if (!newEmployee.guardian_name?.trim()) {
+      newErrors.guardian_name = 'Guardian Name is required';
+    }
+    if (!newEmployee.dob?.trim()) {
+      newErrors.dob = 'Date of Birth is required';
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(newEmployee.dob)) {
+      newErrors.dob = 'Date of Birth must be in YYYY-MM-DD format';
+    }
     if (!newEmployee.gender) {
       newErrors.gender = 'Gender is required';
     }
-
-    // Contact Information Validation
-    if (!newEmployee.contact_email?.trim()) {
-      newErrors.contact_email = 'Email is required';
-    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(newEmployee.contact_email)) {
-      newErrors.contact_email = 'Invalid email format';
+    if (newEmployee.age === null || isNaN(Number(newEmployee.age))) {
+      newErrors.age = 'Age is required';
     }
-
-    if (!newEmployee.contact_mobile_no?.trim()) {
-      newErrors.contact_mobile_no = 'Mobile number is required';
-    } else if (!/^[6-9]\d{9}$/.test(newEmployee.contact_mobile_no)) {
-      newErrors.contact_mobile_no = 'Mobile number must be 10 digits starting with 6-9';
+    if (!newEmployee.marital_status?.trim()) {
+      newErrors.marital_status = 'Marital Status is required';
     }
-
-    if (!newEmployee.emergency_contact_name?.trim()) {
-      newErrors.emergency_contact_name = 'Emergency contact name is required';
-    }
-
-    if (!newEmployee.emergency_contact_phone?.trim()) {
-      newErrors.emergency_contact_phone = 'Emergency contact phone is required';
-    } else if (!/^[6-9]\d{9}$/.test(newEmployee.emergency_contact_phone)) {
-      newErrors.emergency_contact_phone = 'Emergency contact must be 10 digits starting with 6-9';
-    }
-
-    // Address Validation
-    if (!newEmployee.address_country?.trim()) {
-      newErrors.address_country = 'Country is required';
-    }
-
-    if (!newEmployee.address_state?.trim()) {
-      newErrors.address_state = 'State is required';
-    }
-
-    if (!newEmployee.address_district?.trim()) {
-      newErrors.address_district = 'District is required';
-    }
-
-    // if (!newEmployee.address_po?.trim()) {
-    //   newErrors.address_po = 'Post Office is required';
-    // }
-
-    // if (!newEmployee.address_street?.trim()) {
-    //   newErrors.address_street = 'Street is required';
-    // }
-
-    // if (!newEmployee.address_house?.trim()) {
-    //   newErrors.address_house = 'House number is required';
-    // }
-
-    // if (!newEmployee.address_landmark?.trim()) {
-    //   newErrors.address_landmark = 'Landmark is required';
-    // }
-
-    // if (!newEmployee.address_zip?.trim()) {
-    //   newErrors.address_zip = 'ZIP code is required';
-    // } else if (!/^[1-9][0-9]{5}$/.test(newEmployee.address_zip)) {
-    //   newErrors.address_zip = 'ZIP code must be 6 digits';
-    // }
-
-    // Employment Information Validation
-    if (!newEmployee.role?.trim()) {
-      newErrors.role = 'Role is required';
-    }
-
-    if (!newEmployee.department?.trim()) {
-      newErrors.department = 'Department is required';
-    }
-
-    if (!newEmployee.designation?.trim()) {
-      newErrors.designation = 'Designation is required';
-    }
-
-    if (!newEmployee.branch?.trim()) {
-      newErrors.branch = 'Branch is required';
-    }
-
-    if (!newEmployee.reporting?.trim()) {
-      newErrors.reporting = 'Reporting manager is required';
-    }
-
-    // Document Validation
     if (!newEmployee.aadhaar_number?.trim()) {
       newErrors.aadhaar_number = 'Aadhaar number is required';
     } else if (!/^\d{12}$/.test(newEmployee.aadhaar_number)) {
       newErrors.aadhaar_number = 'Aadhaar number must be 12 digits';
     }
-
-    // Bank Information Validation (only if bank name is provided)
-    // if (newEmployee.bank_name?.trim()) {
-    //   if (!newEmployee.bank_account_number?.trim()) {
-    //     newErrors.bank_account_number = 'Bank account number is required when bank name is provided';
-    //   } else if (!/^\d{9,18}$/.test(newEmployee.bank_account_number)) {
-    //     newErrors.bank_account_number = 'Bank account number must be 9-18 digits';
-    //   }
-
-    //   if (!newEmployee.bank_ifsc_code?.trim()) {
-    //     newErrors.bank_ifsc_code = 'IFSC code is required when bank name is provided';
-    //   } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(newEmployee.bank_ifsc_code)) {
-    //     newErrors.bank_ifsc_code = 'Invalid IFSC code format';
-    //   }
-
-    //   if (!newEmployee.bank_account_holder_name?.trim()) {
-    //     newErrors.bank_account_holder_name = 'Account holder name is required when bank name is provided';
-    //   }
-    // }
-
+    if (typeof newEmployee.is_aadhaar_verified !== 'boolean') {
+      newErrors.is_aadhaar_verified = 'Aadhaar verified is required';
+    }
+    if (typeof newEmployee.mobile_verified !== 'boolean') {
+      newErrors.mobile_verified = 'Mobile verified is required';
+    }
+    if (!newEmployee.contact_email?.trim()) {
+      newErrors.contact_email = 'Email is required';
+    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(newEmployee.contact_email)) {
+      newErrors.contact_email = 'Invalid email format';
+    }
+    if (!newEmployee.contact_mobile_no?.trim()) {
+      newErrors.contact_mobile_no = 'Mobile number is required';
+    } else if (!/^[6-9]\d{9}$/.test(newEmployee.contact_mobile_no)) {
+      newErrors.contact_mobile_no = 'Mobile number must be 10 digits starting with 6-9';
+    }
+    if (!newEmployee.emergency_contact_name?.trim()) {
+      newErrors.emergency_contact_name = 'Emergency contact name is required';
+    }
+    if (!newEmployee.emergency_contact_phone?.trim()) {
+      newErrors.emergency_contact_phone = 'Emergency contact phone is required';
+    } else if (!/^[6-9]\d{9}$/.test(newEmployee.emergency_contact_phone)) {
+      newErrors.emergency_contact_phone = 'Emergency contact must be 10 digits starting with 6-9';
+    }
+    if (!newEmployee.address_country?.trim()) {
+      newErrors.address_country = 'Country is required';
+    }
+    if (!newEmployee.address_state?.trim()) {
+      newErrors.address_state = 'State is required';
+    }
+    if (!newEmployee.address_district?.trim()) {
+      newErrors.address_district = 'District is required';
+    }
+    if (!newEmployee.address_po?.trim()) {
+      newErrors.address_po = 'Post Office is required';
+    }
+    if (!newEmployee.address_street?.trim()) {
+      newErrors.address_street = 'Street is required';
+    }
+    if (!newEmployee.address_house?.trim()) {
+      newErrors.address_house = 'House number is required';
+    }
+    if (!newEmployee.address_landmark?.trim()) {
+      newErrors.address_landmark = 'Landmark is required';
+    }
+    if (!newEmployee.address_zip?.trim()) {
+      newErrors.address_zip = 'ZIP code is required';
+    } else if (!/^\d{6}$/.test(newEmployee.address_zip)) {
+      newErrors.address_zip = 'ZIP code must be 6 digits';
+    }
+    if (!newEmployee.communication_address?.trim()) {
+      newErrors.communication_address = 'Communication address is required';
+    }
+    if (!newEmployee.date_of_joining?.trim()) {
+      newErrors.date_of_joining = 'Date of joining is required';
+    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(newEmployee.date_of_joining)) {
+      newErrors.date_of_joining = 'Date of joining must be in YYYY-MM-DD format';
+    }
+    if (!newEmployee.role?.trim()) {
+      newErrors.role = 'Role is required';
+    }
+    if (!newEmployee.department?.trim()) {
+      newErrors.department = 'Department is required';
+    }
+    if (!newEmployee.designation?.trim()) {
+      newErrors.designation = 'Designation is required';
+    }
+    if (!newEmployee.branch?.trim()) {
+      newErrors.branch = 'Branch is required';
+    }
+    if (!newEmployee.reporting?.trim()) {
+      newErrors.reporting = 'Reporting manager is required';
+    }
+    if (!newEmployee.reference_id?.trim()) {
+      newErrors.reference_id = 'Reference ID is required';
+    }
+    if (!newEmployee.account_number?.trim()) {
+      newErrors.account_number = 'Account number is required';
+    }
+    if (!newEmployee.ifsc?.trim()) {
+      newErrors.ifsc = 'IFSC code is required';
+    }
+    if (!newEmployee.bank_name?.trim()) {
+      newErrors.bank_name = 'Bank name is required';
+    }
+    if (!newEmployee.name_at_bank?.trim()) {
+      newErrors.name_at_bank = 'Name at bank is required';
+    }
+    if (!newEmployee.bank_branch?.trim()) {
+      newErrors.bank_branch = 'Bank branch is required';
+    }
+    if (typeof newEmployee.is_bank_verified !== 'boolean') {
+      newErrors.is_bank_verified = 'Bank verified is required';
+    }
+    if (!newEmployee.uan_number?.trim()) {
+      newErrors.uan_number = 'UAN number is required';
+    }
+    if (!newEmployee.esi_number?.trim()) {
+      newErrors.esi_number = 'ESI number is required';
+    }
+    if (!newEmployee.esi_card?.trim()) {
+      newErrors.esi_card = 'ESI card is required';
+    }
+    if (!newEmployee.pan_number?.trim()) {
+      newErrors.pan_number = 'PAN number is required';
+    }
+    if (!newEmployee.pan_card?.trim()) {
+      newErrors.pan_card = 'PAN card is required';
+    }
+    if (!newEmployee.driving_license?.trim()) {
+      newErrors.driving_license = 'Driving license is required';
+    }
+    if (!newEmployee.driving_license_card?.trim()) {
+      newErrors.driving_license_card = 'Driving license card is required';
+    }
+    if (!newEmployee.status?.trim()) {
+      newErrors.status = 'Status is required';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -440,70 +438,15 @@ const EmployeesScreen = () => {
       Alert.alert('Validation Error', 'Please fill in all required fields correctly');
       return;
     }
-
     try {
       setLoading(true);
-
-      // Prepare the employee data with default values
-      const employeeData = {
-        employee_id: newEmployee.employee_id,
-        name: newEmployee.name,
-        father_spouse_name: newEmployee.father_spouse_name,
-        guardian_name: newEmployee.guardian_name,
-        dob: newEmployee.dob,
-        gender: newEmployee.gender,
-        age: newEmployee.age,
-        marital_status: newEmployee.marital_status,
-        aadhaar_number: newEmployee.aadhaar_number,
-        is_aadhaar_verified: newEmployee.is_aadhaar_verified,
-        mobile_verified: newEmployee.mobile_verified,
-        profile_image: newEmployee.profile_image,
-        contact_email: newEmployee.contact_email,
-        contact_mobile_no: newEmployee.contact_mobile_no,
-        emergency_contact_name: newEmployee.emergency_contact_name,
-        emergency_contact_phone: newEmployee.emergency_contact_phone,
-        address_country: newEmployee.address_country,
-        address_state: newEmployee.address_state,
-        address_district: newEmployee.address_district,
-        address_po: newEmployee.address_po,
-        address_street: newEmployee.address_street,
-        address_house: newEmployee.address_house,
-        address_landmark: newEmployee.address_landmark,
-        address_zip: newEmployee.address_zip,
-        communication_address: newEmployee.communication_address,
-        date_of_joining: newEmployee.date_of_joining || new Date().toISOString().split('T')[0],
-        role: newEmployee.role,
-        department: newEmployee.department,
-        designation: newEmployee.designation,
-        branch: newEmployee.branch,
-        reporting: newEmployee.reporting,
-        reference_id: newEmployee.reference_id,
-        account_number: newEmployee.account_number,
-        ifsc: newEmployee.ifsc,
-        bank_name: newEmployee.bank_name,
-        name_at_bank: newEmployee.name_at_bank,
-        bank_branch: newEmployee.bank_branch,
-        is_bank_verified: newEmployee.is_bank_verified,
-        uan_number: newEmployee.uan_number,
-        esi_number: newEmployee.esi_number,
-        esi_card: newEmployee.esi_card,
-        pan_number: newEmployee.pan_number,
-        pan_card: newEmployee.pan_card,
-        driving_license: newEmployee.driving_license,
-        driving_license_card: newEmployee.driving_license_card,
-        status: newEmployee.status,
-      };
-
-      console.log(employeeData, 'employeeData');
+      const employeeData = { ...newEmployee };
       const response = await axios.post(`${BASE_URL}/employees`, employeeData, {
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
       });
-
-      console.log('Response:', response.data);
-
       if (response.data) {
         Alert.alert('Success', 'Employee added successfully');
         setNewEmployee(initialEmployeeState);
@@ -514,29 +457,12 @@ const EmployeesScreen = () => {
         throw new Error(response.data.message || 'Failed to add employee');
       }
     } catch (error: any) {
-      console.error('Add Employee Error:', error);
-
       let errorMessage = 'Failed to add employee. Please try again.';
-
       if (error.response) {
-        if (error.response.status === 404) {
-          errorMessage = 'API endpoint not found. Please check the server configuration.';
-        } else if (error.response.status === 409) {
-          const conflicts = [];
-          if (error.response.data.aadhaar_exists) {
-            conflicts.push('Aadhaar Number');
-          }
-          if (error.response.data.mobile_exists) {
-            conflicts.push('Mobile Number');
-          }
-          errorMessage = `The following details already exist: ${conflicts.join(', ')}`;
-        } else {
-          errorMessage = error.response.data?.message || error.response.data?.error || errorMessage;
-        }
+        errorMessage = error.response.data?.error || errorMessage;
       } else if (error.request) {
         errorMessage = 'No response from server. Please check your internet connection.';
       }
-
       Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
