@@ -493,7 +493,7 @@ const EmployeesScreen = () => {
     console.log(employee, '/////EMP');
     setSelectedEmployee(employee);
     setShowEditModal(true);
-  }; //editEMP
+  };
 
   const handleUpdateEmployee = async (updateFields: any) => {
     if (!selectedEmployee) return;
@@ -575,14 +575,18 @@ const EmployeesScreen = () => {
         <Text style={{ color: 'gray' }}>Department: {item.department}</Text>
       </View>
       {!readOnly && (
-         <View style={{ flexDirection: 'row', gap: 10 }}>
-         <Pressable onPress={() => handleEditEmployee(item)}>
-           <MaterialIcons name="edit" size={20} color="#4A90E2" />
-         </Pressable>
-         <Pressable onPress={() => { setSelectedEmployee(item); setShowDeleteModal(true); }}>
-           <MaterialIcons name="delete" size={20} color="#FF6B6B" />
-         </Pressable>
-       </View>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <Pressable onPress={() => handleEditEmployee(item)}>
+            <MaterialIcons name="edit" size={20} color="#4A90E2" />
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              setSelectedEmployee(item);
+              setShowDeleteModal(true);
+            }}>
+            <MaterialIcons name="delete" size={20} color="#FF6B6B" />
+          </Pressable>
+        </View>
       )}
       <TouchableOpacity onPress={() => setSelectedEmployee(item)}>
         <MaterialIcons name="badge" size={24} color="#4A90E2" />
@@ -963,6 +967,7 @@ const EmployeesScreen = () => {
               style={styles.input}
             />
 
+            {/* is_aadhaar_verified (Switch) */}
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
               <Text style={{ marginRight: 8 }}>Aadhaar Verified</Text>
               <Pressable
@@ -1243,14 +1248,24 @@ const EmployeesScreen = () => {
                   padding: 20,
                   borderTopLeftRadius: 20,
                   borderTopRightRadius: 20,
-                  maxHeight: '80%',
+                  maxHeight: '90%',
                 }}>
-                <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>
-                  View Employee Details
-                </Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: 16,
+                  }}>
+                  <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Edit Employee</Text>
+                  <TouchableOpacity onPress={() => setShowEditModal(false)}>
+                    <MaterialIcons name="close" size={24} color="#666" />
+                  </TouchableOpacity>
+                </View>
+
                 {/* Basic Information */}
                 <Text style={styles.sectionTitle}>Basic Information</Text>
-                <Text>Employee ID</Text>
+                <Text>Employee ID *</Text>
                 <TextInput
                   value={selectedEmployee?.employee_id}
                   onChangeText={(text) =>
@@ -1258,18 +1273,54 @@ const EmployeesScreen = () => {
                     setSelectedEmployee({ ...selectedEmployee, employee_id: text })
                   }
                   placeholder="Enter employee ID"
-                  style={styles.input}
+                  style={[styles.input, errors.employee_id && styles.inputError]}
                 />
-                <Text>Name</Text>
+                {errors.employee_id && <Text style={styles.errorText}>{errors.employee_id}</Text>}
+
+                <Text>Name *</Text>
                 <TextInput
                   value={selectedEmployee?.name}
                   onChangeText={(text) =>
                     selectedEmployee && setSelectedEmployee({ ...selectedEmployee, name: text })
                   }
                   placeholder="Enter name"
+                  style={[styles.input, errors.name && styles.inputError]}
+                />
+                {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+
+                <Text>Father/Spouse Name</Text>
+                <TextInput
+                  value={selectedEmployee?.father_spouse_name}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, father_spouse_name: text })
+                  }
+                  placeholder="Enter father/spouse name"
                   style={styles.input}
                 />
-                <Text>Gender</Text>
+
+                <Text>Guardian Name</Text>
+                <TextInput
+                  value={selectedEmployee?.guardian_name}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, guardian_name: text })
+                  }
+                  placeholder="Enter guardian name"
+                  style={styles.input}
+                />
+
+                <Text>Date of Birth</Text>
+                <TextInput
+                  value={selectedEmployee?.dob}
+                  onChangeText={(text) =>
+                    selectedEmployee && setSelectedEmployee({ ...selectedEmployee, dob: text })
+                  }
+                  placeholder="YYYY-MM-DD"
+                  style={styles.input}
+                />
+
+                <Text>Gender *</Text>
                 <View style={styles.radioGroup}>
                   <Pressable
                     style={[
@@ -1294,9 +1345,108 @@ const EmployeesScreen = () => {
                     <Text>Female</Text>
                   </Pressable>
                 </View>
+                {errors.gender && <Text style={styles.errorText}>{errors.gender}</Text>}
+
+                <Text>Age</Text>
+                <TextInput
+                  value={selectedEmployee?.age?.toString() || ''}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, age: parseInt(text) || null })
+                  }
+                  placeholder="Enter age"
+                  keyboardType="numeric"
+                  style={styles.input}
+                />
+
+                <Text>Marital Status</Text>
+                <TextInput
+                  value={selectedEmployee?.marital_status}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, marital_status: text })
+                  }
+                  placeholder="Enter marital status"
+                  style={styles.input}
+                />
+
+                <Text>Aadhaar Number *</Text>
+                <TextInput
+                  value={selectedEmployee?.aadhaar_number}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, aadhaar_number: text })
+                  }
+                  placeholder="Enter Aadhaar number"
+                  keyboardType="numeric"
+                  maxLength={12}
+                  style={[styles.input, errors.aadhaar_number && styles.inputError]}
+                />
+                {errors.aadhaar_number && <Text style={styles.errorText}>{errors.aadhaar_number}</Text>}
+
+                {/* is_aadhaar_verified (Switch) */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                  <Text style={{ marginRight: 8 }}>Aadhaar Verified</Text>
+                  <Pressable
+                    onPress={() =>
+                      selectedEmployee &&
+                      setSelectedEmployee({
+                        ...selectedEmployee,
+                        is_aadhaar_verified: !selectedEmployee.is_aadhaar_verified,
+                      })
+                    }
+                    style={{
+                      width: 40,
+                      height: 24,
+                      borderRadius: 12,
+                      backgroundColor: selectedEmployee?.is_aadhaar_verified ? '#4A90E2' : '#ccc',
+                      justifyContent: 'center',
+                      alignItems: selectedEmployee?.is_aadhaar_verified ? 'flex-end' : 'flex-start',
+                      padding: 2,
+                    }}>
+                    <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }} />
+                  </Pressable>
+                </View>
+
+                {/* mobile_verified (Switch) */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                  <Text style={{ marginRight: 8 }}>Mobile Verified</Text>
+                  <Pressable
+                    onPress={() =>
+                      selectedEmployee &&
+                      setSelectedEmployee({
+                        ...selectedEmployee,
+                        mobile_verified: !selectedEmployee.mobile_verified,
+                      })
+                    }
+                    style={{
+                      width: 40,
+                      height: 24,
+                      borderRadius: 12,
+                      backgroundColor: selectedEmployee?.mobile_verified ? '#4A90E2' : '#ccc',
+                      justifyContent: 'center',
+                      alignItems: selectedEmployee?.mobile_verified ? 'flex-end' : 'flex-start',
+                      padding: 2,
+                    }}>
+                    <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }} />
+                  </Pressable>
+                </View>
+
+                {/* Profile Image */}
+                <Text>Profile Image</Text>
+                <TextInput
+                  value={selectedEmployee?.profile_image}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, profile_image: text })
+                  }
+                  placeholder="Enter profile image URL or leave blank"
+                  style={styles.input}
+                />
+
                 {/* Contact Information */}
                 <Text style={styles.sectionTitle}>Contact Information</Text>
-                <Text>Email</Text>
+                <Text>Email *</Text>
                 <TextInput
                   value={selectedEmployee?.contact_email}
                   onChangeText={(text) =>
@@ -1305,9 +1455,12 @@ const EmployeesScreen = () => {
                   }
                   placeholder="Enter email"
                   keyboardType="email-address"
-                  style={styles.input}
+                  autoCapitalize="none"
+                  style={[styles.input, errors.contact_email && styles.inputError]}
                 />
-                <Text>Mobile Number</Text>
+                {errors.contact_email && <Text style={styles.errorText}>{errors.contact_email}</Text>}
+
+                <Text>Mobile Number *</Text>
                 <TextInput
                   value={selectedEmployee?.contact_mobile_no}
                   onChangeText={(text) =>
@@ -1317,9 +1470,13 @@ const EmployeesScreen = () => {
                   placeholder="Enter mobile number"
                   keyboardType="phone-pad"
                   maxLength={10}
-                  style={styles.input}
+                  style={[styles.input, errors.contact_mobile_no && styles.inputError]}
                 />
-                <Text>Emergency Contact Name</Text>
+                {errors.contact_mobile_no && (
+                  <Text style={styles.errorText}>{errors.contact_mobile_no}</Text>
+                )}
+
+                <Text>Emergency Contact Name *</Text>
                 <TextInput
                   value={selectedEmployee?.emergency_contact_name}
                   onChangeText={(text) =>
@@ -1327,9 +1484,13 @@ const EmployeesScreen = () => {
                     setSelectedEmployee({ ...selectedEmployee, emergency_contact_name: text })
                   }
                   placeholder="Enter emergency contact name"
-                  style={styles.input}
+                  style={[styles.input, errors.emergency_contact_name && styles.inputError]}
                 />
-                <Text>Emergency Contact Phone</Text>
+                {errors.emergency_contact_name && (
+                  <Text style={styles.errorText}>{errors.emergency_contact_name}</Text>
+                )}
+
+                <Text>Emergency Contact Phone *</Text>
                 <TextInput
                   value={selectedEmployee?.emergency_contact_phone}
                   onChangeText={(text) =>
@@ -1339,8 +1500,12 @@ const EmployeesScreen = () => {
                   placeholder="Enter emergency contact"
                   keyboardType="phone-pad"
                   maxLength={10}
-                  style={styles.input}
+                  style={[styles.input, errors.emergency_contact_phone && styles.inputError]}
                 />
+                {errors.emergency_contact_phone && (
+                  <Text style={styles.errorText}>{errors.emergency_contact_phone}</Text>
+                )}
+
                 {/* Address Information */}
                 <Text style={styles.sectionTitle}>Address Information</Text>
                 <Text>Country</Text>
@@ -1353,6 +1518,7 @@ const EmployeesScreen = () => {
                   placeholder="Enter country"
                   style={styles.input}
                 />
+
                 <Text>State</Text>
                 <TextInput
                   value={selectedEmployee?.address_state}
@@ -1363,6 +1529,7 @@ const EmployeesScreen = () => {
                   placeholder="Enter state"
                   style={styles.input}
                 />
+
                 <Text>District</Text>
                 <TextInput
                   value={selectedEmployee?.address_district}
@@ -1373,6 +1540,7 @@ const EmployeesScreen = () => {
                   placeholder="Enter district"
                   style={styles.input}
                 />
+
                 <Text>Post Office</Text>
                 <TextInput
                   value={selectedEmployee?.address_po}
@@ -1383,6 +1551,7 @@ const EmployeesScreen = () => {
                   placeholder="Enter post office"
                   style={styles.input}
                 />
+
                 <Text>Street</Text>
                 <TextInput
                   value={selectedEmployee?.address_street}
@@ -1393,6 +1562,7 @@ const EmployeesScreen = () => {
                   placeholder="Enter street"
                   style={styles.input}
                 />
+
                 <Text>House Number</Text>
                 <TextInput
                   value={selectedEmployee?.address_house}
@@ -1403,6 +1573,7 @@ const EmployeesScreen = () => {
                   placeholder="Enter house number"
                   style={styles.input}
                 />
+
                 <Text>Landmark</Text>
                 <TextInput
                   value={selectedEmployee?.address_landmark}
@@ -1413,6 +1584,7 @@ const EmployeesScreen = () => {
                   placeholder="Enter landmark"
                   style={styles.input}
                 />
+
                 <Text>ZIP Code</Text>
                 <TextInput
                   value={selectedEmployee?.address_zip}
@@ -1424,18 +1596,44 @@ const EmployeesScreen = () => {
                   keyboardType="numeric"
                   style={styles.input}
                 />
+
+                {/* Communication Address */}
+                <Text>Communication Address</Text>
+                <TextInput
+                  value={selectedEmployee?.communication_address}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, communication_address: text })
+                  }
+                  placeholder="Enter communication address"
+                  style={styles.input}
+                />
+
                 {/* Employment Information */}
                 <Text style={styles.sectionTitle}>Employment Information</Text>
-                <Text>Role</Text>
+                <Text>Date of Joining</Text>
+                <TextInput
+                  value={selectedEmployee?.date_of_joining}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, date_of_joining: text })
+                  }
+                  placeholder="YYYY-MM-DD"
+                  style={styles.input}
+                />
+
+                <Text>Role *</Text>
                 <TextInput
                   value={selectedEmployee?.role}
                   onChangeText={(text) =>
                     selectedEmployee && setSelectedEmployee({ ...selectedEmployee, role: text })
                   }
                   placeholder="Enter role"
-                  style={styles.input}
+                  style={[styles.input, errors.role && styles.inputError]}
                 />
-                <Text>Department</Text>
+                {errors.role && <Text style={styles.errorText}>{errors.role}</Text>}
+
+                <Text>Department *</Text>
                 <TextInput
                   value={selectedEmployee?.department}
                   onChangeText={(text) =>
@@ -1443,9 +1641,11 @@ const EmployeesScreen = () => {
                     setSelectedEmployee({ ...selectedEmployee, department: text })
                   }
                   placeholder="Enter department"
-                  style={styles.input}
+                  style={[styles.input, errors.department && styles.inputError]}
                 />
-                <Text>Designation</Text>
+                {errors.department && <Text style={styles.errorText}>{errors.department}</Text>}
+
+                <Text>Designation *</Text>
                 <TextInput
                   value={selectedEmployee?.designation}
                   onChangeText={(text) =>
@@ -1453,18 +1653,22 @@ const EmployeesScreen = () => {
                     setSelectedEmployee({ ...selectedEmployee, designation: text })
                   }
                   placeholder="Enter designation"
-                  style={styles.input}
+                  style={[styles.input, errors.designation && styles.inputError]}
                 />
-                <Text>Branch</Text>
+                {errors.designation && <Text style={styles.errorText}>{errors.designation}</Text>}
+
+                <Text>Branch *</Text>
                 <TextInput
                   value={selectedEmployee?.branch}
                   onChangeText={(text) =>
                     selectedEmployee && setSelectedEmployee({ ...selectedEmployee, branch: text })
                   }
                   placeholder="Enter branch"
-                  style={styles.input}
+                  style={[styles.input, errors.branch && styles.inputError]}
                 />
-                <Text>Reporting Manager</Text>
+                {errors.branch && <Text style={styles.errorText}>{errors.branch}</Text>}
+
+                <Text>Reporting Manager *</Text>
                 <TextInput
                   value={selectedEmployee?.reporting}
                   onChangeText={(text) =>
@@ -1472,23 +1676,206 @@ const EmployeesScreen = () => {
                     setSelectedEmployee({ ...selectedEmployee, reporting: text })
                   }
                   placeholder="Enter reporting manager"
+                  style={[styles.input, errors.reporting && styles.inputError]}
+                />
+                {errors.reporting && <Text style={styles.errorText}>{errors.reporting}</Text>}
+
+                <Text>Reference ID</Text>
+                <TextInput
+                  value={selectedEmployee?.reference_id}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, reference_id: text })
+                  }
+                  placeholder="Enter reference ID"
                   style={styles.input}
                 />
-                <View style={styles.buttonContainer} className="items-center self-center">
+
+                {/* Bank Information */}
+                <Text style={styles.sectionTitle}>Bank Information</Text>
+                <Text>Account Number</Text>
+                <TextInput
+                  value={selectedEmployee?.account_number}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, account_number: text })
+                  }
+                  placeholder="Enter account number"
+                  keyboardType="numeric"
+                  style={styles.input}
+                />
+
+                <Text>IFSC Code</Text>
+                <TextInput
+                  value={selectedEmployee?.ifsc}
+                  onChangeText={(text) =>
+                    selectedEmployee && setSelectedEmployee({ ...selectedEmployee, ifsc: text })
+                  }
+                  placeholder="Enter IFSC code"
+                  style={styles.input}
+                />
+
+                <Text>Bank Name</Text>
+                <TextInput
+                  value={selectedEmployee?.bank_name}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, bank_name: text })
+                  }
+                  placeholder="Enter bank name"
+                  style={styles.input}
+                />
+
+                <Text>Name at Bank</Text>
+                <TextInput
+                  value={selectedEmployee?.name_at_bank}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, name_at_bank: text })
+                  }
+                  placeholder="Enter name at bank"
+                  style={styles.input}
+                />
+
+                <Text>Bank Branch</Text>
+                <TextInput
+                  value={selectedEmployee?.bank_branch}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, bank_branch: text })
+                  }
+                  placeholder="Enter bank branch"
+                  style={styles.input}
+                />
+
+                {/* is_bank_verified (Switch) */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                  <Text style={{ marginRight: 8 }}>Bank Verified</Text>
+                  <Pressable
+                    onPress={() =>
+                      selectedEmployee &&
+                      setSelectedEmployee({
+                        ...selectedEmployee,
+                        is_bank_verified: !selectedEmployee.is_bank_verified,
+                      })
+                    }
+                    style={{
+                      width: 40,
+                      height: 24,
+                      borderRadius: 12,
+                      backgroundColor: selectedEmployee?.is_bank_verified ? '#4A90E2' : '#ccc',
+                      justifyContent: 'center',
+                      alignItems: selectedEmployee?.is_bank_verified ? 'flex-end' : 'flex-start',
+                      padding: 2,
+                    }}>
+                    <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }} />
+                  </Pressable>
+                </View>
+
+                {/* Document Information */}
+                <Text style={styles.sectionTitle}>Document Information</Text>
+                <Text>UAN Number</Text>
+                <TextInput
+                  value={selectedEmployee?.uan_number}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, uan_number: text })
+                  }
+                  placeholder="Enter UAN number"
+                  style={styles.input}
+                />
+
+                <Text>ESI Number</Text>
+                <TextInput
+                  value={selectedEmployee?.esi_number}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, esi_number: text })
+                  }
+                  placeholder="Enter ESI number"
+                  style={styles.input}
+                />
+
+                <Text>ESI Card</Text>
+                <TextInput
+                  value={selectedEmployee?.esi_card}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, esi_card: text })
+                  }
+                  placeholder="Enter ESI card URL"
+                  style={styles.input}
+                />
+
+                <Text>PAN Number</Text>
+                <TextInput
+                  value={selectedEmployee?.pan_number}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, pan_number: text })
+                  }
+                  placeholder="Enter PAN number"
+                  style={styles.input}
+                />
+
+                <Text>PAN Card</Text>
+                <TextInput
+                  value={selectedEmployee?.pan_card}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, pan_card: text })
+                  }
+                  placeholder="Enter PAN card URL"
+                  style={styles.input}
+                />
+
+                <Text>Driving License</Text>
+                <TextInput
+                  value={selectedEmployee?.driving_license}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, driving_license: text })
+                  }
+                  placeholder="Enter driving license"
+                  style={styles.input}
+                />
+
+                <Text>Driving License Card</Text>
+                <TextInput
+                  value={selectedEmployee?.driving_license_card}
+                  onChangeText={(text) =>
+                    selectedEmployee &&
+                    setSelectedEmployee({ ...selectedEmployee, driving_license_card: text })
+                  }
+                  placeholder="Enter driving license card URL"
+                  style={styles.input}
+                />
+
+                <Text>Status</Text>
+                <TextInput
+                  value={selectedEmployee?.status}
+                  onChangeText={(text) =>
+                    selectedEmployee && setSelectedEmployee({ ...selectedEmployee, status: text })
+                  }
+                  placeholder="Enter status (Active/Inactive)"
+                  style={styles.input}
+                />
+
+                {/* Buttons */}
+                <View style={styles.buttonContainer}>
                   <Pressable
                     onPress={() => setShowEditModal(false)}
-                    style={styles.cancelButton}
-                    className="bg-red-600">
-                    <Text style={styles.cancelButtonText}>Close</Text>
+                    style={styles.cancelButton}>
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
                   </Pressable>
                   <Pressable
-                    onPress={handleUpdateEmployee}
+                    onPress={() => handleUpdateEmployee(selectedEmployee)}
                     style={styles.addButton}
                     disabled={loading}>
                     {loading ? (
                       <ActivityIndicator color="white" />
                     ) : (
-                      <Text style={styles.addButtonText}>Save</Text>
+                      <Text style={styles.addButtonText}>Update Employee</Text>
                     )}
                   </Pressable>
                 </View>
@@ -1550,7 +1937,7 @@ const EmployeesScreen = () => {
       {/* ID Card Modal */}
       {selectedEmployee && (
         <Modal
-          visible={!!selectedEmployee}
+          visible={!!selectedEmployee && !showEditModal}
           transparent
           animationType="slide"
           onRequestClose={() => setSelectedEmployee(null)}>
