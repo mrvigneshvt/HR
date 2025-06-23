@@ -35,7 +35,7 @@ export const clientService = {
   // Add new client
   addClient: async (clientData: Omit<Client, 'id'>) => {
     try {
-      const response = await axios.post(`${BASE_URL}/clients`, clientData);
+      const response = await axios.post(`https://sdceweb.lyzooapp.co.in:31313/api/clients`, clientData);
       return response.data;
     } catch (error) {
       throw error;
