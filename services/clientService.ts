@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
+const BASE_URL = 'https://sdceweb.lyzooapp.co.in:31313/api';
 
 export interface Client {
   id?: number;
@@ -34,8 +34,25 @@ export const clientService = {
 
   // Add new client
   addClient: async (clientData: Omit<Client, 'id'>) => {
+    // Map payload to new API keys
+    const payload = {
+      clientName: clientData.clientName,
+      companyName: clientData.companyName,
+      phoneNumber: clientData.phoneNumber,
+      gstNumber: clientData.gstNumber,
+      site: clientData.site,
+      branch: clientData.branch,
+      address: clientData.address,
+      latitude: clientData.latitude,
+      longitude: clientData.longitude,
+      status: clientData.status,
+      checkIn: clientData.checkIn,
+      lunchTime: clientData.lunch_time, // map from lunch_time
+      checkOut: clientData.check_out,   // map from check_out
+      clientNo: clientData.companyNumber, // map from companyNumber
+    };
     try {
-      const response = await axios.post(`${BASE_URL}/clients`, clientData);
+      const response = await axios.post(`${BASE_URL}/clients`, payload);
       return response.data;
     } catch (error) {
       throw error;
@@ -44,8 +61,25 @@ export const clientService = {
 
   // Update client
   updateClient: async (id: number, clientData: Omit<Client, 'id'>) => {
+    // Map payload to new API keys
+    const payload = {
+      clientName: clientData.clientName,
+      companyName: clientData.companyName,
+      phoneNumber: clientData.phoneNumber,
+      gstNumber: clientData.gstNumber,
+      site: clientData.site,
+      branch: clientData.branch,
+      address: clientData.address,
+      latitude: clientData.latitude,
+      longitude: clientData.longitude,
+      status: clientData.status,
+      checkIn: clientData.checkIn,
+      lunchTime: clientData.lunch_time, // map from lunch_time
+      checkOut: clientData.check_out,   // map from check_out
+      clientNo: clientData.companyNumber, // map from companyNumber
+    };
     try {
-      const response = await axios.put(`${BASE_URL}/clients/${id}`, clientData);
+      const response = await axios.put(`${BASE_URL}/clients/${id}`, payload);
       return response.data;
     } catch (error) {
       throw error;
