@@ -18,10 +18,8 @@ const EmployeeIdCard = ({ employee }: { employee: any }) => {
         <View style={styles.card}>
             {/* Header */}
             <View style={styles.header}>
-                <Image source={require('../assets/SDLOGO.png')} style={styles.logo} />
-                <Text style={styles.companyText}>
-                    SDCE Facilities{"\n"}Management Pvt.Ltd
-                </Text>
+                <Image source={require('../assets/sdceLogo.png')} style={styles.logo} />
+              
             </View>
 
             {/* Profile Section */}
