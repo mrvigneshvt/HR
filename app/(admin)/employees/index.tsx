@@ -47,6 +47,7 @@ interface Employee {
   contact_email: string;
   contact_mobile_no: string;
   emergency_contact_name: string;
+  emergencyContact: string;
   emergency_contact_phone: string;
   address_country: string;
   address_state: string;
@@ -113,6 +114,7 @@ interface FormErrors {
   branch?: string;
   reporting?: string;
   reference_id?: string;
+  account_number?: string;
   ifsc?: string;
   bank_name?: string;
   name_at_bank?: string;
@@ -126,11 +128,6 @@ interface FormErrors {
   driving_license?: string;
   driving_license_card?: string;
   status?: string;
-  voter_id?: string;
-  bank_account_number?: string;
-  bank_ifsc_code?: string;
-  bank_account_holder_name?: string;
-  account_number?: string;
 }
 
 const initialEmployeeState: Employee = {
@@ -150,6 +147,7 @@ const initialEmployeeState: Employee = {
   contact_mobile_no: '',
   emergency_contact_name: '',
   emergency_contact_phone: '',
+  emergencyContact: '',
   address_country: '',
   address_state: '',
   address_district: '',
@@ -166,6 +164,7 @@ const initialEmployeeState: Employee = {
   branch: '',
   reporting: '',
   reference_id: '',
+  account_number: '',
   ifsc: '',
   bank_name: '',
   name_at_bank: '',
@@ -179,11 +178,6 @@ const initialEmployeeState: Employee = {
   driving_license: '',
   driving_license_card: '',
   status: 'Active',
-  voter_id: '',
-  bank_account_number: '',
-  bank_ifsc_code: '',
-  bank_account_holder_name: '',
-  emergency_contact: '',
 };
 
 const EmployeesScreen = () => {
@@ -930,14 +924,6 @@ const EmployeesScreen = () => {
               style={styles.input}
             />
 
-            <Text>Voter ID</Text>
-            <TextInput
-              value={newEmployee.voter_id}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, voter_id: text })}
-              placeholder="Enter voter ID"
-              style={styles.input}
-            />
-
             <Text>Driving License</Text>
             <TextInput
               value={newEmployee.driving_license}
@@ -958,8 +944,8 @@ const EmployeesScreen = () => {
 
             <Text>Account Number</Text>
             <TextInput
-              value={newEmployee.bank_account_number}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, bank_account_number: text })}
+              value={newEmployee.account_number}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, account_number: text })}
               placeholder="Enter account number"
               keyboardType="numeric"
               style={styles.input}
@@ -967,21 +953,36 @@ const EmployeesScreen = () => {
 
             <Text>IFSC Code</Text>
             <TextInput
-              value={newEmployee.bank_ifsc_code}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, bank_ifsc_code: text })}
+              value={newEmployee.ifsc}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, ifsc: text })}
               placeholder="Enter IFSC code"
               style={styles.input}
             />
 
             <Text>Account Holder Name</Text>
             <TextInput
-              value={newEmployee.bank_account_holder_name}
-              onChangeText={(text) =>
-                setNewEmployee({ ...newEmployee, bank_account_holder_name: text })
-              }
+              value={newEmployee.name_at_bank}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, name_at_bank: text })}
               placeholder="Enter account holder name"
               style={styles.input}
             />
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={{ marginRight: 8 }}>Aadhaar Verified</Text>
+              <Pressable
+                onPress={() => setNewEmployee({ ...newEmployee, is_aadhaar_verified: !newEmployee.is_aadhaar_verified })}
+                style={{
+                  width: 40,
+                  height: 24,
+                  borderRadius: 12,
+                  backgroundColor: newEmployee.is_aadhaar_verified ? '#4A90E2' : '#ccc',
+                  justifyContent: 'center',
+                  alignItems: newEmployee.is_aadhaar_verified ? 'flex-end' : 'flex-start',
+                  padding: 2,
+                }}>
+                <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }} />
+              </Pressable>
+            </View>
 
             {/* Add Button */}
             <TouchableOpacity

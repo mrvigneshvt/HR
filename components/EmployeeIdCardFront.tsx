@@ -79,8 +79,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     logo: {
-        width: 60,
-        height: 60,
+        width: 200,
+        height: 80,
         resizeMode: 'contain',
     },
     companyText: {
