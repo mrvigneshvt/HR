@@ -576,18 +576,14 @@ const EmployeesScreen = () => {
         <Text style={{ color: 'gray' }}>Department: {item.department}</Text>
       </View>
       {!readOnly && (
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <Pressable onPress={() => handleEditEmployee(item)}>
-            <FontAwesome6 name="street-view" size={20} color="#38a7c9" />
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              setSelectedEmployee(item);
-              setShowDeleteModal(true);
-            }}>
-            <MaterialIcons name="delete" size={20} color="#FF6B6B" />
-          </Pressable>
-        </View>
+         <View style={{ flexDirection: 'row', gap: 10 }}>
+         <Pressable onPress={() => handleEditEmployee(item)}>
+           <MaterialIcons name="edit" size={20} color="#4A90E2" />
+         </Pressable>
+         <Pressable onPress={() => { setSelectedEmployee(item); setShowDeleteModal(true); }}>
+           <MaterialIcons name="delete" size={20} color="#FF6B6B" />
+         </Pressable>
+       </View>
       )}
       <TouchableOpacity onPress={() => setSelectedEmployee(item)}>
         <MaterialIcons name="badge" size={24} color="#4A90E2" />
