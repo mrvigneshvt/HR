@@ -91,6 +91,7 @@ interface Employee {
   pan_number: string;
   voter_id: string;
   driving_license: string;
+  name_at_bank: string;
   pan_card: string | null;
   voter_id_card: string | null;
   driving_license_card: string | null;
@@ -119,6 +120,7 @@ interface FormErrors {
   address_state?: string;
   address_district?: string;
   address_po?: string;
+  name_at_bank?: string;
   address_street?: string;
   address_house?: string;
   address_landmark?: string;
@@ -160,6 +162,7 @@ const initialEmployeeState: Employee = {
   address_zip: '',
   contact_email: '',
   contact_mobile_no: '',
+  name_at_bank: '',
   emergency_contact_name: '',
   emergency_contact_phone: '',
   emergencyContact: '',
@@ -443,26 +446,52 @@ const EmployeesScreen = () => {
 
       // Prepare the employee data with default values
       const employeeData = {
-        ...newEmployee,
-        joining_date: new Date().toISOString().split('T')[0],
-        status: 'Active',
-        mobile_verified: false,
-        is_aadhaar_verified: false,
-        is_bank_verified: false,
-        upi_enabled: false,
-        rtgs_enabled: false,
-        neft_enabled: false,
-        imps_enabled: false,
-        father_spouse_name: newEmployee.father_spouse_name || 'Not Provided',
-        guardian_name: newEmployee.guardian_name || 'Not Provided',
-        reference_id: newEmployee.reference_id || 'Not Provided',
-        communication_address: newEmployee.communication_address || 'Not Provided',
-        marital_status: newEmployee.marital_status || 'Not Provided',
-        uan_number: newEmployee.uan_number || 'Not Provided',
-        esi_number: newEmployee.esi_number || 'Not Provided',
-        bank_account_type: newEmployee.bank_account_type || 'Savings',
-        bank_account_status: newEmployee.bank_account_status || 'Active',
-        bank_account_currency: newEmployee.bank_account_currency || 'INR',
+        employee_id: newEmployee.employee_id,
+        name: newEmployee.name,
+        father_spouse_name: newEmployee.father_spouse_name,
+        guardian_name: newEmployee.guardian_name,
+        dob: newEmployee.dob,
+        gender: newEmployee.gender,
+        age: newEmployee.age,
+        marital_status: newEmployee.marital_status,
+        aadhaar_number: newEmployee.aadhaar_number,
+        is_aadhaar_verified: newEmployee.is_aadhaar_verified,
+        mobile_verified: newEmployee.mobile_verified,
+        profile_image: newEmployee.profile_image,
+        contact_email: newEmployee.contact_email,
+        contact_mobile_no: newEmployee.contact_mobile_no,
+        emergency_contact_name: newEmployee.emergency_contact_name,
+        emergency_contact_phone: newEmployee.emergency_contact_phone,
+        address_country: newEmployee.address_country,
+        address_state: newEmployee.address_state,
+        address_district: newEmployee.address_district,
+        address_po: newEmployee.address_po,
+        address_street: newEmployee.address_street,
+        address_house: newEmployee.address_house,
+        address_landmark: newEmployee.address_landmark,
+        address_zip: newEmployee.address_zip,
+        communication_address: newEmployee.communication_address,
+        date_of_joining: newEmployee.date_of_joining || new Date().toISOString().split('T')[0],
+        role: newEmployee.role,
+        department: newEmployee.department,
+        designation: newEmployee.designation,
+        branch: newEmployee.branch,
+        reporting: newEmployee.reporting,
+        reference_id: newEmployee.reference_id,
+        account_number: newEmployee.account_number,
+        ifsc: newEmployee.ifsc,
+        bank_name: newEmployee.bank_name,
+        name_at_bank: newEmployee.name_at_bank,
+        bank_branch: newEmployee.bank_branch,
+        is_bank_verified: newEmployee.is_bank_verified,
+        uan_number: newEmployee.uan_number,
+        esi_number: newEmployee.esi_number,
+        esi_card: newEmployee.esi_card,
+        pan_number: newEmployee.pan_number,
+        pan_card: newEmployee.pan_card,
+        driving_license: newEmployee.driving_license,
+        driving_license_card: newEmployee.driving_license_card,
+        status: newEmployee.status,
       };
 
       console.log(employeeData, 'employeeData');
@@ -546,18 +575,13 @@ const EmployeesScreen = () => {
     setShowEditModal(true);
   }; //editEMP
 
-  const handleUpdateEmployee = async () => {
+  const handleUpdateEmployee = async (updateFields: any) => {
     if (!selectedEmployee) return;
-
     try {
       setLoading(true);
-
-      console.log('Sending request to:', `${BASE_URL}/employees/${selectedEmployee.employee_id}`);
-      console.log('Request data:', selectedEmployee);
-
       const response = await axios.put(
         `${BASE_URL}/employees/${selectedEmployee.employee_id}`,
-        selectedEmployee,
+        updateFields,
         {
           headers: {
             'Content-Type': 'application/json',
@@ -565,7 +589,6 @@ const EmployeesScreen = () => {
           },
         }
       );
-
       console.log('Response:', response.data);
 
       if (response.data) {
@@ -645,9 +668,9 @@ const EmployeesScreen = () => {
           </Pressable>
         </View>
       )}
-      {/* <TouchableOpacity onPress={() => setSelectedEmployee(item)}>
+      <TouchableOpacity onPress={() => setSelectedEmployee(item)}>
         <MaterialIcons name="badge" size={24} color="#4A90E2" />
-      </TouchableOpacity> */}
+      </TouchableOpacity>
     </View>
   );
 
@@ -1073,12 +1096,12 @@ const EmployeesScreen = () => {
             backgroundColor: configFile.colorGreen,
           },
           headerTintColor: 'white',
-          // headerRight: () =>
-          //   !readOnly && (
-          //     <Pressable onPress={() => setShowAddModal(true)} style={{ marginRight: 16 }}>
-          //       <MaterialIcons name="add" size={24} color="white" />
-          //     </Pressable>
-          //   ),
+          headerRight: () =>
+            !readOnly && (
+              <Pressable onPress={() => setShowAddModal(true)} style={{ marginRight: 16 }}>
+                <MaterialIcons name="add" size={24} color="white" />
+              </Pressable>
+            ),
         }}
       />
 
@@ -1355,7 +1378,7 @@ const EmployeesScreen = () => {
                     className="bg-red-600">
                     <Text style={styles.cancelButtonText}>Close</Text>
                   </Pressable>
-                  {/* <Pressable
+                  <Pressable
                     onPress={handleUpdateEmployee}
                     style={styles.addButton}
                     disabled={loading}>
@@ -1364,7 +1387,7 @@ const EmployeesScreen = () => {
                     ) : (
                       <Text style={styles.addButtonText}>Save</Text>
                     )}
-                  </Pressable> */}
+                  </Pressable>
                 </View>
               </ScrollView>
             </TouchableOpacity>
@@ -1422,7 +1445,7 @@ const EmployeesScreen = () => {
       )}
 
       {/* ID Card Modal */}
-      {/* {selectedEmployee && (
+      {selectedEmployee && (
         <Modal
           visible={!!selectedEmployee}
           transparent
@@ -1444,7 +1467,7 @@ const EmployeesScreen = () => {
             </View>
           </View>
         </Modal>
-      )} */}
+      )}
     </View>
   );
 };
