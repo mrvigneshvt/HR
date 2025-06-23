@@ -76,7 +76,7 @@ export const clientService = {
       latitude: clientData.latitude,
       longitude: clientData.longitude,
       status: clientData.status,
-      checkIn: clientData.checkIn,
+      checkIn: clientData.check_in,
       lunchTime: clientData.lunch_time, // map from lunch_time
       checkOut: clientData.check_out,   // map from check_out
       clientNo: clientData.companyNumber, // map from companyNumber
