@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
+const BASE_URLAdd = 'https://sdceweb.lyzooapp.co.in:31313/api';
 
 export interface Client {
   id?: number;
@@ -51,11 +52,27 @@ export const clientService = {
       checkOut: clientData.check_out,   // map from check_out
       clientNo: clientData.companyNumber, // map from companyNumber
     };
-    console.log(payload,"payload")
+    console.log(clientData,"clthiolak")
     
 
     try {
-      const response = await axios.post(`https://sdceweb.lyzooapp.co.in:31313/api/clients`, payload);
+      const response = await axios.post(`${BASE_URLAdd}/clients`, {
+        clientName: clientData.clientName,
+        companyName: clientData.companyName,
+        phoneNumber: clientData.phoneNumber,
+        gstNumber: clientData.gstNumber,
+        site: clientData.site,
+        branch: clientData.branch,
+        address: clientData.address,
+        latitude: clientData.latitude,
+        longitude: clientData.longitude,
+        status: clientData.status,
+        checkIn: clientData.check_in,
+        lunchTime: clientData.lunch_time, // map from lunch_time
+        checkOut: clientData.check_out,   // map from check_out
+        clientNo: clientData.companyNumber, // map from companyNumber
+      });
+      console.log(response,"sdsd")
       return response.data;
     } catch (error) {
       throw error;
@@ -76,7 +93,7 @@ export const clientService = {
       latitude: clientData.latitude,
       longitude: clientData.longitude,
       status: clientData.status,
-      checkIn: clientData.checkIn,
+      checkIn: clientData.check_in,
       lunchTime: clientData.lunch_time, // map from lunch_time
       checkOut: clientData.check_out,   // map from check_out
       clientNo: clientData.companyNumber, // map from companyNumber

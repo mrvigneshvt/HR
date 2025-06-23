@@ -237,7 +237,6 @@ const ClientsScreen = () => {
         await clientService.updateClient(selectedClient.id, formData as Omit<Client, 'id'>);
         Alert.alert('Success', 'Client updated successfully!');
       } else {
-
         const data = await clientService.addClient(formData as Omit<Client, 'id'>);
         console.log(data, 'dataONAdd');
         Alert.alert('Success', 'Client added successfully!');
@@ -245,26 +244,26 @@ const ClientsScreen = () => {
       await fetchClients();
       setShowAddModal(false);
       setShowEditModal(false);
-      setFormData({
-        clientName: '',
-        companyName: '',
-        companyNumber: '',
-        phoneNumber: '',
-        gstNumber: '',
-        site: '',
-        branch: '',
-        address: '',
-        location: '',
-        latitude: '',
-        longitude: '',
-        status: 'Active',
-        check_in: '',
-        lunch_time: '',
-        check_out: '',
-      });
+      // setFormData({
+      //   clientName: '',
+      //   companyName: '',
+      //   companyNumber: '',
+      //   phoneNumber: '',
+      //   gstNumber: '',
+      //   site: '',
+      //   branch: '',
+      //   address: '',
+      //   location: '',
+      //   latitude: '',
+      //   longitude: '',
+      //   status: 'Active',
+      //   check_in: '',
+      //   lunch_time: '',
+      //   check_out: '',
+      // });
     } catch (error) {
       console.error('Error saving client:', error);
-      Alert.alert('Error', 'Failed to save client. Please try again.');
+      // Alert.alert('Error', 'Failed to save client. Please try again.');
     } finally {
       setIsSubmitting(false);
       setLoading(false);
