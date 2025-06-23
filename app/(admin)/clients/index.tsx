@@ -235,10 +235,8 @@ const ClientsScreen = () => {
         await clientService.updateClient(selectedClient.id, formData as Omit<Client, 'id'>);
         Alert.alert('Success', 'Client updated successfully!');
       } else {
-        console.log(formData, 'formData');
         const data = await clientService.addClient(formData as Omit<Client, 'id'>);
-        console.log(data, 'dataONAdd');
-        Alert.alert('Success', 'Client added successfully!');
+        Alert.alert('Success', data.message || 'Client added successfully!');
       }
       await fetchClients();
       setShowAddModal(false);
@@ -260,9 +258,10 @@ const ClientsScreen = () => {
         lunch_time: '',
         check_out: '',
       });
-    } catch (error) {
-      console.error('Error saving client:', error);
-      Alert.alert('Error', 'Failed to save client. Please try again.');
+    } catch (error: any) {
+      let errorMessage = 'Failed to save client. Please try again.';
+      if (error?.message) errorMessage = error.message;
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsSubmitting(false);
       setLoading(false);
