@@ -43,7 +43,7 @@ export default function MonthYearPickerHeader({ onChange }: Props) {
         borderRadius: 8,
       }}>
       <Pressable onPress={handlePrev}>
-        <AntDesign name="leftcircleo" size={24} color="black" />
+        <AntDesign name="leftcircleo" size={24} color={configFile.colorGreen} />
       </Pressable>
 
       <Text

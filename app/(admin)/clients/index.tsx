@@ -17,7 +17,13 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import SearchBar from 'components/search';
 import { clientService, Client } from '../../../services/clientService';
-import { validateClientForm, ValidationErrors, validateAssignWorkForm, validateClientForAssignWork, AssignWorkFormData } from '../../../utils/validation';
+import {
+  validateClientForm,
+  ValidationErrors,
+  validateAssignWorkForm,
+  validateClientForAssignWork,
+  AssignWorkFormData,
+} from '../../../utils/validation';
 import { BackHandler } from 'react-native';
 import { router } from 'expo-router';
 import { assignWork } from '../../../services/api';
@@ -111,15 +117,15 @@ const ClientsScreen = () => {
         'Cannot Assign Work',
         `This client is missing required information:\n\n• ${errorMessages}\n\nPlease update the client information first.`,
         [
-          { 
-            text: 'Edit Client', 
+          {
+            text: 'Edit Client',
             onPress: () => {
               setSelectedClient(client);
               setFormData(client);
               setShowEditModal(true);
-            }
+            },
           },
-          { text: 'Cancel', style: 'cancel' }
+          { text: 'Cancel', style: 'cancel' },
         ]
       );
       return;
@@ -131,15 +137,15 @@ const ClientsScreen = () => {
         'Cannot Assign Work',
         'Only active clients can be assigned work. Please activate this client first.',
         [
-          { 
-            text: 'Edit Client', 
+          {
+            text: 'Edit Client',
             onPress: () => {
               setSelectedClient(client);
               setFormData(client);
               setShowEditModal(true);
-            }
+            },
           },
-          { text: 'Cancel', style: 'cancel' }
+          { text: 'Cancel', style: 'cancel' },
         ]
       );
       return;
@@ -169,41 +175,37 @@ const ClientsScreen = () => {
       `Are you sure you want to assign work to employee ${assignWorkFormData.employeeId} for ${selectedClient?.clientName} from ${assignWorkFormData.fromDate} to ${assignWorkFormData.toDate}?`,
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Assign Work', 
+        {
+          text: 'Assign Work',
           onPress: async () => {
             try {
               setIsAssigningWork(true);
               setAssignWorkErrors({}); // Clear any previous errors
-              
+
               const response = await assignWork(assignWorkFormData);
-              
-              Alert.alert(
-                'Success', 
-                'Work assigned successfully!',
-                [
-                  {
-                    text: 'OK',
-                    onPress: handleAssignWorkModalClose
-                  }
-                ]
-              );
+
+              Alert.alert('Success', 'Work assigned successfully!', [
+                {
+                  text: 'OK',
+                  onPress: handleAssignWorkModalClose,
+                },
+              ]);
             } catch (error: any) {
               console.error('Error assigning work:', error);
               let errorMessage = 'Failed to assign work. Please try again.';
-              
+
               if (error.response?.data?.message) {
                 errorMessage = error.response.data.message;
               } else if (error.message) {
                 errorMessage = error.message;
               }
-              
+
               Alert.alert('Error', errorMessage);
             } finally {
               setIsAssigningWork(false);
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -234,7 +236,8 @@ const ClientsScreen = () => {
         Alert.alert('Success', 'Client updated successfully!');
       } else {
         console.log(formData, 'formData');
-        await clientService.addClient(formData as Omit<Client, 'id'>);
+        const data = await clientService.addClient(formData as Omit<Client, 'id'>);
+        console.log(data, 'dataONAdd');
         Alert.alert('Success', 'Client added successfully!');
       }
       await fetchClients();
@@ -324,7 +327,9 @@ const ClientsScreen = () => {
         placeholder={placeholder}
         keyboardType={keyboardType}
       />
-      {assignWorkErrors[field] && <Text className="mt-1 text-sm text-red-500">{assignWorkErrors[field]}</Text>}
+      {assignWorkErrors[field] && (
+        <Text className="mt-1 text-sm text-red-500">{assignWorkErrors[field]}</Text>
+      )}
     </View>
   );
 
@@ -466,7 +471,7 @@ const ClientsScreen = () => {
 
             {renderAssignWorkFormField('Employee ID', 'employeeId', 'Enter employee ID')}
             {renderAssignWorkFormField('Company Number', 'companyNumber', 'Enter company number')}
-            
+
             {/* From Date */}
             <View className="mb-4">
               <Text className="mb-1 text-sm font-medium text-gray-700">From Date</Text>
@@ -477,7 +482,9 @@ const ClientsScreen = () => {
                   {assignWorkFormData.fromDate || 'Select from date'}
                 </Text>
               </Pressable>
-              {assignWorkErrors.fromDate && <Text className="mt-1 text-sm text-red-500">{assignWorkErrors.fromDate}</Text>}
+              {assignWorkErrors.fromDate && (
+                <Text className="mt-1 text-sm text-red-500">{assignWorkErrors.fromDate}</Text>
+              )}
             </View>
 
             {/* To Date */}
@@ -490,13 +497,17 @@ const ClientsScreen = () => {
                   {assignWorkFormData.toDate || 'Select to date'}
                 </Text>
               </Pressable>
-              {assignWorkErrors.toDate && <Text className="mt-1 text-sm text-red-500">{assignWorkErrors.toDate}</Text>}
+              {assignWorkErrors.toDate && (
+                <Text className="mt-1 text-sm text-red-500">{assignWorkErrors.toDate}</Text>
+              )}
             </View>
 
             {/* Date Pickers */}
             {showFromDatePicker && (
               <DateTimePicker
-                value={assignWorkFormData.fromDate ? new Date(assignWorkFormData.fromDate) : new Date()}
+                value={
+                  assignWorkFormData.fromDate ? new Date(assignWorkFormData.fromDate) : new Date()
+                }
                 mode="date"
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                 minimumDate={new Date()}
@@ -514,7 +525,9 @@ const ClientsScreen = () => {
                 value={assignWorkFormData.toDate ? new Date(assignWorkFormData.toDate) : new Date()}
                 mode="date"
                 display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                minimumDate={assignWorkFormData.fromDate ? new Date(assignWorkFormData.fromDate) : new Date()}
+                minimumDate={
+                  assignWorkFormData.fromDate ? new Date(assignWorkFormData.fromDate) : new Date()
+                }
                 onChange={(event, date) => {
                   setShowToDatePicker(false);
                   if (date) {

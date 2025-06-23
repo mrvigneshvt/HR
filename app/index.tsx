@@ -23,6 +23,7 @@ import LoadingScreen from 'components/LoadingScreen';
 import { Flow } from 'class/HandleRoleFlow';
 import { Api } from 'class/HandleApi';
 import * as SecureStore from 'expo-secure-store';
+import { NavRouter } from 'class/Router';
 // import * as SecureStore from 'expo-secure-store';
 const logo = require('../assets/logo.jpg');
 
@@ -135,18 +136,19 @@ export default function LoginPage() {
   // }, []);
   //////////////////////////////////////////////////////////
 
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     router.replace({
-  //       // pathname: '/(tabs)/dashboard',
-  //       pathname: '/(admin)/home',
-  //       params: {
-  //         role: 'HR',
-  //         empId: 'SFM396',
-  //       },
-  //     });
-  //   }, 50);
-  // }, []);
+  useEffect(() => {
+    setTimeout(() => {
+      NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM43899' });
+      //   router.replace({
+      //     // pathname: '/(tabs)/dashboard',
+      //     pathname: '/(admin)/home',
+      //     params: {
+      //       role: 'superadmin',
+      //       empId: 'SFM007',
+      //     },
+      //   });
+    }, 50);
+  }, []);
 
   ////////////////////////////////////////////////////////////
   return (

@@ -140,9 +140,9 @@ const Pay___Slip = ({ month, year, dataRes }: Props) => {
       <Text style={styles.header}>
         Pay Slip - {payslipData.month} {payslipData.year}
       </Text>
-      <Text style={styles.subHeader}>
+      {/* <Text style={styles.subHeader}>
         Date: {payslipData.date} | S.NO: {payslipData.sNo}
-      </Text>
+      </Text> */}
 
       {/* Attendance */}
       <View style={styles.card}>

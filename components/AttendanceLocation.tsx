@@ -11,6 +11,7 @@ import { router, useFocusEffect } from 'expo-router';
 import axios, { AxiosError } from 'axios';
 import { convertFormet, convertTo12HourFormat, getTodayDateString } from '../utils/validation';
 import { useEmployeeStore } from 'Memory/Employee';
+import { NavRouter } from 'class/Router';
 
 const manImage = require('../assets/man.webp');
 
@@ -24,6 +25,9 @@ type Props = {
   };
   Address?: string;
   cbLocation: ({ lat, lon }: { lat: number; lon: number }) => void;
+  empId: string;
+  role: string;
+  // showButton: boolean;
 };
 
 type Attendance = {
@@ -36,15 +40,18 @@ type Attendance = {
 const CLIENT_API_BASE = `https://sdce.lyzooapp.co.in:31313/api/clients/`;
 const API_BASE = 'https://sdce.lyzooapp.co.in:31313/api/attendance';
 
-const AttendanceLocation = ({ Region, Address, isNear, cbLocation }: Props) => {
+const AttendanceLocation = ({ Region, Address, isNear, cbLocation, empId, role }: Props) => {
   const [attendance, setAttendance] = useState<Attendance | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const employees = useEmployeeStore((state) => state.employee);
+  const [locState, setLocState] = useState<'past' | 'before'>();
+  const [issue, setIssue] = useState();
 
   // const dashboard = DashMemory((state) => state.dashboard?.user?.dailyAttendance);
 
   const getEmployeeId = async () => {
+    console.log(employees, '///');
     return employees?.employee_id;
   };
 
@@ -53,26 +60,30 @@ const AttendanceLocation = ({ Region, Address, isNear, cbLocation }: Props) => {
     const employeeId = await getEmployeeId();
     try {
       const today = convertFormet(new Date());
-      const res = await axios.get(`${API_BASE}/getAttendanceDetails`, {
-        params: { employeeId },
-      });
-      // console.log('////////////', res.data, 'resss');
-      console.log(today, 'todaydate');
-      const todayAttendance = res?.data?.data?.filter((i: any) => i?.attendance_date === today);
-      console.log(todayAttendance, 'prrrrrrrrrrrrrrr');
-      setAttendance(todayAttendance?.[0]);
-      console.log(attendance, 'todayyy');
+      console.log(today, '/todayDAte/', empId);
+      const res = await axios.get(
+        `${API_BASE}/getAttendanceDetails?employeeId=${empId.toUpperCase()}`
+      );
+      const data = res.data.data;
+      console.log(data, '/////?REsponse');
 
-      if (todayAttendance?.length === 0) {
+      if (data?.length === 0) {
         Alert.alert("You don't have an schedule today", 'please contact manager', [
           {
             text: 'OK',
             onPress: () => {
-              router.back();
+              NavRouter.backOrigin({ role, empId });
             },
           },
         ]);
       }
+
+      // console.log('////////////', res.data, 'resss');
+      // console.log(today, 'todaydate');
+      // const todayAttendance = res?.data?.data?.filter((i: any) => i?.attendance_date === today);
+      // console.log(todayAttendance, 'prrrrrrrrrrrrrrr');
+      setAttendance(data?.[0]);
+      console.log(attendance, 'todayyy');
     } catch (err) {
       setAttendance(null);
       console.log('error in fetchAttendance', error);
@@ -118,7 +129,7 @@ const AttendanceLocation = ({ Region, Address, isNear, cbLocation }: Props) => {
     const latitude = Region.latitude;
     const longitude = Region.longitude;
     let url = '';
-    let body: any = { employeeId, date, latitude, longitude };
+    let body: any = { employeeId: empId, date, latitude, longitude };
 
     const now = new Date();
     const timeString = now.toTimeString().slice(0, 8);
@@ -241,7 +252,9 @@ const AttendanceLocation = ({ Region, Address, isNear, cbLocation }: Props) => {
         </View>
         {nextAction ? (
           <TouchableOpacity
-            onPress={handleAction}
+            onPress={() => {
+              handleAction();
+            }}
             disabled={actionLoading}
             className="flex-row items-center justify-center gap-2 self-center rounded-3xl bg-gray-200 p-2">
             <Text className="text-lg font-bold " style={{ color: configFile.colorGreen }}>
@@ -255,7 +268,7 @@ const AttendanceLocation = ({ Region, Address, isNear, cbLocation }: Props) => {
           </TouchableOpacity>
         ) : (
           <View className="mt-2 flex-row justify-center">
-            <Text className="text-gray-400">All actions completed for today.</Text>
+            <Text className="text-gray-400">All actions completed for now.</Text>
           </View>
         )}
       </View>

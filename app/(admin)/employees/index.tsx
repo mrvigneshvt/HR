@@ -17,6 +17,8 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+
 import { configFile } from '../../../config';
 import SearchBar from '../../../components/search';
 import axios from 'axios';
@@ -518,7 +520,12 @@ const EmployeesScreen = () => {
 
     try {
       setLoading(true);
-      await axios.delete(`${BASE_URL}/employees/${selectedEmployee.employee_id}`);
+      console.log(
+        `${BASE_URL}/employees/${selectedEmployee.employee_id}`,
+        '////////////////////base'
+      );
+      const data = await axios.delete(`${BASE_URL}/employees/${selectedEmployee.employee_id}`);
+      console.log(data, 'deletrDartaaaaaaaaaaaaaa');
       setEmployeeList(
         employeeList.filter((emp) => emp.employee_id !== selectedEmployee.employee_id)
       );
@@ -527,6 +534,7 @@ const EmployeesScreen = () => {
       setSelectedEmployee(null);
       fetchEmployees();
     } catch (error) {
+      console.log('error in delete EMP::', error);
       Alert.alert('Error', 'Failed to delete employee');
     } finally {
       setLoading(false);
@@ -627,7 +635,7 @@ const EmployeesScreen = () => {
       {!readOnly && (
         <View style={{ flexDirection: 'row', gap: 10 }}>
           <Pressable onPress={() => handleEditEmployee(item)}>
-            <MaterialIcons name="edit" size={20} color="#4A90E2" />
+            <FontAwesome6 name="street-view" size={20} color="#38a7c9" />
           </Pressable>
           <Pressable
             onPress={() => {
@@ -638,9 +646,9 @@ const EmployeesScreen = () => {
           </Pressable>
         </View>
       )}
-      <TouchableOpacity onPress={() => setSelectedEmployee(item)}>
+      {/* <TouchableOpacity onPress={() => setSelectedEmployee(item)}>
         <MaterialIcons name="badge" size={24} color="#4A90E2" />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 
@@ -1066,12 +1074,12 @@ const EmployeesScreen = () => {
             backgroundColor: configFile.colorGreen,
           },
           headerTintColor: 'white',
-          headerRight: () =>
-            !readOnly && (
-              <Pressable onPress={() => setShowAddModal(true)} style={{ marginRight: 16 }}>
-                <MaterialIcons name="add" size={24} color="white" />
-              </Pressable>
-            ),
+          // headerRight: () =>
+          //   !readOnly && (
+          //     <Pressable onPress={() => setShowAddModal(true)} style={{ marginRight: 16 }}>
+          //       <MaterialIcons name="add" size={24} color="white" />
+          //     </Pressable>
+          //   ),
         }}
       />
 
@@ -1113,7 +1121,7 @@ const EmployeesScreen = () => {
                   maxHeight: '80%',
                 }}>
                 <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 16 }}>
-                  Edit Employee
+                  View Employee Details
                 </Text>
                 {/* Basic Information */}
                 <Text style={styles.sectionTitle}>Basic Information</Text>
@@ -1341,11 +1349,14 @@ const EmployeesScreen = () => {
                   placeholder="Enter reporting manager"
                   style={styles.input}
                 />
-                <View style={styles.buttonContainer}>
-                  <Pressable onPress={() => setShowEditModal(false)} style={styles.cancelButton}>
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </Pressable>
+                <View style={styles.buttonContainer} className="items-center self-center">
                   <Pressable
+                    onPress={() => setShowEditModal(false)}
+                    style={styles.cancelButton}
+                    className="bg-red-600">
+                    <Text style={styles.cancelButtonText}>Close</Text>
+                  </Pressable>
+                  {/* <Pressable
                     onPress={handleUpdateEmployee}
                     style={styles.addButton}
                     disabled={loading}>
@@ -1354,7 +1365,7 @@ const EmployeesScreen = () => {
                     ) : (
                       <Text style={styles.addButtonText}>Save</Text>
                     )}
-                  </Pressable>
+                  </Pressable> */}
                 </View>
               </ScrollView>
             </TouchableOpacity>
@@ -1412,7 +1423,7 @@ const EmployeesScreen = () => {
       )}
 
       {/* ID Card Modal */}
-      {selectedEmployee && (
+      {/* {selectedEmployee && (
         <Modal
           visible={!!selectedEmployee}
           transparent
@@ -1434,7 +1445,7 @@ const EmployeesScreen = () => {
             </View>
           </View>
         </Modal>
-      )}
+      )} */}
     </View>
   );
 };
@@ -1517,7 +1528,7 @@ const styles = StyleSheet.create({
     borderColor: '#4A90E2',
   },
   cancelButtonText: {
-    color: '#666',
+    color: 'white',
   },
   loadingContainer: {
     flex: 1,
