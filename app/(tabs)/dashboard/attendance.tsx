@@ -11,6 +11,7 @@ import { customPlugins } from 'plugins/plug';
 import { useLocalSearchParams } from 'expo-router';
 import { router } from 'expo-router';
 import { BackHandler } from 'react-native';
+import ProfileStack from 'Stacks/HeaderStack';
 
 const LocationWithDate = () => {
   const { role, empId } = useLocalSearchParams();
@@ -31,6 +32,7 @@ const LocationWithDate = () => {
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
   }, []);
 
+  // const [showButton, setShowButton] = useState(false);
   const [location, setLocation] = useState(null);
   const [address, setAddress] = useState('');
   const [region, setRegion] = useState({
@@ -100,6 +102,11 @@ const LocationWithDate = () => {
     setLocalCation(options);
   };
 
+  // useEffect(() => {
+  //   if (!region.latitude || region.longitude) return;
+  //   setShowButton(true);
+  // }, [region]);
+
   useEffect(() => {
     if (!lolcation.lat || !lolcation.lon) return;
 
@@ -113,6 +120,7 @@ const LocationWithDate = () => {
 
   return (
     <View style={{ flex: 1 }}>
+      <ProfileStack Attendance={true} />
       {/* MAP VIEW */}
       <View style={{ height: 300 }}>
         <MapView style={{ flex: 1 }} region={region}>
@@ -156,10 +164,13 @@ const LocationWithDate = () => {
         ) : (
           <ScrollView>
             <AttendanceLocation
+              empId={String(empId)}
+              role={String(role)}
               Region={region}
               Address={address}
               isNear={isNear}
               cbLocation={handleCbL}
+              // showButton={showButton}
             />
           </ScrollView>
         )}

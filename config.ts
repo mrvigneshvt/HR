@@ -36,6 +36,10 @@ export const configFile = {
       postUniformReq() {
         return `${backendBaseUrl}api/Uniforms`;
       },
+
+      getPaySlip(empId: string, month: string) {
+        return `${backendBaseUrl}api/payroll/employees/${empId}?month=${month}`; //2025-06
+      },
     },
   },
 };

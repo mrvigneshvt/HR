@@ -86,6 +86,19 @@ const HomeScreen = () => {
       },
     });
   };
+
+  const handlePress = (data: 'payslip') => {
+    switch (data) {
+      case 'payslip':
+        router.push({
+          pathname: '/emp-plugins/pay_slip',
+          params: {
+            role,
+            empId,
+          },
+        });
+    }
+  };
   const [menuCards] = useState<Record<string, any>[]>([
     {
       title: 'Employees',
@@ -139,6 +152,15 @@ const HomeScreen = () => {
       color: '#FF6B6B',
       description: 'View employee attendance details',
       onPress: handleAttendancePress,
+      role,
+    },
+    {
+      title: 'Pay Slip',
+      icon: 'calendar',
+      route: '/emp-plugins/pay_slip',
+      color: '#FF6B6B',
+      description: 'View employee attendance details',
+      onPress: () => handlePress('payslip'),
       role,
     },
   ]);

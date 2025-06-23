@@ -8,6 +8,7 @@ import {
   Platform,
   StyleSheet,
   Keyboard,
+  BackHandler,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
@@ -22,6 +23,7 @@ import LoadingScreen from 'components/LoadingScreen';
 import { Flow } from 'class/HandleRoleFlow';
 import { Api } from 'class/HandleApi';
 import * as SecureStore from 'expo-secure-store';
+import { NavRouter } from 'class/Router';
 // import * as SecureStore from 'expo-secure-store';
 const logo = require('../assets/logo.jpg');
 
@@ -34,6 +36,15 @@ export type PopUpTypes =
 
 export default function LoginPage() {
   // const setDashboard = DashMemory((state) => state.setDashboard);
+  const onBackPress = () => {
+    router.replace({ pathname: '/login' });
+    return true;
+  };
+
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, []);
 
   const router = useRouter();
   const [empId, setEmpId] = useState('');
@@ -127,14 +138,15 @@ export default function LoginPage() {
 
   useEffect(() => {
     setTimeout(() => {
-      router.replace({
-        // pathname: '/(tabs)/dashboard',
-        pathname: '/(admin)/home',
-        params: {
-          role: 'superadmin',
-          empId: 'SFM43899',
-        },
-      });
+      NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM43899' });
+      //   router.replace({
+      //     // pathname: '/(tabs)/dashboard',
+      //     pathname: '/(admin)/home',
+      //     params: {
+      //       role: 'superadmin',
+      //       empId: 'SFM007',
+      //     },
+      //   });
     }, 50);
   }, []);
 

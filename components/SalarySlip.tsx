@@ -1,11 +1,7 @@
-import { configFile } from '../config';
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { configFile } from '../config';
 
-type Props = {
-  month: number;
-  year: number;
-};
 const months = [
   'January',
   'February',
@@ -21,84 +17,132 @@ const months = [
   'December',
 ];
 
-const Pay___Slip = ({ month, year }: Props) => {
-  const [dataAvailable, setDataAvailable] = useState<boolean>(true);
-  console.log(month);
-  const [payslipData, setPaySlipData] = useState({
-    month: months[month],
-    year,
-    uanNo: '102137922560',
-    esiNo: '5136763762',
-    sNo: 1,
-    date: `07.${month}.${year}`,
+type Props = {
+  month: number;
+  year: number;
+  dataRes: Record<string, any>;
+};
 
-    attendance: {
-      totalWorkingDays: 26,
-      presentDays: 8,
-      lossOfPay: 16,
-      weekOff: 4,
-      nationalFestival: 0,
-      otHrs: 0,
-    },
-
-    salary: {
-      fixed: {
-        basic: 5880,
-        da: 1402,
-        hra: 1260,
-        spl: 750,
-        leaveWages: 791,
-        bonus: 607,
-        otWages: 0,
-      },
-      earned: {
-        basic: 2262,
-        da: 539,
-        hra: 485,
-        spl: 288,
-        leaveWages: 304,
-        bonus: 233,
-        otWages: 0,
-      },
-      totalGross: {
-        fixed: 10690,
-        earned: 4111,
-      },
-    },
-
-    deductions: {
-      epf: 336,
-      esic: 27,
-      lwf: 0,
-      total: 363,
-    },
-
-    netSalary: 3748,
-  });
+const Pay___Slip = ({ month, year, dataRes }: Props) => {
+  const [payslipData, setPaySlipData] = useState(null);
 
   useEffect(() => {
-    setPaySlipData((prev) => ({
-      ...payslipData,
-      month: months[month - 1],
-      year,
-      date: `07.${month}.${year}`,
-    }));
+    // Simulate API call here - replace with actual API fetch
+    const fetchData = async () => {
+      const responseData = dataRes;
+      console.log(responseData, 'resssssssssssssDa');
+      // {
+      //   employee_id: 'SFM396',
+      //   month: '2025-06',
+      //   basic_salary: '2450.00',
+      //   da: '600.00',
+      //   hra: '520.00',
+      //   pf_deduction: '360.00',
+      //   esi_deduction: '34.00',
+      //   total: '394.00',
+      //   gross_salary: '9876.00',
+      //   net_salary: '4066.00',
+      //   created_at: '2025-06-20T08:22:06.000Z',
+      //   payroll_id: 96,
+      //   basic: '2450.00',
+      //   spl_allowance: '330.00',
+      //   leave_wages: '165.00',
+      //   bonus: '260.00',
+      //   ot_amount: '0.00',
+      //   pf: '360.00',
+      //   esi: '34.00',
+      //   lwf: '0.00',
+      //   total_deduction: '394.00',
+      //   take_home: '4066.00',
+      //   designation: 'HR & ADMIN',
+      //   gender: 'MALE',
+      //   name: 'Divakar',
+      //   days_worked: 22,
+      //   total_working_days: 26,
+      // };
+
+      const data = {
+        month: months[month - 1],
+        year,
+        uanNo: '102137922560',
+        esiNo: '5136763762',
+        sNo: 1,
+        date: `07.${month}.${year}`,
+
+        attendance: {
+          totalWorkingDays: responseData.total_working_days || 0,
+          presentDays: responseData.days_worked || 0,
+          lossOfPay: (responseData.total_working_days || 0) - (responseData.days_worked || 0),
+          weekOff: 4,
+          nationalFestival: 0,
+          otHrs: parseFloat(responseData.ot_amount || '0.00'),
+        },
+
+        salary: {
+          fixed: {
+            basic: parseFloat(responseData.basic || '0'),
+            da: parseFloat(responseData.da || '0'),
+            hra: parseFloat(responseData.hra || '0'),
+            spl: parseFloat(responseData.spl_allowance || '0'),
+            leaveWages: parseFloat(responseData.leave_wages || '0'),
+            bonus: parseFloat(responseData.bonus || '0'),
+            otWages: parseFloat(responseData.ot_amount || '0'),
+          },
+          earned: {
+            basic: parseFloat(responseData.basic || '0'),
+            da: parseFloat(responseData.da || '0'),
+            hra: parseFloat(responseData.hra || '0'),
+            spl: parseFloat(responseData.spl_allowance || '0'),
+            leaveWages: parseFloat(responseData.leave_wages || '0'),
+            bonus: parseFloat(responseData.bonus || '0'),
+            otWages: parseFloat(responseData.ot_amount || '0'),
+          },
+          totalGross: {
+            fixed:
+              parseFloat(responseData.basic || '0') +
+              parseFloat(responseData.da || '0') +
+              parseFloat(responseData.hra || '0') +
+              parseFloat(responseData.spl_allowance || '0') +
+              parseFloat(responseData.leave_wages || '0') +
+              parseFloat(responseData.bonus || '0') +
+              parseFloat(responseData.ot_amount || '0'),
+            earned:
+              parseFloat(responseData.basic || '0') +
+              parseFloat(responseData.da || '0') +
+              parseFloat(responseData.hra || '0') +
+              parseFloat(responseData.spl_allowance || '0') +
+              parseFloat(responseData.leave_wages || '0') +
+              parseFloat(responseData.bonus || '0') +
+              parseFloat(responseData.ot_amount || '0'),
+          },
+        },
+
+        deductions: {
+          epf: parseFloat(responseData.pf || '0.00'),
+          esic: parseFloat(responseData.esi || '0.00'),
+          lwf: parseFloat(responseData.lwf || '0.00'),
+          total: parseFloat(responseData.total_deduction || '0.00'),
+        },
+
+        netSalary: parseFloat(responseData.take_home || '0.00'),
+      };
+
+      setPaySlipData(data);
+    };
+
+    fetchData();
   }, [month, year]);
 
-  console.log(payslipData.month, 'mon', payslipData.date);
-  const Month = months.indexOf(payslipData.month) + 1;
-  if (Month === -1) {
-  }
-  console.log(Month, 'isss');
+  if (!payslipData) return <Text>Loading...</Text>;
 
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>
         Pay Slip - {payslipData.month} {payslipData.year}
       </Text>
-      <Text style={styles.subHeader}>
+      {/* <Text style={styles.subHeader}>
         Date: {payslipData.date} | S.NO: {payslipData.sNo}
-      </Text>
+      </Text> */}
 
       {/* Attendance */}
       <View style={styles.card}>
@@ -106,7 +150,6 @@ const Pay___Slip = ({ month, year }: Props) => {
         {Object.entries(payslipData.attendance).map(([label, value]) => (
           <InfoRow key={label} label={label} value={value} />
         ))}
-        <InfoRow label="Total Payable Days" value={payslipData.attendance.presentDays} isBold />
       </View>
 
       {/* Salary */}
@@ -207,12 +250,6 @@ const styles = StyleSheet.create({
     color: '#4CAF50',
     textAlign: 'center',
     marginTop: 10,
-  },
-  signature: {
-    textAlign: 'center',
-    marginTop: 20,
-    color: '#999',
-    fontStyle: 'italic',
   },
 });
 

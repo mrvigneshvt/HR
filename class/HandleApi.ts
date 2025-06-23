@@ -163,6 +163,40 @@ export class Api {
     }
   }
 
+  public static async fetchPaySlip(options: {
+    empId: string;
+    month: string;
+    year: string;
+  }): Promise<Record<string, any> | 'error' | 'not-found' | 'invalid-format' | 'mapping'> {
+    try {
+      const url = configFile.api.common.getPaySlip(
+        options.empId,
+        `${options.year}-${options.month}`
+      );
+
+      console.log(url, 'urllCall');
+
+      const api = await this.handleApi({ url, type: 'GET' });
+
+      switch (api.status) {
+        case 200:
+          return api.data.data.payslips[0] ? api.data.data.payslips[0] : 'mapping';
+        case 400:
+          return 'invalid-format';
+
+        case 404:
+          return 'not-found';
+
+        case 505:
+          return 'error';
+      }
+
+      return 'error';
+    } catch (error) {
+      console.log(error);
+      return 'error';
+    }
+  }
   public static async postUniReq(options: {
     empId: string;
     name: string;
