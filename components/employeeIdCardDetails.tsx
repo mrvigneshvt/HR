@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 
 interface Employee {
@@ -12,11 +12,14 @@ interface Props {
   employee: Employee;
 }
 
-const EmployeeIdCardDetail: React.FC<Props> = ({ employee }:any) => {
+const EmployeeIdCardDetail: React.FC<Props> = ({ employee }: any) => {
 
   return (
     <View style={styles.card}>
       {/* Header */}
+      <View style={styles.header}>
+        <Image source={require('../assets/sdceLogo.png')} style={styles.logo} />
+      </View>
       <Text style={styles.title}>Employee Details</Text>
 
       {/* QR Code */}
@@ -61,6 +64,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
     width: '100%',
+  },
+  header: {
+    alignItems: 'center',
+  },
+  logo: {
+    width: 200,
+    height: 80,
+    resizeMode: 'contain',
   },
   title: {
     fontWeight: 'bold',
