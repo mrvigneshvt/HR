@@ -984,6 +984,186 @@ const EmployeesScreen = () => {
               </Pressable>
             </View>
 
+            {/* Profile Image */}
+            <Text>Profile Image</Text>
+            <TextInput
+              value={newEmployee.profile_image}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, profile_image: text })}
+              placeholder="Enter profile image URL or leave blank"
+              style={styles.input}
+            />
+
+            {/* Communication Address */}
+            <Text>Communication Address</Text>
+            <TextInput
+              value={newEmployee.communication_address}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, communication_address: text })}
+              placeholder="Enter communication address"
+              style={styles.input}
+            />
+
+            {/* Date of Joining */}
+            <Text>Date of Joining</Text>
+            <TextInput
+              value={newEmployee.date_of_joining}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, date_of_joining: text })}
+              placeholder="YYYY-MM-DD"
+              style={styles.input}
+            />
+
+            {/* Reference ID */}
+            <Text>Reference ID</Text>
+            <TextInput
+              value={newEmployee.reference_id}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, reference_id: text })}
+              placeholder="Enter reference ID"
+              style={styles.input}
+            />
+
+            {/* is_aadhaar_verified (Switch) */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={{ marginRight: 8 }}>Aadhaar Verified</Text>
+              <Pressable
+                onPress={() => setNewEmployee({ ...newEmployee, is_aadhaar_verified: !newEmployee.is_aadhaar_verified })}
+                style={{
+                  width: 40,
+                  height: 24,
+                  borderRadius: 12,
+                  backgroundColor: newEmployee.is_aadhaar_verified ? '#4A90E2' : '#ccc',
+                  justifyContent: 'center',
+                  alignItems: newEmployee.is_aadhaar_verified ? 'flex-end' : 'flex-start',
+                  padding: 2,
+                }}>
+                <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }} />
+              </Pressable>
+            </View>
+
+            {/* mobile_verified (Switch) */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={{ marginRight: 8 }}>Mobile Verified</Text>
+              <Pressable
+                onPress={() => setNewEmployee({ ...newEmployee, mobile_verified: !newEmployee.mobile_verified })}
+                style={{
+                  width: 40,
+                  height: 24,
+                  borderRadius: 12,
+                  backgroundColor: newEmployee.mobile_verified ? '#4A90E2' : '#ccc',
+                  justifyContent: 'center',
+                  alignItems: newEmployee.mobile_verified ? 'flex-end' : 'flex-start',
+                  padding: 2,
+                }}>
+                <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }} />
+              </Pressable>
+            </View>
+
+            {/* Bank Branch */}
+            <Text>Bank Branch</Text>
+            <TextInput
+              value={newEmployee.bank_branch}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, bank_branch: text })}
+              placeholder="Enter bank branch"
+              style={styles.input}
+            />
+
+            {/* Name at Bank */}
+            <Text>Name at Bank</Text>
+            <TextInput
+              value={newEmployee.name_at_bank}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, name_at_bank: text })}
+              placeholder="Enter name at bank"
+              style={styles.input}
+            />
+
+            {/* is_bank_verified (Switch) */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+              <Text style={{ marginRight: 8 }}>Bank Verified</Text>
+              <Pressable
+                onPress={() => setNewEmployee({ ...newEmployee, is_bank_verified: !newEmployee.is_bank_verified })}
+                style={{
+                  width: 40,
+                  height: 24,
+                  borderRadius: 12,
+                  backgroundColor: newEmployee.is_bank_verified ? '#4A90E2' : '#ccc',
+                  justifyContent: 'center',
+                  alignItems: newEmployee.is_bank_verified ? 'flex-end' : 'flex-start',
+                  padding: 2,
+                }}>
+                <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }} />
+              </Pressable>
+            </View>
+
+            {/* UAN Number */}
+            <Text>UAN Number</Text>
+            <TextInput
+              value={newEmployee.uan_number}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, uan_number: text })}
+              placeholder="Enter UAN number"
+              style={styles.input}
+            />
+
+            {/* ESI Number */}
+            <Text>ESI Number</Text>
+            <TextInput
+              value={newEmployee.esi_number}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, esi_number: text })}
+              placeholder="Enter ESI number"
+              style={styles.input}
+            />
+
+            {/* ESI Card */}
+            <Text>ESI Card</Text>
+            <TextInput
+              value={newEmployee.esi_card}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, esi_card: text })}
+              placeholder="Enter ESI card URL"
+              style={styles.input}
+            />
+
+            {/* PAN Number */}
+            <Text>PAN Number</Text>
+            <TextInput
+              value={newEmployee.pan_number}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, pan_number: text })}
+              placeholder="Enter PAN number"
+              style={styles.input}
+            />
+
+            {/* PAN Card */}
+            <Text>PAN Card</Text>
+            <TextInput
+              value={newEmployee.pan_card}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, pan_card: text })}
+              placeholder="Enter PAN card URL"
+              style={styles.input}
+            />
+
+            {/* Driving License */}
+            <Text>Driving License</Text>
+            <TextInput
+              value={newEmployee.driving_license}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, driving_license: text })}
+              placeholder="Enter driving license"
+              style={styles.input}
+            />
+
+            {/* Driving License Card */}
+            <Text>Driving License Card</Text>
+            <TextInput
+              value={newEmployee.driving_license_card}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, driving_license_card: text })}
+              placeholder="Enter driving license card URL"
+              style={styles.input}
+            />
+
+            {/* Status */}
+            <Text>Status</Text>
+            <TextInput
+              value={newEmployee.status}
+              onChangeText={(text) => setNewEmployee({ ...newEmployee, status: text })}
+              placeholder="Enter status (Active/Inactive)"
+              style={styles.input}
+            />
+
             {/* Add Button */}
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}
