@@ -7,7 +7,7 @@ import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { useEmployeeStore } from 'Memory/Employee';
 export class Api {
-  private static async handleApi(options: {
+  public static async handleApi(options: {
     url: string;
     type: 'POST' | 'GET' | 'PUT' | 'DELETE';
     payload?: Record<string, any>;

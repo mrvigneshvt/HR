@@ -97,8 +97,8 @@ const LeaveRequest = () => {
     console.log(data, '.......dat////////////');
 
     if (data?.status || data?.status == true) {
-      setApiMsg(data?.message);
-      setShowPop(true);
+      Alert.alert(data.message.toUpperCase());
+      // setShowPop(true);
       setTimeout(() => {
         router.replace({
           pathname: '/(tabs)/dashboard/',
@@ -110,7 +110,8 @@ const LeaveRequest = () => {
       }, 2000);
       return;
     } else {
-      setApiMsg(data?.message);
+      Alert.alert(data?.message);
+      // setApiMsg(data?.message);
       setShowPop(true);
     }
   };
@@ -223,19 +224,19 @@ const LeaveRequest = () => {
             </Text>
 
             {/* Name */}
-            <Text>Name:</Text>
+            <Text className="font-semibold">Name:</Text>
             <TextInput value={name || ''} editable={false} style={inputStyle} />
 
             {/* Employee ID */}
-            <Text>Employee ID:</Text>
+            <Text className="font-semibold">Employee ID:</Text>
             <TextInput value={employee_id || ''} editable={false} style={inputStyle} />
 
             {/* Role */}
-            <Text>Role:</Text>
+            <Text className="font-semibold">Role:</Text>
             <TextInput value={role || ''} editable={false} style={inputStyle} />
 
             {/* Reason */}
-            <Text>Leave Reason:</Text>
+            <Text className="font-semibold">Leave Reason:</Text>
             <DropDownPicker
               open={open}
               value={value}
@@ -249,7 +250,7 @@ const LeaveRequest = () => {
             />
 
             {/* From Date */}
-            <Text>From Date:</Text>
+            <Text className="font-semibold">From Date:</Text>
             <TouchableOpacity style={inputStyle} onPress={() => setShowFromPicker(true)}>
               <Text>{fromDate ? formatDateString(fromDate) : 'Select From Date'}</Text>
             </TouchableOpacity>
@@ -267,7 +268,7 @@ const LeaveRequest = () => {
             )}
 
             {/* To Date */}
-            <Text>To Date:</Text>
+            <Text className="font-semibold">To Date:</Text>
             <TouchableOpacity style={inputStyle} onPress={() => setShowToPicker(true)}>
               <Text>{toDate ? formatDateString(toDate) : 'Select To Date'}</Text>
             </TouchableOpacity>

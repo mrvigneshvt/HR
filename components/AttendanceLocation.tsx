@@ -12,6 +12,7 @@ import axios, { AxiosError } from 'axios';
 import { convertFormet, convertTo12HourFormat, getTodayDateString } from '../utils/validation';
 import { useEmployeeStore } from 'Memory/Employee';
 import { NavRouter } from 'class/Router';
+import { todayString } from 'react-native-calendars/src/expandableCalendar/commons';
 
 const manImage = require('../assets/man.webp');
 
@@ -80,10 +81,10 @@ const AttendanceLocation = ({ Region, Address, isNear, cbLocation, empId, role }
 
       // console.log('////////////', res.data, 'resss');
       // console.log(today, 'todaydate');
-      // const todayAttendance = res?.data?.data?.filter((i: any) => i?.attendance_date === today);
+      const todayAttendance = res?.data?.data?.filter((i: any) => i?.attendance_date === today);
       // console.log(todayAttendance, 'prrrrrrrrrrrrrrr');
-      setAttendance(data?.[0]);
-      console.log(attendance, 'todayyy');
+      setAttendance(todayAttendance[0]);
+      console.log(todayAttendance[0], 'todayyy');
     } catch (err) {
       setAttendance(null);
       console.log('error in fetchAttendance', error);

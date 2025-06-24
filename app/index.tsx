@@ -136,19 +136,19 @@ export default function LoginPage() {
   // }, []);
   //////////////////////////////////////////////////////////
 
-  useEffect(() => {
-    setTimeout(() => {
-      NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM43899' });
-      //   router.replace({
-      //     // pathname: '/(tabs)/dashboard',
-      //     pathname: '/(admin)/home',
-      //     params: {
-      //       role: 'superadmin',
-      //       empId: 'SFM007',
-      //     },
-      //   });
-    }, 50);
-  }, []);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM43899' });
+  //     //   router.replace({
+  //     //     // pathname: '/(tabs)/dashboard',
+  //     //     pathname: '/(admin)/home',
+  //     //     params: {
+  //     //       role: 'superadmin',
+  //     //       empId: 'SFM007',
+  //     //     },
+  //     //   });
+  //   }, 50);
+  // }, []);
 
   ////////////////////////////////////////////////////////////
   return (

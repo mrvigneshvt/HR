@@ -66,13 +66,14 @@ const AttendanceScreen = () => {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedAttendance, setSelectedAttendance] = useState<AttendanceData | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
-  const [detailedAttendance, setDetailedAttendance] = useState<AttendanceData | null>(null);
+  const [detailedAttendance, setDetailedAttendance] = useState<any | null>(null);
   const [attendanceSummary, setAttendanceSummary] = useState<AttendanceResponse['summary'] | null>(
     null
   );
   const params = useLocalSearchParams();
   const role = params.role as string | undefined;
   const empId = params.empId as string | undefined;
+
   const readOnly = isReadOnlyRole(role);
   console.log('AttendanceScreen readOnly:', readOnly, 'role:', role);
 
@@ -93,13 +94,18 @@ const AttendanceScreen = () => {
     }
   };
 
-  const fetchAttendanceDetails = async (employeeId: string, date?: string) => {
+  const fetchAttendanceDetails = async (
+    employeeId: string,
+    date?: string,
+    detailedAttendances?: Record<string, any>
+  ) => {
     try {
       setLoadingDetails(true);
       const params: Record<string, string> = { employeeId };
       if (date) {
         params.date = date;
       }
+      console.log(params, '///params');
 
       const response = await axios.get<AttendanceResponse>(
         `${BASE_URL}/attendance/getAttendanceDetails`,
@@ -107,9 +113,15 @@ const AttendanceScreen = () => {
           params,
         }
       );
+      console.log(response.data, '///res');
 
       if (response.data.data.length > 0) {
-        setDetailedAttendance(response.data.data[0]);
+        console.log(detailedAttendance, '/////', attendanceSummary, '////', detailedAttendances);
+        const todayAttendance = response?.data?.data?.filter(
+          (i: any) => i?.attendance_date === date
+        );
+        console.log('toDay\n', todayAttendance, '////Todayyyyy');
+        setDetailedAttendance(todayAttendance[0]);
         setAttendanceSummary(response.data.summary);
       } else {
         setDetailedAttendance(null);
@@ -205,15 +217,15 @@ const AttendanceScreen = () => {
             backgroundColor: configFile.colorGreen,
           },
           headerTintColor: 'white',
-          headerRight: () => (
-            <View style={styles.headerRight}>
-              {readOnly && (
-                <Pressable onPress={() => setShowFilterModal(true)} style={styles.filterButton}>
-                  <MaterialIcons name="filter-list" size={24} color="white" />
-                </Pressable>
-              )}
-            </View>
-          ),
+          // headerRight: () => (
+          //   <View style={styles.headerRight}>
+          //     {readOnly && (
+          //       <Pressable onPress={() => setShowFilterModal(true)} style={styles.filterButton}>
+          //         <MaterialIcons name="filter-list" size={24} color="white" />
+          //       </Pressable>
+          //     )}
+          //   </View>
+          // ),
         }}
       />
 

@@ -6,6 +6,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { BackHandler } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
+import DashTop from 'components/DashTop';
 
 const HomeScreen = () => {
   const router = useRouter();
@@ -127,15 +128,15 @@ const HomeScreen = () => {
       onPress: handleClientsPress,
       role,
     },
-    {
-      title: 'Payroll',
-      icon: 'cash',
-      route: '/payroll',
-      color: '#4A90E2',
-      description: 'Monthly wise payroll and download',
-      onPress: handlePayrollPress,
-      role,
-    },
+    // {
+    //   title: 'Payroll',
+    //   icon: 'cash',
+    //   route: '/payroll',
+    //   color: '#4A90E2',
+    //   description: 'Monthly wise payroll and download',
+    //   onPress: handlePayrollPress,
+    //   role,
+    // },
     // {
     //   title: 'Employee ID Card',
     //   icon: 'card',
@@ -156,10 +157,10 @@ const HomeScreen = () => {
     },
     {
       title: 'Pay Slip',
-      icon: 'calendar',
+      icon: 'cash',
       route: '/emp-plugins/pay_slip',
-      color: '#FF6B6B',
-      description: 'View employee attendance details',
+      color: '#4A90E2',
+      description: 'View your PaySlip details',
       onPress: () => handlePress('payslip'),
       role,
     },

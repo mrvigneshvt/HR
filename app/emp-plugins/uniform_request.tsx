@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Pressable,
   BackHandler,
+  Alert,
 } from 'react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import ProfileStack from 'Stacks/HeaderStack';
@@ -22,21 +23,10 @@ import { Api } from 'class/HandleApi';
 
 import PopupMessage from 'plugins/popupz';
 
+// ... same imports
+
 const Uniform = () => {
   const { empId, role } = useLocalSearchParams<{ empId: string; role: string }>();
-
-  useEffect(() => {
-    const onBackPress = () => {
-      router.replace({
-        pathname: '/(tabs)/dashboard/',
-        params: { role, empId },
-      });
-      return true;
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-  }, []);
-
   const employee = useEmployeeStore((state) => state.employee);
   const isMale = employee?.gender?.toLowerCase() === 'male';
 
@@ -48,35 +38,60 @@ const Uniform = () => {
     [isMale]
   );
 
-  const [popupVisible, setPopupVisible] = useState(false);
-  const [popupMessage, setPopupMessage] = useState('');
-
-  const [state, setState] = useState({
+  const initialState = {
     empId,
     role,
     ...(isMale ? { shirtSize: '', pantSize: '' } : { chudiSize: '' }),
     shoeSize: '',
-    belt: false,
-    lanyard: false,
-    whistle: false,
-    idCard: false,
-    cap: false,
-    flab: false,
-  });
+    ...Object.fromEntries(accessories.map((key) => [key, false])),
+  };
+
+  const [state, setState] = useState(initialState);
+  const [popupVisible, setPopupVisible] = useState(false);
+  const [popupMessage, setPopupMessage] = useState('');
+
+  useEffect(() => {
+    const onBackPress = () => {
+      router.replace({ pathname: '/(tabs)/dashboard/', params: { role, empId } });
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, []);
 
   const toggleSwitch = (key: keyof typeof state) => {
     setState((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleInput = (key: keyof typeof state, value: string, limit: number) => {
+  const handleInput = (key: keyof typeof state, value: string, limit: number = 2) => {
     if (/^\d*$/.test(value) && value.length <= limit) {
       setState((prev) => ({ ...prev, [key]: value }));
     }
   };
 
+  const isFormChanged = () => {
+    const sizes = isMale
+      ? [state.shirtSize, state.pantSize, state.shoeSize]
+      : [state.chudiSize, state.shoeSize];
+    const isAnySizeEntered = sizes.some((size) => !!size && parseInt(size) > 0);
+
+    const isAnyAccessoryChecked = accessories.some((key) => state[key as keyof typeof state]);
+
+    return isAnySizeEntered || isAnyAccessoryChecked;
+  };
+
   const postUniformRequest = async () => {
+    if (!isFormChanged()) {
+      Alert.alert(
+        'Error',
+        'Please fill at least one size or select any accessory before submitting.'
+      );
+      return;
+    }
+
     try {
       const accessoriesSelected = accessories.filter((key) => state[key as keyof typeof state]);
+
       const payload = {
         empId: String(empId),
         name: employee?.name || '',
@@ -96,18 +111,11 @@ const Uniform = () => {
       };
 
       const response = await Api.postUniReq(payload);
-      console.log(response, '/////////Responseeeeeee');
 
       if (response.status) {
-        setPopupMessage('Uniform request submitted successfully!');
+        Alert.alert('Uniform request submitted successfully!');
         setTimeout(() => {
-          router.replace({
-            pathname: '/(tabs)/dashboard/',
-            params: {
-              empId,
-              role,
-            },
-          });
+          router.replace({ pathname: '/(tabs)/dashboard/', params: { empId, role } });
         }, 2000);
       } else {
         setPopupMessage(response?.message || 'Something went wrong');
@@ -130,9 +138,8 @@ const Uniform = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}>
           <ScrollView
-            style={{ flex: 1, backgroundColor: 'white' }}
+            style={{ flex: 1 }}
             contentContainerStyle={{ flexGrow: 1, padding: scale(16), paddingBottom: 40 }}>
-            {/* Read-only fields */}
             {['empId', 'role'].map((field) => (
               <View key={field} style={{ marginBottom: verticalScale(12) }}>
                 <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>{field.toUpperCase()}</Text>
@@ -140,36 +147,35 @@ const Uniform = () => {
               </View>
             ))}
 
-            {/* Conditional Inputs */}
+            {/* Size Inputs */}
             {isMale ? (
               <>
                 <CustomInput
                   label="Shirt Size"
                   value={state.shirtSize}
-                  onChangeText={(text) => handleInput('shirtSize', text, 2)}
+                  onChangeText={(text) => handleInput('shirtSize', text)}
                 />
                 <CustomInput
                   label="Pant Size"
                   value={state.pantSize}
-                  onChangeText={(text) => handleInput('pantSize', text, 2)}
+                  onChangeText={(text) => handleInput('pantSize', text)}
                 />
               </>
             ) : (
               <CustomInput
                 label="Chudi Size"
                 value={state.chudiSize}
-                onChangeText={(text) => handleInput('chudiSize', text, 2)}
+                onChangeText={(text) => handleInput('chudiSize', text)}
               />
             )}
-
             <CustomInput
               label="Shoe Size"
               value={state.shoeSize}
-              onChangeText={(text) => {
-                if (/^\d*$/.test(text) && parseInt(text || '0') <= 20) {
-                  setState((prev) => ({ ...prev, shoeSize: text }));
-                }
-              }}
+              onChangeText={(text) =>
+                /^\d*$/.test(text) && parseInt(text || '0') <= 20
+                  ? setState((prev) => ({ ...prev, shoeSize: text }))
+                  : null
+              }
             />
 
             {/* Accessories */}

@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  FlatList,
 } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -30,6 +31,8 @@ import { assignWork } from '../../../services/api';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 import { isReadOnlyRole } from 'utils/roleUtils';
+import { Api } from 'class/HandleApi';
+import { NavRouter } from 'class/Router';
 
 const ClientsScreen = () => {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -39,10 +42,14 @@ const ClientsScreen = () => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [search, setSearch] = useState('');
   const [clients, setClients] = useState<Client[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [totalPages, setTotalPages] = useState<number>(1);
   const [loading, setLoading] = useState(false);
+  const [fetchingMore, setFetchingMore] = useState(false);
+
   const [formData, setFormData] = useState<Partial<any>>({
-    clientName: '',
-    companyName: '',
+    client_name: '',
+    company_name: '',
     companyNumber: '',
     phoneNumber: '',
     gstNumber: '',
@@ -77,18 +84,44 @@ const ClientsScreen = () => {
   console.log('ClientsScreen readOnly:', readOnly, 'role:', role);
 
   useEffect(() => {
-    fetchClients();
+    fetchClients(1);
   }, []);
 
-  const fetchClients = async () => {
+  const fetchClients = async (pageNo: number) => {
+    if (pageNo > totalPages && pageNo !== 1) return; // avoid extra calls
+
     try {
-      setLoading(true);
-      const response = await clientService.getAllClients();
-      setClients(response.clients);
+      pageNo === 1 ? setLoading(true) : setFetchingMore(true);
+
+      const url = configFile.api.superAdmin.getAllClients(pageNo);
+      const response = await Api.handleApi({ url, type: 'GET' });
+      console.log(response.data, '/////////', response.status);
+      switch (response.status) {
+        case 200:
+          console.log('Comes Under 200');
+          console.log();
+          setClients((prev) =>
+            pageNo === 1 ? response.data.clients : [...prev, ...response.data.clients]
+          );
+          console.log(clients, '//////////////////////Clientsssssssssssss');
+          setTotalPages(response.data.pagination.totalPages);
+          setPage(pageNo + 1);
+          return;
+
+        case 500:
+          Alert.alert('Error Fetching Clients');
+          setTimeout(() => {
+            NavRouter.backOrigin({ role, empId });
+          }, 2000);
+          return;
+      }
+
+      console.log(response, '///////////Response');
     } catch (error) {
       console.error('Error fetching clients:', error);
     } finally {
       setLoading(false);
+      setFetchingMore(false);
     }
   };
 
@@ -109,6 +142,7 @@ const ClientsScreen = () => {
   };
 
   const handleAssignWorkClick = (client: Client) => {
+    console.log(client, '//////////Client');
     // Validate client has required fields for work assignment
     const clientValidationErrors = validateClientForAssignWork(client);
     if (Object.keys(clientValidationErrors).length > 0) {
@@ -154,7 +188,7 @@ const ClientsScreen = () => {
     setSelectedClient(client);
     setAssignWorkFormData({
       employeeId: '',
-      companyNumber: client.companyNumber || '',
+      companyNumber: client.client_no || '',
       fromDate: new Date().toISOString().split('T')[0], // Today's date
       toDate: new Date().toISOString().split('T')[0], // Today's date
     });
@@ -172,7 +206,7 @@ const ClientsScreen = () => {
     // Show confirmation dialog
     Alert.alert(
       'Confirm Assignment',
-      `Are you sure you want to assign work to employee ${assignWorkFormData.employeeId} for ${selectedClient?.clientName} from ${assignWorkFormData.fromDate} to ${assignWorkFormData.toDate}?`,
+      `Are you sure you want to assign work to employee ${assignWorkFormData.employeeId} for ${selectedClient?.client_name} from ${assignWorkFormData.fromDate} to ${assignWorkFormData.toDate}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -190,6 +224,17 @@ const ClientsScreen = () => {
                   onPress: handleAssignWorkModalClose,
                 },
               ]);
+
+              setTimeout(() => {
+                router.push({
+                  pathname: '/(admin)/attendance',
+                  params: {
+                    empId,
+                    role,
+                  },
+                });
+                return;
+              }, 2000);
             } catch (error: any) {
               console.error('Error assigning work:', error);
               let errorMessage = 'Failed to assign work. Please try again.';
@@ -222,7 +267,7 @@ const ClientsScreen = () => {
     setSelectedClient(null);
   };
 
-  console.log(formData,"formDatas")
+  console.log(formData, 'formDatas');
 
   const handleSubmit = async (isEdit: boolean) => {
     const validationErrors = validateClientForm(formData);
@@ -245,8 +290,8 @@ const ClientsScreen = () => {
       setShowAddModal(false);
       setShowEditModal(false);
       // setFormData({
-      //   clientName: '',
-      //   companyName: '',
+      //   client_name: '',
+      //   company_name: '',
       //   companyNumber: '',
       //   phoneNumber: '',
       //   gstNumber: '',
@@ -276,7 +321,7 @@ const ClientsScreen = () => {
       setIsDeleting(true);
       await clientService.deleteClient(selectedClient.id);
       Alert.alert('Success', 'Client deleted successfully!');
-      await fetchClients();
+      await fetchClients(1);
       setShowDeleteModal(false);
     } catch (error) {
       console.error('Error deleting client:', error);
@@ -289,8 +334,8 @@ const ClientsScreen = () => {
 
   const filteredClients = clients.filter(
     (client) =>
-      client.clientName.toLowerCase().includes(search.toLowerCase()) ||
-      client.companyName.toLowerCase().includes(search.toLowerCase()) ||
+      client.client_name.toLowerCase().includes(search.toLowerCase()) ||
+      client.company_name.toLowerCase().includes(search.toLowerCase()) ||
       client.location.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -324,7 +369,7 @@ const ClientsScreen = () => {
       <TextInput
         className={`rounded-lg border p-2 ${assignWorkErrors[field] ? 'border-red-500' : 'border-gray-300'}`}
         value={assignWorkFormData[field]}
-        onChangeText={(value) => handleAssignWorkInputChange(field, value)}
+        onChangeText={(value) => handleAssignWorkInputChange(field, value.toUpperCase())}
         placeholder={placeholder}
         keyboardType={keyboardType}
       />
@@ -340,11 +385,12 @@ const ClientsScreen = () => {
         <View className="flex-row items-center justify-between">
           <View>
             <Text className="w-[200px] truncate text-xl font-bold text-gray-800">
-              {client.clientName}
+              {client.client_name}
             </Text>
-            <Text className="w-[200px] truncate text-gray-600">Company: {client.companyName}</Text>
+            <Text className="w-[200px] truncate text-gray-600">Company: {client.company_name}</Text>
             <Text className="w-[200px] truncate text-gray-600">Location: {client.location}</Text>
             <Text className="w-[200px] truncate text-gray-600">Status: {client.status}</Text>
+            <Text className="w-[200px] truncate text-gray-600">ID: : {client.client_no}</Text>
           </View>
           {!readOnly && (
             <View className="flex-row gap-2">
@@ -353,16 +399,16 @@ const ClientsScreen = () => {
                 className="rounded-full bg-green-100 p-2">
                 <MaterialIcons name="work" size={20} color="#4CAF50" />
               </Pressable>
-              <Pressable
+              {/* <Pressable
                 onPress={() => {
                   setSelectedClient(client);
                   setFormData(client);
-                  console.log(client,">?>?>?>?")
+                  console.log(client, '>?>?>?>?');
                   setShowEditModal(true);
                 }}
                 className="rounded-full bg-blue-100 p-2">
                 <MaterialIcons name="edit" size={20} color="#4A90E2" />
-              </Pressable>
+              </Pressable> */}
               <Pressable
                 onPress={() => {
                   setSelectedClient(client);
@@ -392,8 +438,8 @@ const ClientsScreen = () => {
           <ScrollView className="max-h-[90vh] rounded-t-3xl bg-white p-6">
             <Text className="mb-4 text-xl font-bold">{isEdit ? 'Edit Client' : 'Add Client'}</Text>
 
-            {renderFormField('Client Name', 'clientName', 'Enter client name')}
-            {renderFormField('Company Name', 'companyName', 'Enter company name')}
+            {renderFormField('Client Name', 'client_name', 'Enter client name')}
+            {renderFormField('Company Name', 'company_name', 'Enter company name')}
             {renderFormField('Company Number', 'companyNumber', 'Enter company number')}
             {renderFormField('Phone Number', 'phoneNumber', 'Enter phone number', 'numeric')}
             {renderFormField('GST Number', 'gstNumber', 'Enter GST number')}
@@ -468,7 +514,7 @@ const ClientsScreen = () => {
           <ScrollView className="max-h-[90vh] rounded-t-3xl bg-white p-6">
             <Text className="mb-4 text-xl font-bold">Assign Work</Text>
             <Text className="mb-4 text-sm text-gray-600">
-              Assign work to employee for client: {selectedClient?.clientName}
+              Assign work to employee for client: {selectedClient?.client_name}
             </Text>
 
             {renderAssignWorkFormField('Employee ID', 'employeeId', 'Enter employee ID')}
@@ -577,7 +623,7 @@ const ClientsScreen = () => {
           <View className="rounded-t-3xl bg-white p-6">
             <Text className="mb-4 text-xl font-bold">Delete Client</Text>
             <Text className="mb-4 text-gray-600">
-              Are you sure you want to delete {selectedClient?.clientName}?
+              Are you sure you want to delete {selectedClient?.client_name}?
             </Text>
             <View className="flex-row justify-end gap-2">
               <Pressable
@@ -615,6 +661,8 @@ const ClientsScreen = () => {
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
   }, []);
 
+  const renderItem = ({ item }: { item: Client }) => renderClientCard(item);
+
   return (
     <View className="flex-1 bg-gray-50">
       <Stack.Screen
@@ -625,33 +673,33 @@ const ClientsScreen = () => {
             backgroundColor: configFile.colorGreen,
           },
           headerTintColor: 'white',
-          headerRight: () =>
-            !readOnly && (
-              <Pressable
-                onPress={() => {
-                  setShowAddModal(true);
-                  setFormData({
-                    clientName: '',
-                    companyName: '',
-                    companyNumber: '',
-                    phoneNumber: '',
-                    gstNumber: '',
-                    site: '',
-                    branch: '',
-                    address: '',
-                    location: '',
-                    latitude: '',
-                    longitude: '',
-                    status: 'Active',
-                    check_in: '',
-                    lunch_time: '',
-                    check_out: '',
-                  });
-                }}
-                style={{ marginRight: 16 }}>
-                <MaterialIcons name="add" size={24} color="white" />
-              </Pressable>
-            ),
+          //   headerRight: () =>
+          //     !readOnly && (
+          //       <Pressable
+          //         onPress={() => {
+          //           setShowAddModal(true);
+          //           setFormData({
+          //             client_name: '',
+          //             company_name: '',
+          //             companyNumber: '',
+          //             phoneNumber: '',
+          //             gstNumber: '',
+          //             site: '',
+          //             branch: '',
+          //             address: '',
+          //             location: '',
+          //             latitude: '',
+          //             longitude: '',
+          //             status: 'Active',
+          //             check_in: '',
+          //             lunch_time: '',
+          //             check_out: '',
+          //           });
+          //         }}
+          //         style={{ marginRight: 16 }}>
+          //         <MaterialIcons name="add" size={24} color="white" />
+          //       </Pressable>
+          //     ),
         }}
       />
       <SearchBar value={search} onChangeText={setSearch} placeholder="Search client..." />
@@ -661,9 +709,17 @@ const ClientsScreen = () => {
           <ActivityIndicator size="large" color={configFile.colorGreen} />
         </View>
       ) : (
-        <ScrollView className="flex-1 p-4">
-          {filteredClients.map((client) => renderClientCard(client))}
-        </ScrollView>
+        <FlatList
+          data={clients}
+          keyExtractor={(item, i) => i.toString()}
+          renderItem={renderItem}
+          onEndReached={() => fetchClients(page)} // Trigger next page
+          onEndReachedThreshold={0.5} // Call before reaching the bottom
+          ListFooterComponent={
+            fetchingMore ? <ActivityIndicator size="small" color="#000" /> : null
+          }
+          contentContainerStyle={{ padding: 16 }}
+        />
       )}
       {!readOnly && renderFormModal(false)}
       {!readOnly && renderFormModal(true)}

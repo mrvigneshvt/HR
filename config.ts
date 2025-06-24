@@ -41,5 +41,15 @@ export const configFile = {
         return `${backendBaseUrl}api/payroll/employees/${empId}?month=${month}`; //2025-06
       },
     },
+    superAdmin: {
+      getAllClients(pageNo?: number) {
+        return !pageNo
+          ? `${backendBaseUrl}api/clients?page=1`
+          : `${backendBaseUrl}api/clients?page=${pageNo}`;
+      },
+      assignWork() {
+        return `${backendBaseUrl}api/attendance/assignWork`;
+      },
+    },
   },
 };

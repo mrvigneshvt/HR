@@ -27,6 +27,8 @@ import { BackHandler } from 'react-native';
 import { router } from 'expo-router';
 import EmployeeIdCard from '../../../components/EmployeeIdCardFront';
 import EmployeeIdCardDetail from '../../../components/employeeIdCardDetails';
+import { Api } from 'class/HandleApi';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 const { width: screenWidth } = Dimensions.get('window');
 const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
@@ -426,7 +428,7 @@ const EmployeesScreen = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  console.log(errors,"/thialkaerrors")
+  console.log(errors, '/thialkaerrors');
 
   const handleAddEmployee = async () => {
     if (!validateForm()) {
@@ -465,6 +467,7 @@ const EmployeesScreen = () => {
   };
 
   const handleDeleteEmployee = async () => {
+    console.log('Comes Under Del', selectedEmployee);
     if (!selectedEmployee) return;
 
     try {
@@ -473,15 +476,36 @@ const EmployeesScreen = () => {
         `${BASE_URL}/employees/${selectedEmployee.employee_id}`,
         '////////////////////base'
       );
-      const data = await axios.delete(`${BASE_URL}/employees/${selectedEmployee.employee_id}`);
-      console.log(data, 'deletrDartaaaaaaaaaaaaaa');
-      setEmployeeList(
-        employeeList.filter((emp) => emp.employee_id !== selectedEmployee.employee_id)
-      );
-      Alert.alert('Success', 'Employee Delete successfully');
-      setShowDeleteModal(false);
-      setSelectedEmployee(null);
-      fetchEmployees();
+
+      const url = `${BASE_URL}/employees/${selectedEmployee.employee_id}`;
+      //const data = await axios.delete(`${BASE_URL}/employees/${selectedEmployee.employee_id}`);
+      const data = await Api.handleApi({ url, type: 'DELETE' });
+
+      switch (data.status) {
+        case 200:
+          setEmployeeList(
+            employeeList.filter((emp) => emp.employee_id !== selectedEmployee.employee_id)
+          );
+
+          Alert.alert('Success', 'Employee Delete successfully');
+
+          setShowDeleteModal(false);
+          setSelectedEmployee(null);
+          fetchEmployees();
+
+          return;
+
+        case 404:
+          Alert.alert('Failed', 'Employee not Found');
+
+          return;
+
+        case 500:
+          Alert.alert('Failed', 'Internal Server Error');
+
+          return;
+      }
+      // console.log(data, 'deletrDartaaaaaaaaaaaaaa');
     } catch (error) {
       console.log('error in delete EMP::', error);
       Alert.alert('Error', 'Failed to delete employee');
@@ -496,21 +520,24 @@ const EmployeesScreen = () => {
     setShowEditModal(true);
   };
 
+  const handleViewEmployee = (employee: Employee) => {
+    console.log(employee, '/////EMP');
+    setSelectedEmployee(employee);
+    setShowEditModal(true);
+  };
+
   const handleUpdateEmployee = async (updateFields: { status: string }) => {
     if (!selectedEmployee) return;
-  
+
     try {
       setLoading(true);
-  
-      const response = await axios.put(
-        `${BASE_URL}/employees/${selectedEmployee.employee_id}`,
-        {
-          status: updateFields.status,
-        }
-      );
-  
+
+      const response = await axios.put(`${BASE_URL}/employees/${selectedEmployee.employee_id}`, {
+        status: updateFields.status,
+      });
+
       console.log('Response:', response.data);
-  
+
       if (response.data) {
         Alert.alert('Success', 'Employee updated successfully');
         setShowEditModal(false);
@@ -518,13 +545,12 @@ const EmployeesScreen = () => {
       } else {
         throw new Error('Failed to update employee. No response data.');
       }
-  
     } catch (error: any) {
       let errorMessage = 'Failed to update employee. Please try again.';
-  
+
       if (error.response) {
         const status = error.response.status;
-  
+
         if (status === 404) {
           errorMessage = 'API endpoint not found. Please check the server.';
         } else if (status === 409) {
@@ -538,20 +564,17 @@ const EmployeesScreen = () => {
             error.response.data?.error ||
             `Unexpected error occurred with status ${status}`;
         }
-  
       } else if (error.request) {
         errorMessage = 'No response from server. Please check your internet connection.';
       } else {
         errorMessage = error.message;
       }
-  
+
       Alert.alert('Error', errorMessage);
-  
     } finally {
       setLoading(false);
     }
   };
-  
 
   const renderEmployeeCard = ({ item }: { item: Employee }) => (
     <View
@@ -578,11 +601,13 @@ const EmployeesScreen = () => {
       </View>
       {!readOnly && (
         <View style={{ flexDirection: 'row', gap: 10 }}>
-          <Pressable onPress={() => handleEditEmployee(item)}>
-            <MaterialIcons name="edit" size={20} color="#4A90E2" />
+          <Pressable onPress={() => handleViewEmployee(item)}>
+            <FontAwesome name="street-view" size={20} color="#4A90E2" />
+            {/* <MaterialIcons name="edit" size={20} color="#4A90E2" /> */}
           </Pressable>
           <Pressable
             onPress={() => {
+              console.log(item, 'ITEMmmmm');
               setSelectedEmployee(item);
               setShowDeleteModal(true);
             }}>
@@ -590,9 +615,9 @@ const EmployeesScreen = () => {
           </Pressable>
         </View>
       )}
-      <TouchableOpacity onPress={() => setSelectedEmployee(item)}>
+      {/* <TouchableOpacity onPress={() => setSelectedEmployee(item)}>
         <MaterialIcons name="badge" size={24} color="#4A90E2" />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 
@@ -973,7 +998,12 @@ const EmployeesScreen = () => {
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
               <Text style={{ marginRight: 8 }}>Aadhaar Verified</Text>
               <Pressable
-                onPress={() => setNewEmployee({ ...newEmployee, is_aadhaar_verified: !newEmployee.is_aadhaar_verified })}
+                onPress={() =>
+                  setNewEmployee({
+                    ...newEmployee,
+                    is_aadhaar_verified: !newEmployee.is_aadhaar_verified,
+                  })
+                }
                 style={{
                   width: 40,
                   height: 24,
@@ -983,7 +1013,9 @@ const EmployeesScreen = () => {
                   alignItems: newEmployee.is_aadhaar_verified ? 'flex-end' : 'flex-start',
                   padding: 2,
                 }}>
-                <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }} />
+                <View
+                  style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }}
+                />
               </Pressable>
             </View>
 
@@ -1000,7 +1032,9 @@ const EmployeesScreen = () => {
             <Text>Communication Address</Text>
             <TextInput
               value={newEmployee.communication_address}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, communication_address: text })}
+              onChangeText={(text) =>
+                setNewEmployee({ ...newEmployee, communication_address: text })
+              }
               placeholder="Enter communication address"
               style={styles.input}
             />
@@ -1023,12 +1057,13 @@ const EmployeesScreen = () => {
               style={styles.input}
             />
 
-
             {/* mobile_verified (Switch) */}
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
               <Text style={{ marginRight: 8 }}>Mobile Verified</Text>
               <Pressable
-                onPress={() => setNewEmployee({ ...newEmployee, mobile_verified: !newEmployee.mobile_verified })}
+                onPress={() =>
+                  setNewEmployee({ ...newEmployee, mobile_verified: !newEmployee.mobile_verified })
+                }
                 style={{
                   width: 40,
                   height: 24,
@@ -1038,7 +1073,9 @@ const EmployeesScreen = () => {
                   alignItems: newEmployee.mobile_verified ? 'flex-end' : 'flex-start',
                   padding: 2,
                 }}>
-                <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }} />
+                <View
+                  style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }}
+                />
               </Pressable>
             </View>
 
@@ -1052,7 +1089,7 @@ const EmployeesScreen = () => {
             />
 
             {/* Name at Bank */}
-            <Text>Name at Bank</Text>
+            <Text>Name at Bank *</Text>
             <TextInput
               value={newEmployee.name_at_bank}
               onChangeText={(text) => setNewEmployee({ ...newEmployee, name_at_bank: text })}
@@ -1064,7 +1101,12 @@ const EmployeesScreen = () => {
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
               <Text style={{ marginRight: 8 }}>Bank Verified</Text>
               <Pressable
-                onPress={() => setNewEmployee({ ...newEmployee, is_bank_verified: !newEmployee.is_bank_verified })}
+                onPress={() =>
+                  setNewEmployee({
+                    ...newEmployee,
+                    is_bank_verified: !newEmployee.is_bank_verified,
+                  })
+                }
                 style={{
                   width: 40,
                   height: 24,
@@ -1074,7 +1116,9 @@ const EmployeesScreen = () => {
                   alignItems: newEmployee.is_bank_verified ? 'flex-end' : 'flex-start',
                   padding: 2,
                 }}>
-                <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }} />
+                <View
+                  style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }}
+                />
               </Pressable>
             </View>
 
@@ -1136,7 +1180,9 @@ const EmployeesScreen = () => {
             <Text>Driving License Card</Text>
             <TextInput
               value={newEmployee.driving_license_card}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, driving_license_card: text })}
+              onChangeText={(text) =>
+                setNewEmployee({ ...newEmployee, driving_license_card: text })
+              }
               placeholder="Enter driving license card URL"
               style={styles.input}
             />
@@ -1189,12 +1235,12 @@ const EmployeesScreen = () => {
             backgroundColor: configFile.colorGreen,
           },
           headerTintColor: 'white',
-          headerRight: () =>
-            !readOnly && (
-              <Pressable onPress={() => setShowAddModal(true)} style={{ marginRight: 16 }}>
-                <MaterialIcons name="add" size={24} color="white" />
-              </Pressable>
-            ),
+          // headerRight: () =>
+          //   !readOnly && (
+          //     <Pressable onPress={() => setShowAddModal(true)} style={{ marginRight: 16 }}>
+          //       <MaterialIcons name="add" size={24} color="white" />
+          //     </Pressable>
+          //   ),
         }}
       />
 
@@ -1242,7 +1288,9 @@ const EmployeesScreen = () => {
                     alignItems: 'center',
                     marginBottom: 16,
                   }}>
-                  <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Edit Employee</Text>
+                  {/* <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Edit Employee Details</Text> */}
+
+                  <Text style={{ fontSize: 18, fontWeight: 'bold' }}>View Employee Details</Text>
                   <TouchableOpacity onPress={() => setShowEditModal(false)}>
                     <MaterialIcons name="close" size={24} color="#666" />
                   </TouchableOpacity>
@@ -1367,7 +1415,9 @@ const EmployeesScreen = () => {
                   maxLength={12}
                   style={[styles.input, errors.aadhaar_number && styles.inputError]}
                 />
-                {errors.aadhaar_number && <Text style={styles.errorText}>{errors.aadhaar_number}</Text>}
+                {errors.aadhaar_number && (
+                  <Text style={styles.errorText}>{errors.aadhaar_number}</Text>
+                )}
 
                 {/* is_aadhaar_verified (Switch) */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
@@ -1389,7 +1439,9 @@ const EmployeesScreen = () => {
                       alignItems: selectedEmployee?.is_aadhaar_verified ? 'flex-end' : 'flex-start',
                       padding: 2,
                     }}>
-                    <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }} />
+                    <View
+                      style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }}
+                    />
                   </Pressable>
                 </View>
 
@@ -1413,7 +1465,9 @@ const EmployeesScreen = () => {
                       alignItems: selectedEmployee?.mobile_verified ? 'flex-end' : 'flex-start',
                       padding: 2,
                     }}>
-                    <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }} />
+                    <View
+                      style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }}
+                    />
                   </Pressable>
                 </View>
 
@@ -1443,7 +1497,9 @@ const EmployeesScreen = () => {
                   autoCapitalize="none"
                   style={[styles.input, errors.contact_email && styles.inputError]}
                 />
-                {errors.contact_email && <Text style={styles.errorText}>{errors.contact_email}</Text>}
+                {errors.contact_email && (
+                  <Text style={styles.errorText}>{errors.contact_email}</Text>
+                )}
 
                 <Text>Mobile Number *</Text>
                 <TextInput
@@ -1753,7 +1809,9 @@ const EmployeesScreen = () => {
                       alignItems: selectedEmployee?.is_bank_verified ? 'flex-end' : 'flex-start',
                       padding: 2,
                     }}>
-                    <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }} />
+                    <View
+                      style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: 'white' }}
+                    />
                   </Pressable>
                 </View>
 
@@ -1785,8 +1843,7 @@ const EmployeesScreen = () => {
                 <TextInput
                   value={selectedEmployee?.esi_card}
                   onChangeText={(text) =>
-                    selectedEmployee &&
-                    setSelectedEmployee({ ...selectedEmployee, esi_card: text })
+                    selectedEmployee && setSelectedEmployee({ ...selectedEmployee, esi_card: text })
                   }
                   placeholder="Enter ESI card URL"
                   style={styles.input}
@@ -1807,8 +1864,7 @@ const EmployeesScreen = () => {
                 <TextInput
                   value={selectedEmployee?.pan_card}
                   onChangeText={(text) =>
-                    selectedEmployee &&
-                    setSelectedEmployee({ ...selectedEmployee, pan_card: text })
+                    selectedEmployee && setSelectedEmployee({ ...selectedEmployee, pan_card: text })
                   }
                   placeholder="Enter PAN card URL"
                   style={styles.input}
@@ -1855,13 +1911,18 @@ const EmployeesScreen = () => {
                     <Text style={styles.cancelButtonText}>Cancel</Text>
                   </Pressable> */}
                   <Pressable
-                    onPress={() => handleUpdateEmployee(selectedEmployee)}
+                    onPress={() => {
+                      //  handleUpdateEmployee(selectedEmployee)
+                      setSelectedEmployee(null);
+                      setShowEditModal(false);
+                    }}
                     style={styles.addButton}
                     disabled={loading}>
                     {loading ? (
                       <ActivityIndicator color="white" />
                     ) : (
-                      <Text style={styles.addButtonText}>Update Employee</Text>
+                      // <Text style={styles.addButtonText}>Update Employee</Text>
+                      <Text style={styles.addButtonText}>Back to Employee</Text>
                     )}
                   </Pressable>
                 </View>
@@ -1921,7 +1982,7 @@ const EmployeesScreen = () => {
       )}
 
       {/* ID Card Modal */}
-      {selectedEmployee && (
+      {/* {selectedEmployee && (
         <Modal
           visible={!!selectedEmployee && !showEditModal}
           transparent
@@ -1943,7 +2004,7 @@ const EmployeesScreen = () => {
             </View>
           </View>
         </Modal>
-      )}
+      )} */}
     </View>
   );
 };
@@ -2024,7 +2085,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#4A90E2',
-    color:'black'
+    color: 'black',
   },
   cancelButtonText: {
     color: 'white',

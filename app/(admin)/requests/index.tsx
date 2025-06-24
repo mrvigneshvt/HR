@@ -444,7 +444,7 @@ const RequestsScreen = () => {
         <View className="flex-row items-center justify-between">
           <View>
             <Text className="text-xl font-bold text-gray-800">
-              {req.employee || req.employeeName}
+              {req.employeeName || req.employeeName}
             </Text>
             <Text className="text-gray-600">ID: {req.employeeId || req.empId}</Text>
             {type === 'uniform' ? (
@@ -579,39 +579,39 @@ const RequestsScreen = () => {
             backgroundColor: configFile.colorGreen,
           },
           headerTintColor: 'white',
-          headerRight: () =>
-            !readOnly && (
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Pressable onPress={() => setShowFilterModal(true)} style={{ marginRight: 16 }}>
-                  <MaterialIcons name="filter-list" size={24} color="white" />
-                </Pressable>
-                <Pressable
-                  onPress={() => {
-                    setShowAddModal(true);
-                    setUniformForm({
-                      empId: '',
-                      name: '',
-                      designation: '',
-                      site: '',
-                      location: '',
-                      gender: 'Male',
-                      status: 'Active',
-                      shirtSize: '',
-                      pantSize: '',
-                      shoeSize: '',
-                      chuditharSize: '',
-                      femaleShoeSize: '',
-                      accessories: [],
-                      femaleAccessories: [],
-                      requestedDate: '',
-                      flab: '',
-                    });
-                    setLeaveForm(initialLeaveForm);
-                  }}>
-                  <MaterialIcons name="add" size={24} color="white" />
-                </Pressable>
-              </View>
-            ),
+          // headerRight: () =>
+          //   !readOnly && (
+          //     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          //       <Pressable onPress={() => setShowFilterModal(true)} style={{ marginRight: 16 }}>
+          //         <MaterialIcons name="filter-list" size={24} color="white" />
+          //       </Pressable>
+          //       <Pressable
+          //         onPress={() => {
+          //           setShowAddModal(true);
+          //           setUniformForm({
+          //             empId: '',
+          //             name: '',
+          //             designation: '',
+          //             site: '',
+          //             location: '',
+          //             gender: 'Male',
+          //             status: 'Active',
+          //             shirtSize: '',
+          //             pantSize: '',
+          //             shoeSize: '',
+          //             chuditharSize: '',
+          //             femaleShoeSize: '',
+          //             accessories: [],
+          //             femaleAccessories: [],
+          //             requestedDate: '',
+          //             flab: '',
+          //           });
+          //           setLeaveForm(initialLeaveForm);
+          //         }}>
+          //         <MaterialIcons name="add" size={24} color="white" />
+          //       </Pressable>
+          //     </View>
+          //   ),
         }}
       />
       {loading ? (
