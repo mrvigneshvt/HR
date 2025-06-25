@@ -107,7 +107,7 @@ const ClientsScreen = () => {
           site: c.site,
           branch: c.branch,
           address: c.address,
-          location: c.location,
+          location: c.location || '',
           latitude: c.latitude,
           longitude: c.longitude,
           status: c.status,
