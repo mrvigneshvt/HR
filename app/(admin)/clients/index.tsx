@@ -47,10 +47,10 @@ const ClientsScreen = () => {
   const [loading, setLoading] = useState(false);
   const [fetchingMore, setFetchingMore] = useState(false);
 
-  const [formData, setFormData] = useState<Partial<any>>({
-    client_name: '',
-    company_name: '',
-    companyNumber: '',
+  const [formData, setFormData] = useState<Partial<Client>>({
+    clientName: '',
+    companyName: '',
+    clientNo: '',
     phoneNumber: '',
     gstNumber: '',
     site: '',
@@ -60,7 +60,7 @@ const ClientsScreen = () => {
     latitude: '',
     longitude: '',
     status: 'Active',
-    check_in: '',
+    checkIn: '',
     lunch_time: '',
     check_out: '',
   });
@@ -94,29 +94,25 @@ const ClientsScreen = () => {
       pageNo === 1 ? setLoading(true) : setFetchingMore(true);
 
       const url = configFile.api.superAdmin.getAllClients(pageNo);
-      const response = await Api.handleApi({ url, type: 'GET' });
-      console.log(response.data, '/////////', response.status);
-      switch (response.status) {
-        case 200:
-          console.log('Comes Under 200');
-          console.log();
-          setClients((prev) =>
-            pageNo === 1 ? response.data.clients : [...prev, ...response.data.clients]
-          );
-          console.log(clients, '//////////////////////Clientsssssssssssss');
-          setTotalPages(response.data.pagination.totalPages);
-          setPage(pageNo + 1);
-          return;
-
-        case 500:
-          Alert.alert('Error Fetching Clients');
-          setTimeout(() => {
-            NavRouter.backOrigin({ role, empId });
-          }, 2000);
-          return;
+      const response:any = await Api.handleApi({ url, type: 'GET' });
+      if (response.status === 200) {
+        const clientsData = Array.isArray(response.data.clients) ? response.data.clients : [];
+        const totalPagesData = response.data.pagination && typeof response.data.pagination.totalPages === 'number'
+          ? response.data.pagination.totalPages
+          : 1;
+        setClients((prev) =>
+          pageNo === 1 ? clientsData : [...prev, ...clientsData]
+        );
+        setTotalPages(totalPagesData);
+        setPage(pageNo + 1);
+        return;
+      } else if (response.status === 500) {
+        Alert.alert('Error Fetching Clients');
+        setTimeout(() => {
+          NavRouter.backOrigin({ role: role || '', empId: empId || '' });
+        }, 2000);
+        return;
       }
-
-      console.log(response, '///////////Response');
     } catch (error) {
       console.error('Error fetching clients:', error);
     } finally {
@@ -127,7 +123,6 @@ const ClientsScreen = () => {
 
   const handleInputChange = (field: keyof Client, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
     }
@@ -188,7 +183,7 @@ const ClientsScreen = () => {
     setSelectedClient(client);
     setAssignWorkFormData({
       employeeId: '',
-      companyNumber: client.client_no || '',
+      companyNumber: client.clientNo || '',
       fromDate: new Date().toISOString().split('T')[0], // Today's date
       toDate: new Date().toISOString().split('T')[0], // Today's date
     });
@@ -206,7 +201,7 @@ const ClientsScreen = () => {
     // Show confirmation dialog
     Alert.alert(
       'Confirm Assignment',
-      `Are you sure you want to assign work to employee ${assignWorkFormData.employeeId} for ${selectedClient?.client_name} from ${assignWorkFormData.fromDate} to ${assignWorkFormData.toDate}?`,
+      `Are you sure you want to assign work to employee ${assignWorkFormData.employeeId} for ${selectedClient?.clientName} from ${assignWorkFormData.fromDate} to ${assignWorkFormData.toDate}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -270,45 +265,31 @@ const ClientsScreen = () => {
   console.log(formData, 'formDatas');
 
   const handleSubmit = async (isEdit: boolean) => {
-    const validationErrors = validateClientForm(formData);
+    const validationErrors = validateClientForm(formData, isEdit);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-
     try {
       setIsSubmitting(true);
-      if (isEdit && selectedClient?.id) {
-        await clientService.updateClient(selectedClient.id, formData as Omit<Client, 'id'>);
+      if (isEdit && selectedClient?.clientNo) {
+        await clientService.updateClient(selectedClient.clientNo, formData);
         Alert.alert('Success', 'Client updated successfully!');
       } else {
         const data = await clientService.addClient(formData as Omit<Client, 'id'>);
-        console.log(data, 'dataONAdd');
         Alert.alert('Success', 'Client added successfully!');
       }
-      await fetchClients();
+      await fetchClients(1);
       setShowAddModal(false);
       setShowEditModal(false);
-      // setFormData({
-      //   client_name: '',
-      //   company_name: '',
-      //   companyNumber: '',
-      //   phoneNumber: '',
-      //   gstNumber: '',
-      //   site: '',
-      //   branch: '',
-      //   address: '',
-      //   location: '',
-      //   latitude: '',
-      //   longitude: '',
-      //   status: 'Active',
-      //   check_in: '',
-      //   lunch_time: '',
-      //   check_out: '',
-      // });
-    } catch (error) {
-      console.error('Error saving client:', error);
-      // Alert.alert('Error', 'Failed to save client. Please try again.');
+    } catch (error: any) {
+      let errorMessage = 'Failed to save client. Please try again.';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsSubmitting(false);
       setLoading(false);
@@ -316,16 +297,21 @@ const ClientsScreen = () => {
   };
 
   const handleDelete = async () => {
-    if (!selectedClient?.id) return;
+    if (!selectedClient?.clientNo) return;
     try {
       setIsDeleting(true);
-      await clientService.deleteClient(selectedClient.id);
+      await clientService.deleteClient(selectedClient.clientNo);
       Alert.alert('Success', 'Client deleted successfully!');
       await fetchClients(1);
       setShowDeleteModal(false);
-    } catch (error) {
-      console.error('Error deleting client:', error);
-      Alert.alert('Error', 'Failed to delete client. Please try again.');
+    } catch (error: any) {
+      let errorMessage = 'Failed to delete client. Please try again.';
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsDeleting(false);
       setLoading(false);
@@ -334,8 +320,8 @@ const ClientsScreen = () => {
 
   const filteredClients = clients.filter(
     (client) =>
-      client.client_name.toLowerCase().includes(search.toLowerCase()) ||
-      client.company_name.toLowerCase().includes(search.toLowerCase()) ||
+      client.clientName.toLowerCase().includes(search.toLowerCase()) ||
+      client.companyName.toLowerCase().includes(search.toLowerCase()) ||
       client.location.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -349,7 +335,7 @@ const ClientsScreen = () => {
       <Text className="mb-1 text-sm font-medium text-gray-700">{label}</Text>
       <TextInput
         className={`rounded-lg border p-2 ${errors[field] ? 'border-red-500' : 'border-gray-300'}`}
-        value={formData[field]}
+        value={formData[field] !== undefined && formData[field] !== null ? String(formData[field]) : ''}
         onChangeText={(value) => handleInputChange(field, value)}
         placeholder={placeholder}
         keyboardType={keyboardType}
@@ -385,12 +371,12 @@ const ClientsScreen = () => {
         <View className="flex-row items-center justify-between">
           <View>
             <Text className="w-[200px] truncate text-xl font-bold text-gray-800">
-              {client.client_name}
+              {client.clientName}
             </Text>
-            <Text className="w-[200px] truncate text-gray-600">Company: {client.company_name}</Text>
+            <Text className="w-[200px] truncate text-gray-600">Company: {client.companyName}</Text>
             <Text className="w-[200px] truncate text-gray-600">Location: {client.location}</Text>
             <Text className="w-[200px] truncate text-gray-600">Status: {client.status}</Text>
-            <Text className="w-[200px] truncate text-gray-600">ID: : {client.client_no}</Text>
+            <Text className="w-[200px] truncate text-gray-600">ID: : {client.clientNo}</Text>
           </View>
           {!readOnly && (
             <View className="flex-row gap-2">
@@ -399,16 +385,6 @@ const ClientsScreen = () => {
                 className="rounded-full bg-green-100 p-2">
                 <MaterialIcons name="work" size={20} color="#4CAF50" />
               </Pressable>
-              {/* <Pressable
-                onPress={() => {
-                  setSelectedClient(client);
-                  setFormData(client);
-                  console.log(client, '>?>?>?>?');
-                  setShowEditModal(true);
-                }}
-                className="rounded-full bg-blue-100 p-2">
-                <MaterialIcons name="edit" size={20} color="#4A90E2" />
-              </Pressable> */}
               <Pressable
                 onPress={() => {
                   setSelectedClient(client);
@@ -438,9 +414,9 @@ const ClientsScreen = () => {
           <ScrollView className="max-h-[90vh] rounded-t-3xl bg-white p-6">
             <Text className="mb-4 text-xl font-bold">{isEdit ? 'Edit Client' : 'Add Client'}</Text>
 
-            {renderFormField('Client Name', 'client_name', 'Enter client name')}
-            {renderFormField('Company Name', 'company_name', 'Enter company name')}
-            {renderFormField('Company Number', 'companyNumber', 'Enter company number')}
+            {renderFormField('Client Name', 'clientName', 'Enter client name')}
+            {renderFormField('Company Name', 'companyName', 'Enter company name')}
+            {renderFormField('Client Number', 'clientNo', 'Enter client number')}
             {renderFormField('Phone Number', 'phoneNumber', 'Enter phone number', 'numeric')}
             {renderFormField('GST Number', 'gstNumber', 'Enter GST number')}
             {renderFormField('Site', 'site', 'Enter site')}
@@ -472,7 +448,7 @@ const ClientsScreen = () => {
               </View>
             </View>
 
-            {renderFormField('Check-in Time', 'check_in', 'HH:MM:SS')}
+            {renderFormField('Check-in Time', 'checkIn', 'HH:MM:SS')}
             {renderFormField('Lunch Time', 'lunch_time', 'HH:MM:SS')}
             {renderFormField('Check-out Time', 'check_out', 'HH:MM:SS')}
 
@@ -514,7 +490,7 @@ const ClientsScreen = () => {
           <ScrollView className="max-h-[90vh] rounded-t-3xl bg-white p-6">
             <Text className="mb-4 text-xl font-bold">Assign Work</Text>
             <Text className="mb-4 text-sm text-gray-600">
-              Assign work to employee for client: {selectedClient?.client_name}
+              Assign work to employee for client: {selectedClient?.clientName}
             </Text>
 
             {renderAssignWorkFormField('Employee ID', 'employeeId', 'Enter employee ID')}
@@ -623,7 +599,7 @@ const ClientsScreen = () => {
           <View className="rounded-t-3xl bg-white p-6">
             <Text className="mb-4 text-xl font-bold">Delete Client</Text>
             <Text className="mb-4 text-gray-600">
-              Are you sure you want to delete {selectedClient?.client_name}?
+              Are you sure you want to delete {selectedClient?.clientName}?
             </Text>
             <View className="flex-row justify-end gap-2">
               <Pressable
@@ -673,33 +649,6 @@ const ClientsScreen = () => {
             backgroundColor: configFile.colorGreen,
           },
           headerTintColor: 'white',
-          //   headerRight: () =>
-          //     !readOnly && (
-          //       <Pressable
-          //         onPress={() => {
-          //           setShowAddModal(true);
-          //           setFormData({
-          //             client_name: '',
-          //             company_name: '',
-          //             companyNumber: '',
-          //             phoneNumber: '',
-          //             gstNumber: '',
-          //             site: '',
-          //             branch: '',
-          //             address: '',
-          //             location: '',
-          //             latitude: '',
-          //             longitude: '',
-          //             status: 'Active',
-          //             check_in: '',
-          //             lunch_time: '',
-          //             check_out: '',
-          //           });
-          //         }}
-          //         style={{ marginRight: 16 }}>
-          //         <MaterialIcons name="add" size={24} color="white" />
-          //       </Pressable>
-          //     ),
         }}
       />
       <SearchBar value={search} onChangeText={setSearch} placeholder="Search client..." />

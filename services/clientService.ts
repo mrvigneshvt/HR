@@ -1,13 +1,12 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
-const BASE_URLAdd = 'https://sdceweb.lyzooapp.co.in:31313/api';
+const BASE_URL = 'https://sdceweb.lyzooapp.co.in:31313/api';
 
 export interface Client {
   id?: number;
   clientName: string;
   companyName: string;
-  companyNumber?: string;
+  clientNo: string;
   phoneNumber: string;
   gstNumber: string;
   site: string;
@@ -17,7 +16,7 @@ export interface Client {
   latitude: string;
   longitude: string;
   status: 'Active' | 'Inactive';
-  check_in: string;
+  checkIn: string;
   lunch_time: string;
   check_out: string;
 }
@@ -35,44 +34,25 @@ export const clientService = {
 
   // Add new client
   addClient: async (clientData: Omit<Client, 'id'>) => {
-    // Map payload to new API keys
     const payload = {
       clientName: clientData.clientName,
       companyName: clientData.companyName,
+      clientNo: clientData.clientNo,
       phoneNumber: clientData.phoneNumber,
       gstNumber: clientData.gstNumber,
       site: clientData.site,
       branch: clientData.branch,
       address: clientData.address,
+      location: clientData.location,
       latitude: clientData.latitude,
       longitude: clientData.longitude,
       status: clientData.status,
-      checkIn: clientData.check_in,
-      lunchTime: clientData.lunch_time, // map from lunch_time
-      checkOut: clientData.check_out,   // map from check_out
-      clientNo: clientData.companyNumber, // map from companyNumber
+      checkIn: clientData.checkIn,
+      lunch_time: clientData.lunch_time,
+      check_out: clientData.check_out,
     };
-    console.log(clientData,"clthiolak")
-    
-
     try {
-      const response = await axios.post(`${BASE_URLAdd}/clients`, {
-        clientName: clientData.clientName,
-        companyName: clientData.companyName,
-        phoneNumber: clientData.phoneNumber,
-        gstNumber: clientData.gstNumber,
-        site: clientData.site,
-        branch: clientData.branch,
-        address: clientData.address,
-        latitude: clientData.latitude,
-        longitude: clientData.longitude,
-        status: clientData.status,
-        checkIn: clientData.check_in,
-        lunchTime: clientData.lunch_time, // map from lunch_time
-        checkOut: clientData.check_out,   // map from check_out
-        clientNo: clientData.companyNumber, // map from companyNumber
-      });
-      console.log(response,"sdsd")
+      const response = await axios.post(`${BASE_URL}/clients`, payload);
       return response.data;
     } catch (error) {
       throw error;
@@ -80,26 +60,28 @@ export const clientService = {
   },
 
   // Update client
-  updateClient: async (id: number, clientData: Omit<Client, 'id'>) => {
-    // Map payload to new API keys
-    const payload = {
+  updateClient: async (clientNo: string, clientData: Partial<Client>) => {
+    // Only required fields for update, but allow extra fields if provided
+    const payload: any = {
       clientName: clientData.clientName,
       companyName: clientData.companyName,
       phoneNumber: clientData.phoneNumber,
-      gstNumber: clientData.gstNumber,
       site: clientData.site,
       branch: clientData.branch,
       address: clientData.address,
-      latitude: clientData.latitude,
-      longitude: clientData.longitude,
-      status: clientData.status,
-      checkIn: clientData.check_in,
-      lunchTime: clientData.lunch_time, // map from lunch_time
-      checkOut: clientData.check_out,   // map from check_out
-      clientNo: clientData.companyNumber, // map from companyNumber
     };
+    // Optionally add other fields if present
+    if (clientData.gstNumber) payload.gstNumber = clientData.gstNumber;
+    if (clientData.location) payload.location = clientData.location;
+    if (clientData.latitude) payload.latitude = clientData.latitude;
+    if (clientData.longitude) payload.longitude = clientData.longitude;
+    if (clientData.status) payload.status = clientData.status;
+    if (clientData.checkIn) payload.checkIn = clientData.checkIn;
+    if (clientData.lunch_time) payload.lunch_time = clientData.lunch_time;
+    if (clientData.check_out) payload.check_out = clientData.check_out;
+
     try {
-      const response = await axios.put(`${BASE_URL}/clients/${id}`, payload);
+      const response = await axios.put(`${BASE_URL}/clients/by-client-no/${clientNo}`, payload);
       return response.data;
     } catch (error) {
       throw error;
@@ -107,12 +89,12 @@ export const clientService = {
   },
 
   // Delete client
-  deleteClient: async (id: number) => {
+  deleteClient: async (clientNo: string) => {
     try {
-      const response = await axios.delete(`${BASE_URL}/clients/${id}`);
+      const response = await axios.delete(`${BASE_URL}/clients/by-client-no/${clientNo}`);
       return response.data;
     } catch (error) {
       throw error;
     }
-  }
+  },
 }; 
