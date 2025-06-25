@@ -386,6 +386,11 @@ const ClientsScreen = () => {
                 <MaterialIcons name="work" size={20} color="#4CAF50" />
               </Pressable>
               <Pressable
+                onPress={() => openEditClientModal(client)}
+                className="rounded-full bg-blue-100 p-2">
+                <MaterialIcons name="edit" size={20} color="#4A90E2" />
+              </Pressable>
+              <Pressable
                 onPress={() => {
                   setSelectedClient(client);
                   setShowDeleteModal(true);
@@ -639,6 +644,37 @@ const ClientsScreen = () => {
 
   const renderItem = ({ item }: { item: Client }) => renderClientCard(item);
 
+  // Handler to open add client modal
+  const openAddClientModal = () => {
+    setFormData({
+      clientName: '',
+      companyName: '',
+      clientNo: '',
+      phoneNumber: '',
+      gstNumber: '',
+      site: '',
+      branch: '',
+      address: '',
+      location: '',
+      latitude: '',
+      longitude: '',
+      status: 'Active',
+      checkIn: '',
+      lunch_time: '',
+      check_out: '',
+    });
+    setErrors({});
+    setShowAddModal(true);
+  };
+
+  // Handler to open edit client modal
+  const openEditClientModal = (client: Client) => {
+    setSelectedClient(client);
+    setFormData({ ...client });
+    setErrors({});
+    setShowEditModal(true);
+  };
+
   return (
     <View className="flex-1 bg-gray-50">
       <Stack.Screen
@@ -674,6 +710,30 @@ const ClientsScreen = () => {
       {!readOnly && renderFormModal(true)}
       {!readOnly && renderDeleteModal()}
       {!readOnly && renderAssignWorkModal()}
+      {/* Floating Add Button */}
+      {!readOnly && (
+        <Pressable
+          onPress={openAddClientModal}
+          style={{
+            position: 'absolute',
+            right: 24,
+            bottom: 32,
+            backgroundColor: '#4A90E2',
+            borderRadius: 32,
+            width: 56,
+            height: 56,
+            alignItems: 'center',
+            justifyContent: 'center',
+            elevation: 6,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+          }}
+        >
+          <MaterialIcons name="add" size={32} color="white" />
+        </Pressable>
+      )}
     </View>
   );
 };
