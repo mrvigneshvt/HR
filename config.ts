@@ -40,6 +40,14 @@ export const configFile = {
       getPaySlip(empId: string, month: string) {
         return `${backendBaseUrl}api/payroll/employees/${empId}?month=${month}`; //2025-06
       },
+
+      getLeaveReq(id: string) {
+        return `${backendBaseUrl}api/leaves/${id}`;
+      },
+
+      getUniformReq(id: string) {
+        return `${backendBaseUrl}api/uniforms/${id}`;
+      },
     },
     superAdmin: {
       getAllClients(pageNo?: number) {

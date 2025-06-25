@@ -21,6 +21,7 @@ const FetchNParse = () => {
   };
 
   useEffect(() => {
+    storeZustand();
     if (role === 'employee') {
       router.replace({
         pathname: '/(tabs)/dashboard',

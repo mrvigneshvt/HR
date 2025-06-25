@@ -17,16 +17,15 @@ const IconImage = require('../assets/profile.png');
 const DashTop = ({ role, name, empId, img }: Props) => {
   return (
     <Pressable
-    // onPress={() =>
-    //   router.push({
-    //     pathname: '/profile',
-    //     params: {
-    //       role,
-    //       empId,
-    //     },
-    //   })
-    // }
-    >
+      onPress={() =>
+        router.push({
+          pathname: '/profile',
+          params: {
+            role,
+            empId,
+          },
+        })
+      }>
       <View
         style={{
           marginHorizontal: scale(16),

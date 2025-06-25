@@ -1,6 +1,6 @@
-import { View, Text, Dimensions, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Dimensions, ScrollView, StyleSheet, BackHandler } from 'react-native';
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import DashTop from 'components/DashTop';
 import DashBottom from 'components/DashBottom';
 import DashLast from 'components/DashLast';
@@ -8,6 +8,7 @@ import ProfileStack from 'Stacks/HeaderStack';
 import { useEmployeeStore } from 'Memory/Employee';
 import { DashMemory } from 'Memory/DashMem';
 import { Api } from 'class/HandleApi';
+import { useIsFocused } from '@react-navigation/native';
 
 const styles = StyleSheet.create({
   scrollView: {
@@ -31,6 +32,7 @@ const styles = StyleSheet.create({
 });
 
 const Index = () => {
+  const isFocus = useIsFocused();
   const { empId, role } = useLocalSearchParams<{ empId: string; role: string }>();
   const employees = useEmployeeStore((state) => state.employee);
   console.log(employees, '//////////////////////////////////////////employexz');
@@ -60,6 +62,20 @@ const Index = () => {
     setupEmpData();
   }, []);
 
+  useEffect(() => {
+    const onBackPress = () => {
+      router.replace({
+        pathname: '/(tabs)/dashboard',
+        params: {
+          role,
+          empId,
+        },
+      });
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, []);
   // Update gender once empData is available
   useEffect(() => {
     console.log('empData Recoeved', empData, 'typeee', typeof empData);

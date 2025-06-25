@@ -18,6 +18,7 @@ import AdminCalendar from '../../../components/adminCalendar';
 import { configFile } from 'config';
 import axios from 'axios';
 import { isReadOnlyRole } from 'utils/roleUtils';
+import { useIsFocused } from '@react-navigation/native';
 
 interface AttendanceData {
   id: number;
@@ -57,6 +58,7 @@ interface AttendanceResponse {
 const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
 
 const AttendanceScreen = () => {
+  const isFocussed = useIsFocused();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [attendance, setAttendance] = useState<AttendanceData[]>([]);
@@ -138,7 +140,7 @@ const AttendanceScreen = () => {
 
   useEffect(() => {
     fetchAttendance();
-  }, []);
+  }, [isFocussed]);
 
   useEffect(() => {
     setFiltered(
