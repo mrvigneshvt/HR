@@ -42,6 +42,7 @@ const ClientsScreen = () => {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [search, setSearch] = useState('');
   const [clients, setClients] = useState<Client[]>([]);
+  const [allClients, setAllClients] = useState<Client[]>([]);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [loading, setLoading] = useState(false);
@@ -88,11 +89,9 @@ const ClientsScreen = () => {
   }, []);
 
   const fetchClients = async (pageNo: number) => {
-    if (pageNo > totalPages && pageNo !== 1) return; // avoid extra calls
-
+    if (pageNo > totalPages) return;
     try {
       pageNo === 1 ? setLoading(true) : setFetchingMore(true);
-
       const url = configFile.api.superAdmin.getAllClients(pageNo);
       const response:any = await Api.handleApi({ url, type: 'GET' });
       if (response.status === 200) {
@@ -100,18 +99,18 @@ const ClientsScreen = () => {
         const totalPagesData = response.data.pagination && typeof response.data.pagination.totalPages === 'number'
           ? response.data.pagination.totalPages
           : 1;
-        setClients((prev) =>
-          pageNo === 1 ? clientsData : [...prev, ...clientsData]
-        );
+        if (pageNo === 1) {
+          setAllClients(clientsData);
+        } else {
+          setAllClients((prev) => [...prev, ...clientsData]);
+        }
         setTotalPages(totalPagesData);
         setPage(pageNo + 1);
-        return;
       } else if (response.status === 500) {
         Alert.alert('Error Fetching Clients');
         setTimeout(() => {
           NavRouter.backOrigin({ role: role || '', empId: empId || '' });
         }, 2000);
-        return;
       }
     } catch (error) {
       console.error('Error fetching clients:', error);
@@ -119,6 +118,29 @@ const ClientsScreen = () => {
       setLoading(false);
       setFetchingMore(false);
     }
+  };
+
+  useEffect(() => {
+    if (!search) {
+      setClients(allClients);
+    } else {
+      setClients(
+        allClients.filter(
+          (client) =>
+            client.clientName.toLowerCase().includes(search.toLowerCase()) ||
+            client.companyName.toLowerCase().includes(search.toLowerCase()) ||
+            client.location.toLowerCase().includes(search.toLowerCase())
+        )
+      );
+    }
+  }, [search, allClients]);
+
+  const reloadClients = async () => {
+    setPage(1);
+    setTotalPages(1);
+    setAllClients([]);
+    setClients([]);
+    await fetchClients(1);
   };
 
   const handleInputChange = (field: keyof Client, value: string) => {
@@ -279,7 +301,7 @@ const ClientsScreen = () => {
         const data = await clientService.addClient(formData as Omit<Client, 'id'>);
         Alert.alert('Success', 'Client added successfully!');
       }
-      await fetchClients(1);
+      await reloadClients();
       setShowAddModal(false);
       setShowEditModal(false);
     } catch (error: any) {
