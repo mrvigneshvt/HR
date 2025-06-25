@@ -95,7 +95,26 @@ const ClientsScreen = () => {
       const url = configFile.api.superAdmin.getAllClients(pageNo);
       const response:any = await Api.handleApi({ url, type: 'GET' });
       if (response.status === 200) {
-        const clientsData = Array.isArray(response.data.clients) ? response.data.clients : [];
+        const clientsDataRaw = Array.isArray(response.data.clients) ? response.data.clients : [];
+        // Map snake_case API data to camelCase Client interface
+        const clientsData = clientsDataRaw.map((c: any) => ({
+          id: c.id,
+          clientName: c.client_name,
+          companyName: c.company_name,
+          clientNo: c.client_no,
+          phoneNumber: c.phone_number,
+          gstNumber: c.gst_number,
+          site: c.site,
+          branch: c.branch,
+          address: c.address,
+          location: c.location,
+          latitude: c.latitude,
+          longitude: c.longitude,
+          status: c.status,
+          checkIn: c.check_in,
+          lunch_time: c.lunch_time,
+          check_out: c.check_out,
+        }));
         const totalPagesData = response.data.pagination && typeof response.data.pagination.totalPages === 'number'
           ? response.data.pagination.totalPages
           : 1;
