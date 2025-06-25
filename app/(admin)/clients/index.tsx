@@ -303,7 +303,6 @@ const ClientsScreen = () => {
     setSelectedClient(null);
   };
 
-  console.log(formData, 'formDatas');
 
   const handleSubmit = async (isEdit: boolean) => {
     const validationErrors = validateClientForm(formData, isEdit);
@@ -414,8 +413,9 @@ const ClientsScreen = () => {
             <Text className="w-[200px] truncate text-xl font-bold text-gray-800">
               {client.clientName}
             </Text>
+            {console.log(client,"client")}
             <Text className="w-[200px] truncate text-gray-600">Company: {client.companyName}</Text>
-            <Text className="w-[200px] truncate text-gray-600">Location: {client.location}</Text>
+            <Text className="w-[200px] truncate text-gray-600">Location: {client?.address}</Text>
             <Text className="w-[200px] truncate text-gray-600">Status: {client.status}</Text>
             <Text className="w-[200px] truncate text-gray-600">ID: : {client.clientNo}</Text>
           </View>
