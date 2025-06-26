@@ -93,7 +93,7 @@ const ClientsScreen = () => {
     try {
       pageNo === 1 ? setLoading(true) : setFetchingMore(true);
       const url = configFile.api.superAdmin.getAllClients(pageNo);
-      const response:any = await Api.handleApi({ url, type: 'GET' });
+      const response: any = await Api.handleApi({ url, type: 'GET' });
       if (response.status === 200) {
         const clientsDataRaw = Array.isArray(response.data.clients) ? response.data.clients : [];
         // Map snake_case API data to camelCase Client interface
@@ -115,9 +115,10 @@ const ClientsScreen = () => {
           lunch_time: c.lunch_time,
           check_out: c.check_out,
         }));
-        const totalPagesData = response.data.pagination && typeof response.data.pagination.totalPages === 'number'
-          ? response.data.pagination.totalPages
-          : 1;
+        const totalPagesData =
+          response.data.pagination && typeof response.data.pagination.totalPages === 'number'
+            ? response.data.pagination.totalPages
+            : 1;
         if (pageNo === 1) {
           setAllClients(clientsData);
         } else {
@@ -178,7 +179,7 @@ const ClientsScreen = () => {
   };
 
   const handleAssignWorkClick = (client: Client) => {
-    console.log(client, '//////////Client');
+    // console.log(client, '//////////Client');
     // Validate client has required fields for work assignment
     const clientValidationErrors = validateClientForAssignWork(client);
     if (Object.keys(clientValidationErrors).length > 0) {
@@ -303,7 +304,6 @@ const ClientsScreen = () => {
     setSelectedClient(null);
   };
 
-
   const handleSubmit = async (isEdit: boolean) => {
     const validationErrors = validateClientForm(formData, isEdit);
     if (Object.keys(validationErrors).length > 0) {
@@ -313,15 +313,62 @@ const ClientsScreen = () => {
     try {
       setIsSubmitting(true);
       if (isEdit && selectedClient?.clientNo) {
-        await clientService.updateClient(selectedClient.clientNo, formData);
-        Alert.alert('Success', 'Client updated successfully!');
+        console.log('formData::', formData);
+        // await clientService.updateClient(selectedClient.clientNo, formData);
+        const payload: any = {
+          clientName: formData.clientName,
+          companyName: formData.companyName,
+          clientNo: formData.clientNo,
+          phoneNumber: formData.phoneNumber,
+          gstNumber: formData.gstNumber,
+          site: formData.site,
+          branch: formData.branch,
+          address: formData.address,
+          location: formData.location,
+          latitude: formData.latitude,
+          longitude: formData.longitude,
+          status: formData.status,
+          checkIn: formData.checkIn,
+          checkOut: formData.check_out,
+          lunchTime: formData.lunch_time,
+        };
+        const url = configFile.api.superAdmin.updateClients(payload.clientNo);
+        console.log(url, 'urlllll');
+
+        const api = await Api.handleApi({ url, type: 'PUT', payload });
+
+        switch (api.status) {
+          case 200:
+            Alert.alert('Success', 'Client updated successfully!');
+            await reloadClients();
+            setShowAddModal(false);
+            setShowEditModal(false);
+            return;
+
+          case 400:
+            Alert.alert(
+              'Failed',
+              'Missing Required Fields [ClientName , CompanyName , Site , Branch , PhoneNumber , ClientNo , Address]!'
+            );
+            return;
+          case 404:
+            Alert.alert('Failed', 'Client Not Found !');
+            return;
+
+          case 500:
+            Alert.alert('Failed', 'Internal Server Error !');
+            return;
+        }
       } else {
         const data = await clientService.addClient(formData as Omit<Client, 'id'>);
+
+        // const payLoad
         Alert.alert('Success', 'Client added successfully!');
+        await reloadClients();
+        setShowAddModal(false);
+        setShowEditModal(false);
+        return;
       }
-      await reloadClients();
-      setShowAddModal(false);
-      setShowEditModal(false);
     } catch (error: any) {
       let errorMessage = 'Failed to save client. Please try again.';
       if (error.response?.data?.message) {
@@ -375,7 +422,9 @@ const ClientsScreen = () => {
       <Text className="mb-1 text-sm font-medium text-gray-700">{label}</Text>
       <TextInput
         className={`rounded-lg border p-2 ${errors[field] ? 'border-red-500' : 'border-gray-300'}`}
-        value={formData[field] !== undefined && formData[field] !== null ? String(formData[field]) : ''}
+        value={
+          formData[field] !== undefined && formData[field] !== null ? String(formData[field]) : ''
+        }
         onChangeText={(value) => handleInputChange(field, value)}
         placeholder={placeholder}
         keyboardType={keyboardType}
@@ -413,7 +462,6 @@ const ClientsScreen = () => {
             <Text className="w-[200px] truncate text-xl font-bold text-gray-800">
               {client.clientName}
             </Text>
-            {console.log(client,"client")}
             <Text className="w-[200px] truncate text-gray-600">Company: {client.companyName}</Text>
             <Text className="w-[200px] truncate text-gray-600">Location: {client?.address}</Text>
             <Text className="w-[200px] truncate text-gray-600">Status: {client.status}</Text>
@@ -460,14 +508,14 @@ const ClientsScreen = () => {
           <ScrollView className="max-h-[90vh] rounded-t-3xl bg-white p-6">
             <Text className="mb-4 text-xl font-bold">{isEdit ? 'Edit Client' : 'Add Client'}</Text>
 
-            {renderFormField('Client Name', 'clientName', 'Enter client name')}
-            {renderFormField('Company Name', 'companyName', 'Enter company name')}
-            {renderFormField('Client Number', 'clientNo', 'Enter client number')}
-            {renderFormField('Phone Number', 'phoneNumber', 'Enter phone number', 'numeric')}
-            {renderFormField('GST Number', 'gstNumber', 'Enter GST number')}
-            {renderFormField('Site', 'site', 'Enter site')}
-            {renderFormField('Branch', 'branch', 'Enter branch')}
-            {renderFormField('Address', 'address', 'Enter address')}
+            {renderFormField('Client Name *', 'clientName', 'Enter client name')}
+            {renderFormField('Company Name *', 'companyName', 'Enter company name')}
+            {renderFormField('Client Number *', 'clientNo', 'Enter client number')}
+            {renderFormField('Phone Number *', 'phoneNumber', 'Enter phone number', 'numeric')}
+            {renderFormField('GST Number ', 'gstNumber', 'Enter GST number')}
+            {renderFormField('Site *', 'site', 'Enter site')}
+            {renderFormField('Branch *', 'branch', 'Enter branch')}
+            {renderFormField('Address *', 'address', 'Enter address')}
             {renderFormField('Location', 'location', 'Enter location')}
             {renderFormField('Latitude', 'latitude', 'Enter latitude', 'numeric')}
             {renderFormField('Longitude', 'longitude', 'Enter longitude', 'numeric')}
@@ -770,8 +818,7 @@ const ClientsScreen = () => {
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.2,
             shadowRadius: 4,
-          }}
-        >
+          }}>
           <MaterialIcons name="add" size={32} color="white" />
         </Pressable>
       )}

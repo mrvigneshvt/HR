@@ -50,11 +50,18 @@ export const configFile = {
       },
     },
     superAdmin: {
+      addClient() {
+        return `${backendBaseUrl}api/clients`; //post method
+      },
       getAllClients(pageNo?: number) {
         return !pageNo
           ? `${backendBaseUrl}api/clients?page=1`
           : `${backendBaseUrl}api/clients?page=${pageNo}`;
       },
+      updateClients(id: string) {
+        return `${backendBaseUrl}api/clients/by-client-no/${id}`; //put method
+      },
+      deleteClients(id: string) {},
       assignWork() {
         return `${backendBaseUrl}api/attendance/assignWork`;
       },

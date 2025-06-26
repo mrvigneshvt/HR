@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { configFile } from 'config';
 
 const BASE_URL = 'https://sdceweb.lyzooapp.co.in:31313/api';
 
@@ -34,25 +35,38 @@ export const clientService = {
 
   // Add new client
   addClient: async (clientData: Omit<Client, 'id'>) => {
-    const payload = {
-      clientName: clientData.clientName,
-      companyName: clientData.companyName,
-      clientNo: clientData.clientNo,
-      phoneNumber: clientData.phoneNumber,
-      gstNumber: clientData.gstNumber,
-      site: clientData.site,
-      branch: clientData.branch,
-      address: clientData.address,
-      location: clientData.location,
-      latitude: clientData.latitude,
-      longitude: clientData.longitude,
-      status: clientData.status,
-      checkIn: clientData.checkIn,
-      lunch_time: clientData.lunch_time,
-      check_out: clientData.check_out,
-    };
+    console.log(clientData, '/////ClientDATA');
+    const allowedKeys = [
+      'clientName',
+      'companyName',
+      'clientNo',
+      'phoneNumber',
+      'gstNumber',
+      'site',
+      'branch',
+      'address',
+      'location',
+      'latitude',
+      'longitude',
+      'status',
+      'checkIn',
+      'lunch_time',
+      'check_out',
+    ];
+
+    const payload: Record<string, any> = {};
+
+    for (const key of allowedKeys) {
+      if (clientData[key as keyof typeof clientData].length > 1) {
+        payload[key] = clientData[key as keyof typeof clientData];
+      }
+    }
+
     try {
-      const response = await axios.post(`${BASE_URL}/clients`, payload);
+      const url = configFile.api.superAdmin.addClient();
+      console.log(payload, '////payload////', url);
+      const response = await axios.post(`${url}`, payload);
+      console.log(response, '///Res');
       return response.data;
     } catch (error) {
       throw error;
@@ -97,4 +111,4 @@ export const clientService = {
       throw error;
     }
   },
-}; 
+};
