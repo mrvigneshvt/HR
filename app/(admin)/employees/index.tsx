@@ -29,6 +29,7 @@ import EmployeeIdCard from '../../../components/EmployeeIdCardFront';
 import EmployeeIdCardDetail from '../../../components/employeeIdCardDetails';
 import { Api } from 'class/HandleApi';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useIsFocused } from '@react-navigation/native';
 
 const { width: screenWidth } = Dimensions.get('window');
 const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
@@ -184,6 +185,7 @@ const initialEmployeeState: Employee = {
 
 const EmployeesScreen = () => {
   const params = useLocalSearchParams();
+  const isFocus = useIsFocused();
 
   const role = params.role as string | undefined;
   const empId = params.empId as string | undefined;
@@ -212,7 +214,7 @@ const EmployeesScreen = () => {
 
   useEffect(() => {
     fetchEmployees();
-  }, []);
+  }, [isFocus]);
 
   const fetchEmployees = async () => {
     try {
@@ -227,7 +229,7 @@ const EmployeesScreen = () => {
         timeout: 10000, // 10 second timeout
       });
 
-      console.log('Fetch Response:', response.data);
+      // console.log('Fetch Response:', response.data);
 
       if (response.data && Array.isArray(response.data)) {
         setEmployeeList(response.data);
@@ -264,41 +266,84 @@ const EmployeesScreen = () => {
 
   useEffect(() => {
     setFilteredList(
-      employeeList.filter(
-        (emp) =>
-          emp.name.toLowerCase().includes(search.toLowerCase()) ||
-          emp.employee_id.toLowerCase().includes(search.toLowerCase())
-      )
+      employeeList.filter((emp) => {
+        if (emp.name && emp.employee_id) {
+          return (
+            emp.name.toLowerCase().includes(search.toLowerCase()) ||
+            emp.employee_id.toLowerCase().includes(search.toLowerCase())
+          );
+        }
+        return false; // ignore this emp if any required field is missing
+      })
     );
   }, [search, employeeList]);
 
   const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    // ✅ Required Fields Only
+    if (!newEmployee.employee_id?.trim()) {
+      newErrors.employee_id = 'Employee ID is required';
+    } else if (!/^[A-Z0-9]{3,10}$/.test(newEmployee.employee_id)) {
+      newErrors.employee_id = 'Employee ID must be 3-10 characters (letters and numbers only)';
+    }
+
+    if (!newEmployee.aadhaar_number?.trim()) {
+      newErrors.aadhaar_number = 'Aadhaar number is required';
+    } else if (!/^\d{12}$/.test(newEmployee.aadhaar_number)) {
+      newErrors.aadhaar_number = 'Aadhaar number must be 12 digits';
+    }
+
+    if (!newEmployee.contact_email?.trim()) {
+      newErrors.contact_email = 'Email is required';
+    } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(newEmployee.contact_email)) {
+      newErrors.contact_email = 'Invalid email format';
+    }
+
+    if (!newEmployee.contact_mobile_no?.trim()) {
+      newErrors.contact_mobile_no = 'Mobile number is required';
+    } else if (!/^[6-9]\d{9}$/.test(newEmployee.contact_mobile_no)) {
+      newErrors.contact_mobile_no = 'Mobile number must be 10 digits starting with 6-9';
+    }
+
+    if (!newEmployee.emergency_contact_phone?.trim()) {
+      newErrors.emergency_contact_phone = 'Emergency contact phone is required';
+    } else if (!/^[6-9]\d{9}$/.test(newEmployee.emergency_contact_phone)) {
+      newErrors.emergency_contact_phone = 'Emergency contact must be 10 digits starting with 6-9';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const ValidateForm = (): boolean => {
     const newErrors: FormErrors = {};
     if (!newEmployee.employee_id?.trim()) {
       newErrors.employee_id = 'Employee ID is required';
     } else if (!/^[A-Z0-9]{3,10}$/.test(newEmployee.employee_id)) {
       newErrors.employee_id = 'Employee ID must be 3-10 characters (letters and numbers only)';
     }
-    if (!newEmployee.name?.trim()) {
-      newErrors.name = 'Name is required';
-    }
-    if (!newEmployee.father_spouse_name?.trim()) {
-      newErrors.father_spouse_name = 'Father/Spouse Name is required';
-    }
+    // if (!newEmployee.name?.trim()) {
+    //   newErrors.name = 'Name is required';
+    // }
+    // if (!newEmployee.father_spouse_name?.trim()) {
+    //   newErrors.father_spouse_name = 'Father/Spouse Name is required';
+    // }
     // if (!newEmployee.guardian_name?.trim()) {
     //   newErrors.guardian_name = 'Guardian Name is required';
     // }
-    if (!newEmployee.dob?.trim()) {
-      newErrors.dob = 'Date of Birth is required';
-    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(newEmployee.dob)) {
-      newErrors.dob = 'Date of Birth must be in YYYY-MM-DD format';
-    }
-    if (!newEmployee.gender) {
-      newErrors.gender = 'Gender is required';
-    }
-    if (newEmployee.age === null || isNaN(Number(newEmployee.age))) {
-      newErrors.age = 'Age is required';
-    }
+    // if (!newEmployee.dob?.trim()) {
+    //   newErrors.dob = 'Date of Birth is required';
+    // } else
+    // if (!/^\d{4}-\d{2}-\d{2}$/.test(newEmployee.dob)) {
+    //   newErrors.dob = 'Date of Birth must be in YYYY-MM-DD format';
+    // }
+    // if (!newEmployee.gender) {
+    //   newErrors.gender = 'Gender is required';
+    // }
+    // if (newEmployee.age === null || isNaN(Number(newEmployee.age))) {
+    //   newErrors.age = 'Age is required';
+    // }
     // if (!newEmployee.marital_status?.trim()) {
     //   newErrors.marital_status = 'Marital Status is required';
     // }
@@ -307,12 +352,12 @@ const EmployeesScreen = () => {
     } else if (!/^\d{12}$/.test(newEmployee.aadhaar_number)) {
       newErrors.aadhaar_number = 'Aadhaar number must be 12 digits';
     }
-    if (typeof newEmployee.is_aadhaar_verified !== 'boolean') {
-      newErrors.is_aadhaar_verified = 'Aadhaar verified is required';
-    }
-    if (typeof newEmployee.mobile_verified !== 'boolean') {
-      newErrors.mobile_verified = 'Mobile verified is required';
-    }
+    // if (typeof newEmployee.is_aadhaar_verified !== 'boolean') {
+    //   newErrors.is_aadhaar_verified = 'Aadhaar verified is required';
+    // }
+    // if (typeof newEmployee.mobile_verified !== 'boolean') {
+    //   newErrors.mobile_verified = 'Mobile verified is required';
+    // }
     if (!newEmployee.contact_email?.trim()) {
       newErrors.contact_email = 'Email is required';
     } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(newEmployee.contact_email)) {
@@ -323,121 +368,136 @@ const EmployeesScreen = () => {
     } else if (!/^[6-9]\d{9}$/.test(newEmployee.contact_mobile_no)) {
       newErrors.contact_mobile_no = 'Mobile number must be 10 digits starting with 6-9';
     }
-    if (!newEmployee.emergency_contact_name?.trim()) {
-      newErrors.emergency_contact_name = 'Emergency contact name is required';
-    }
+    // if (!newEmployee.emergency_contact_name?.trim()) {
+    //   newErrors.emergency_contact_name = 'Emergency contact name is required';
+    // }
     if (!newEmployee.emergency_contact_phone?.trim()) {
       newErrors.emergency_contact_phone = 'Emergency contact phone is required';
     } else if (!/^[6-9]\d{9}$/.test(newEmployee.emergency_contact_phone)) {
       newErrors.emergency_contact_phone = 'Emergency contact must be 10 digits starting with 6-9';
     }
-    if (!newEmployee.address_country?.trim()) {
-      newErrors.address_country = 'Country is required';
-    }
-    if (!newEmployee.address_state?.trim()) {
-      newErrors.address_state = 'State is required';
-    }
-    if (!newEmployee.address_district?.trim()) {
-      newErrors.address_district = 'District is required';
-    }
-    if (!newEmployee.address_po?.trim()) {
-      newErrors.address_po = 'Post Office is required';
-    }
-    if (!newEmployee.address_street?.trim()) {
-      newErrors.address_street = 'Street is required';
-    }
-    if (!newEmployee.address_house?.trim()) {
-      newErrors.address_house = 'House number is required';
-    }
-    if (!newEmployee.address_landmark?.trim()) {
-      newErrors.address_landmark = 'Landmark is required';
-    }
-    if (!newEmployee.address_zip?.trim()) {
-      newErrors.address_zip = 'ZIP code is required';
-    } else if (!/^\d{6}$/.test(newEmployee.address_zip)) {
-      newErrors.address_zip = 'ZIP code must be 6 digits';
-    }
-    if (!newEmployee.communication_address?.trim()) {
-      newErrors.communication_address = 'Communication address is required';
-    }
-    if (!newEmployee.date_of_joining?.trim()) {
-      newErrors.date_of_joining = 'Date of joining is required';
-    } else if (!/^\d{4}-\d{2}-\d{2}$/.test(newEmployee.date_of_joining)) {
-      newErrors.date_of_joining = 'Date of joining must be in YYYY-MM-DD format';
-    }
-    if (!newEmployee.role?.trim()) {
-      newErrors.role = 'Role is required';
-    }
-    if (!newEmployee.department?.trim()) {
-      newErrors.department = 'Department is required';
-    }
-    if (!newEmployee.designation?.trim()) {
-      newErrors.designation = 'Designation is required';
-    }
-    if (!newEmployee.branch?.trim()) {
-      newErrors.branch = 'Branch is required';
-    }
-    if (!newEmployee.reporting?.trim()) {
-      newErrors.reporting = 'Reporting manager is required';
-    }
-    if (!newEmployee.reference_id?.trim()) {
-      newErrors.reference_id = 'Reference ID is required';
-    }
-    if (!newEmployee.account_number?.trim()) {
-      newErrors.account_number = 'Account number is required';
-    }
-    if (!newEmployee.ifsc?.trim()) {
-      newErrors.ifsc = 'IFSC code is required';
-    }
-    if (!newEmployee.bank_name?.trim()) {
-      newErrors.bank_name = 'Bank name is required';
-    }
-    if (!newEmployee.name_at_bank?.trim()) {
-      newErrors.name_at_bank = 'Name at bank is required';
-    }
-    if (!newEmployee.bank_branch?.trim()) {
-      newErrors.bank_branch = 'Bank branch is required';
-    }
-    if (typeof newEmployee.is_bank_verified !== 'boolean') {
-      newErrors.is_bank_verified = 'Bank verified is required';
-    }
-    if (!newEmployee.uan_number?.trim()) {
-      newErrors.uan_number = 'UAN number is required';
-    }
-    if (!newEmployee.esi_number?.trim()) {
-      newErrors.esi_number = 'ESI number is required';
-    }
+    // if (!newEmployee.address_country?.trim()) {
+    //   newErrors.address_country = 'Country is required';
+    // }
+    // if (!newEmployee.address_state?.trim()) {
+    //   newErrors.address_state = 'State is required';
+    // }
+    // if (!newEmployee.address_district?.trim()) {
+    //   newErrors.address_district = 'District is required';
+    // }
+    // if (!newEmployee.address_po?.trim()) {
+    //   newErrors.address_po = 'Post Office is required';
+    // }
+    // if (!newEmployee.address_street?.trim()) {
+    //   newErrors.address_street = 'Street is required';
+    // }
+    // if (!newEmployee.address_house?.trim()) {
+    //   newErrors.address_house = 'House number is required';
+    // }
+    // if (!newEmployee.address_landmark?.trim()) {
+    //   newErrors.address_landmark = 'Landmark is required';
+    // }
+    // if (!newEmployee.address_zip?.trim()) {
+    //   newErrors.address_zip = 'ZIP code is required';
+    // } else if (!/^\d{6}$/.test(newEmployee.address_zip)) {
+    //   newErrors.address_zip = 'ZIP code must be 6 digits';
+    // }
+    // if (!newEmployee.communication_address?.trim()) {
+    //   newErrors.communication_address = 'Communication address is required';
+    // }
+    // if (!newEmployee.date_of_joining?.trim()) {
+    //   newErrors.date_of_joining = 'Date of joining is required';
+    // } else if (!/^\d{4}-\d{2}-\d{2}$/.test(newEmployee.date_of_joining)) {
+    //   newErrors.date_of_joining = 'Date of joining must be in YYYY-MM-DD format';
+    // }
+    // if (!newEmployee.role?.trim()) {
+    //   newErrors.role = 'Role is required';
+    // }
+    // if (!newEmployee.department?.trim()) {
+    //   newErrors.department = 'Department is required';
+    // }
+    // if (!newEmployee.designation?.trim()) {
+    //   newErrors.designation = 'Designation is required';
+    // }
+    // if (!newEmployee.branch?.trim()) {
+    //   newErrors.branch = 'Branch is required';
+    // }
+    // if (!newEmployee.reporting?.trim()) {
+    //   newErrors.reporting = 'Reporting manager is required';
+    // }
+    // if (!newEmployee.reference_id?.trim()) {
+    //   newErrors.reference_id = 'Reference ID is required';
+    // }
+    // if (!newEmployee.account_number?.trim()) {
+    //   newErrors.account_number = 'Account number is required';
+    // }
+    // if (!newEmployee.ifsc?.trim()) {
+    //   newErrors.ifsc = 'IFSC code is required';
+    // }
+    // if (!newEmployee.bank_name?.trim()) {
+    //   newErrors.bank_name = 'Bank name is required';
+    // }
+    // if (!newEmployee.name_at_bank?.trim()) {
+    //   newErrors.name_at_bank = 'Name at bank is required';
+    // }
+    // if (!newEmployee.bank_branch?.trim()) {
+    //   newErrors.bank_branch = 'Bank branch is required';
+    // }
+    // if (typeof newEmployee.is_bank_verified !== 'boolean') {
+    //   newErrors.is_bank_verified = 'Bank verified is required';
+    // }
+    // if (!newEmployee.uan_number?.trim()) {
+    //   newErrors.uan_number = 'UAN number is required';
+    // }
+    // if (!newEmployee.esi_number?.trim()) {
+    //   newErrors.esi_number = 'ESI number is required';
+    // }
     // if (!newEmployee.esi_card?.trim()) {
     //   newErrors.esi_card = 'ESI card is required';
     // }
-    if (!newEmployee.pan_number?.trim()) {
-      newErrors.pan_number = 'PAN number is required';
-    }
+    // if (!newEmployee.pan_number?.trim()) {
+    //   newErrors.pan_number = 'PAN number is required';
+    // }
     // if (!newEmployee.pan_card?.trim()) {
     //   newErrors.pan_card = 'PAN card is required';
     // }
-    if (!newEmployee.driving_license?.trim()) {
-      newErrors.driving_license = 'Driving license is required';
-    }
+    // if (!newEmployee.driving_license?.trim()) {
+    //   newErrors.driving_license = 'Driving license is required';
+    // }
     // if (!newEmployee.driving_license_card?.trim()) {
     //   newErrors.driving_license_card = 'Driving license card is required';
     // }
-    if (!newEmployee.status?.trim()) {
-      newErrors.status = 'Status is required';
-    }
+    // if (!newEmployee.status?.trim()) {
+    //   newErrors.status = 'Status is required';
+    // }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
   console.log(errors, '/thialkaerrors');
+
+  const validatePayload = () => {
+    const keys: Partial<Employee> = {};
+
+    for (const key in newEmployee) {
+      const value = newEmployee[key as keyof Employee];
+      if (value !== '' && value !== null && value !== undefined) {
+        keys[key as keyof Employee] = value;
+      }
+    }
+
+    return keys;
+  };
 
   const handleAddEmployee = async () => {
     if (!validateForm()) {
       Alert.alert('Validation Error', 'Please fill in all required fields correctly');
       return;
     }
+
     try {
       setLoading(true);
-      const employeeData = { ...newEmployee };
+      const employeeData = validatePayload();
+      console.log(employeeData, '/////Payload');
       const response = await axios.post(`${BASE_URL}/employees`, employeeData, {
         headers: {
           'Content-Type': 'application/json',
@@ -458,6 +518,7 @@ const EmployeesScreen = () => {
       if (error.response) {
         errorMessage = error.response.data?.error || errorMessage;
       } else if (error.request) {
+        ///Update Fields
         errorMessage = 'No response from server. Please check your internet connection.';
       }
       Alert.alert('Error', errorMessage);
@@ -526,15 +587,26 @@ const EmployeesScreen = () => {
     setShowEditModal(true);
   };
 
-  const handleUpdateEmployee = async (updateFields: { status: string }) => {
+  const handleUpdateEmployee = async (updateFields: Record<string, any>) => {
+    console.log(updateFields, '///Update Fields');
     if (!selectedEmployee) return;
 
     try {
       setLoading(true);
 
-      const response = await axios.put(`${BASE_URL}/employees/${selectedEmployee.employee_id}`, {
-        status: updateFields.status,
-      });
+      updateFields = {
+        ...updateFields,
+        date_of_joining: '',
+        dob: '',
+      };
+
+      delete updateFields.dob;
+      delete updateFields.date_of_joining;
+
+      const response = await axios.put(
+        `${BASE_URL}/employees/${selectedEmployee.employee_id}`,
+        updateFields
+      );
 
       console.log('Response:', response.data);
 
@@ -602,8 +674,8 @@ const EmployeesScreen = () => {
       {!readOnly && (
         <View style={{ flexDirection: 'row', gap: 10 }}>
           <Pressable onPress={() => handleViewEmployee(item)}>
-            <FontAwesome name="street-view" size={20} color="#4A90E2" />
-            {/* <MaterialIcons name="edit" size={20} color="#4A90E2" /> */}
+            {/* <FontAwesome name="street-view" size={20} color="#4A90E2" /> */}
+            <MaterialIcons name="edit" size={20} color="#4A90E2" />
           </Pressable>
           <Pressable
             onPress={() => {
@@ -659,7 +731,7 @@ const EmployeesScreen = () => {
             <TextInput
               value={newEmployee.employee_id}
               onChangeText={(text) => {
-                setNewEmployee({ ...newEmployee, employee_id: text });
+                setNewEmployee({ ...newEmployee, employee_id: text.toUpperCase() });
                 if (errors.employee_id) setErrors({ ...errors, employee_id: undefined });
               }}
               placeholder="Enter employee ID"
@@ -667,7 +739,7 @@ const EmployeesScreen = () => {
             />
             {errors.employee_id && <Text style={styles.errorText}>{errors.employee_id}</Text>}
 
-            <Text>Name *</Text>
+            <Text>Name </Text>
             <TextInput
               value={newEmployee.name}
               onChangeText={(text) => {
@@ -679,7 +751,7 @@ const EmployeesScreen = () => {
             />
             {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
 
-            <Text>Gender *</Text>
+            <Text>Gender </Text>
             <View style={styles.radioGroup}>
               <Pressable
                 style={[
@@ -716,8 +788,9 @@ const EmployeesScreen = () => {
 
             <Text>Date of Birth</Text>
             <TextInput
+              editable={false}
               value={newEmployee.dob || ''}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, dob: text })}
+              // onChangeText={(text) => setNewEmployee({ ...newEmployee, dob: text })}
               placeholder="YYYY-MM-DD"
               style={styles.input}
             />
@@ -766,7 +839,7 @@ const EmployeesScreen = () => {
               <Text style={styles.errorText}>{errors.contact_mobile_no}</Text>
             )}
 
-            <Text>Emergency Contact Name *</Text>
+            <Text>Emergency Contact Name </Text>
             <TextInput
               value={newEmployee.emergency_contact_name}
               onChangeText={(text) => {
@@ -867,7 +940,7 @@ const EmployeesScreen = () => {
 
             {/* Employment Information */}
             <Text style={styles.sectionTitle}>Employment Information</Text>
-            <Text>Role *</Text>
+            <Text>Role </Text>
             <TextInput
               value={newEmployee.role}
               onChangeText={(text) => {
@@ -879,7 +952,7 @@ const EmployeesScreen = () => {
             />
             {errors.role && <Text style={styles.errorText}>{errors.role}</Text>}
 
-            <Text>Department *</Text>
+            <Text>Department </Text>
             <TextInput
               value={newEmployee.department}
               onChangeText={(text) => {
@@ -891,7 +964,7 @@ const EmployeesScreen = () => {
             />
             {errors.department && <Text style={styles.errorText}>{errors.department}</Text>}
 
-            <Text>Designation *</Text>
+            <Text>Designation </Text>
             <TextInput
               value={newEmployee.designation}
               onChangeText={(text) => {
@@ -903,7 +976,7 @@ const EmployeesScreen = () => {
             />
             {errors.designation && <Text style={styles.errorText}>{errors.designation}</Text>}
 
-            <Text>Branch *</Text>
+            <Text>Branch </Text>
             <TextInput
               value={newEmployee.branch}
               onChangeText={(text) => {
@@ -915,7 +988,7 @@ const EmployeesScreen = () => {
             />
             {errors.branch && <Text style={styles.errorText}>{errors.branch}</Text>}
 
-            <Text>Reporting Manager *</Text>
+            <Text>Reporting Manager </Text>
             <TextInput
               value={newEmployee.reporting}
               onChangeText={(text) => {
@@ -1020,13 +1093,13 @@ const EmployeesScreen = () => {
             </View>
 
             {/* Profile Image */}
-            <Text>Profile Image</Text>
+            {/* <Text>Profile Image</Text>
             <TextInput
               value={newEmployee.profile_image}
               onChangeText={(text) => setNewEmployee({ ...newEmployee, profile_image: text })}
               placeholder="Enter profile image URL or leave blank"
               style={styles.input}
-            />
+            /> */}
 
             {/* Communication Address */}
             <Text>Communication Address</Text>
@@ -1042,6 +1115,7 @@ const EmployeesScreen = () => {
             {/* Date of Joining */}
             <Text>Date of Joining</Text>
             <TextInput
+              editable={false}
               value={newEmployee.date_of_joining}
               onChangeText={(text) => setNewEmployee({ ...newEmployee, date_of_joining: text })}
               placeholder="YYYY-MM-DD"
@@ -1089,7 +1163,7 @@ const EmployeesScreen = () => {
             />
 
             {/* Name at Bank */}
-            <Text>Name at Bank *</Text>
+            <Text>Name at Bank </Text>
             <TextInput
               value={newEmployee.name_at_bank}
               onChangeText={(text) => setNewEmployee({ ...newEmployee, name_at_bank: text })}
@@ -1144,9 +1218,9 @@ const EmployeesScreen = () => {
             <Text>ESI Card</Text>
             <TextInput
               value={newEmployee.esi_card}
-              onChangeText={(text) => setNewEmployee({ ...newEmployee, esi_card: text })}
               placeholder="Enter ESI card URL"
               style={styles.input}
+              editable={false}
             />
 
             {/* PAN Number */}
@@ -1290,7 +1364,7 @@ const EmployeesScreen = () => {
                   }}>
                   {/* <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Edit Employee Details</Text> */}
 
-                  <Text style={{ fontSize: 18, fontWeight: 'bold' }}>View Employee Details</Text>
+                  <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Update Employee Details</Text>
                   <TouchableOpacity onPress={() => setShowEditModal(false)}>
                     <MaterialIcons name="close" size={24} color="#666" />
                   </TouchableOpacity>
@@ -1345,6 +1419,7 @@ const EmployeesScreen = () => {
 
                 <Text>Date of Birth</Text>
                 <TextInput
+                  editable={false}
                   value={selectedEmployee?.dob}
                   onChangeText={(text) =>
                     selectedEmployee && setSelectedEmployee({ ...selectedEmployee, dob: text })
@@ -1405,6 +1480,7 @@ const EmployeesScreen = () => {
 
                 <Text>Aadhaar Number *</Text>
                 <TextInput
+                  editable={false}
                   value={selectedEmployee?.aadhaar_number}
                   onChangeText={(text) =>
                     selectedEmployee &&
@@ -1474,6 +1550,7 @@ const EmployeesScreen = () => {
                 {/* Profile Image */}
                 <Text>Profile Image</Text>
                 <TextInput
+                  editable={false}
                   value={selectedEmployee?.profile_image}
                   onChangeText={(text) =>
                     selectedEmployee &&
@@ -1655,10 +1732,11 @@ const EmployeesScreen = () => {
                 <Text>Date of Joining</Text>
                 <TextInput
                   value={selectedEmployee?.date_of_joining}
-                  onChangeText={(text) =>
-                    selectedEmployee &&
-                    setSelectedEmployee({ ...selectedEmployee, date_of_joining: text })
-                  }
+                  editable={false}
+                  // onChangeText={(text) =>
+                  //   selectedEmployee &&
+                  //   setSelectedEmployee({ ...selectedEmployee, date_of_joining: text })
+                  // }
                   placeholder="YYYY-MM-DD"
                   style={styles.input}
                 />
@@ -1842,6 +1920,7 @@ const EmployeesScreen = () => {
                 <Text>ESI Card</Text>
                 <TextInput
                   value={selectedEmployee?.esi_card}
+                  editable={false}
                   onChangeText={(text) =>
                     selectedEmployee && setSelectedEmployee({ ...selectedEmployee, esi_card: text })
                   }
@@ -1904,15 +1983,12 @@ const EmployeesScreen = () => {
 
                 {/* Buttons */}
                 <View style={styles.buttonContainer}>
-                  {/* <Pressable
-                    onPress={() => setShowEditModal(false)}
-                    style={styles.cancelButton}
-                    >
+                  <Pressable onPress={() => setShowEditModal(false)} style={styles.cancelButton}>
                     <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </Pressable> */}
+                  </Pressable>
                   <Pressable
                     onPress={() => {
-                      //  handleUpdateEmployee(selectedEmployee)
+                      handleUpdateEmployee(selectedEmployee);
                       setSelectedEmployee(null);
                       setShowEditModal(false);
                     }}
@@ -1921,8 +1997,8 @@ const EmployeesScreen = () => {
                     {loading ? (
                       <ActivityIndicator color="white" />
                     ) : (
-                      // <Text style={styles.addButtonText}>Update Employee</Text>
-                      <Text style={styles.addButtonText}>Back to Employee</Text>
+                      <Text style={styles.addButtonText}>Update Employee</Text>
+                      // <Text style={styles.addButtonText}>Back to Employee</Text>
                     )}
                   </Pressable>
                 </View>
@@ -1967,7 +2043,7 @@ const EmployeesScreen = () => {
                       padding: 10,
                       borderRadius: 6,
                     }}>
-                    <Text style={{ color: '#FF6B6B' }}>Cancel</Text>
+                    <Text style={{ color: 'black', backgroundColor: 'red' }}>Cancel</Text>
                   </Pressable>
                   <Pressable
                     onPress={handleDeleteEmployee}
@@ -1979,6 +2055,28 @@ const EmployeesScreen = () => {
             </TouchableOpacity>
           </TouchableOpacity>
         </Modal>
+      )}
+      {!readOnly && (
+        <Pressable
+          onPress={() => setShowAddModal(true)}
+          style={{
+            position: 'absolute',
+            right: 24,
+            bottom: 32,
+            backgroundColor: '#4A90E2',
+            borderRadius: 32,
+            width: 56,
+            height: 56,
+            alignItems: 'center',
+            justifyContent: 'center',
+            elevation: 6,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+          }}>
+          <MaterialIcons name="add" size={32} color="white" />
+        </Pressable>
       )}
 
       {/* ID Card Modal */}

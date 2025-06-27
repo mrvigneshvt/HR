@@ -65,6 +65,11 @@ export const configFile = {
       assignWork() {
         return `${backendBaseUrl}api/attendance/assignWork`;
       },
+      employees: {
+        add() {
+          return `${backendBaseUrl}api/employees`; //post method
+        },
+      },
     },
   },
 };

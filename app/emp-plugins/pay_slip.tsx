@@ -17,7 +17,7 @@ import { captureRef } from 'react-native-view-shot';
 import * as Print from 'expo-print';
 import { customPlugins } from 'plugins/plug';
 import * as Sharing from 'expo-sharing';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { format } from 'date-fns';
 import { Api } from 'class/HandleApi';
 import { Image } from 'expo-image';
@@ -111,7 +111,8 @@ const PaySlip = () => {
 
   return (
     <>
-      <ProfileStack Payslip={true} ShowDownload={!apiLoading && !notFound} />
+      {/* <ProfileStack Payslip={true} ShowDownload={!apiLoading && !notFound} /> */}
+      <Stack.Screen options={{ headerShown: false }} />
       <ScrollView className="flex-1">
         <MonthYearPickerHeader onChange={setDates} />
 

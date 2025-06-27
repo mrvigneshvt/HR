@@ -49,11 +49,17 @@ const LeaveRequest = () => {
 
   useEffect(() => {
     const onBackPress = () => {
+      if (role.toLowerCase() == 'employee') {
+        router.replace({
+          pathname: '/(tabs)/dashboard/',
+          params: { role, empId: employee_id },
+        });
+        return true;
+      }
       router.replace({
-        pathname: '/(tabs)/dashboard/',
+        pathname: '/(admin)/home/',
         params: { role, empId: employee_id },
       });
-      return true;
     };
     BackHandler.addEventListener('hardwareBackPress', onBackPress);
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
@@ -97,11 +103,11 @@ const LeaveRequest = () => {
     console.log(data, '.......dat////////////');
 
     if (data?.status || data?.status == true) {
-      Alert.alert(data.message.toUpperCase());
+      Alert.alert('Success', 'Leave Request Posted Successfully Wait till Management Responds');
       // setShowPop(true);
       setTimeout(() => {
         router.replace({
-          pathname: '/(tabs)/dashboard/',
+          pathname: role.toLowerCase() === 'employee' ? '/(tabs)/dashboard/' : '/(admin)/home/',
           params: {
             empId: employee_id,
             role,
@@ -110,9 +116,9 @@ const LeaveRequest = () => {
       }, 2000);
       return;
     } else {
-      Alert.alert(data?.message);
+      Alert.alert('Failed', data?.message);
       // setApiMsg(data?.message);
-      setShowPop(true);
+      // setShowPop(true);
     }
   };
 

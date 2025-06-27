@@ -303,6 +303,9 @@ export class Api {
 
         case 500:
           options.triggerPopup('Internal Server Error Try Again Later');
+
+        // default:
+        // options.triggerPopup(a)
       }
     } catch (error: any) {
       console.log('error in handleAuthV1::', error);

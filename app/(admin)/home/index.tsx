@@ -7,10 +7,30 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { configFile } from '../../../config';
 import { useEmployeeStore } from 'Memory/Employee';
+import { Api } from 'class/HandleApi';
 
 const HomeScreen = () => {
   const router = useRouter();
   const { role, empId } = useLocalSearchParams();
+
+  const setupEmpData = async () => {
+    try {
+      console.log('Invoking EMP ID:', empId);
+      const response = await Api.getEmpData(String(empId));
+      if (!response) {
+        console.log('Response Failed...');
+      } else {
+        console.log('Received emp Data:', response);
+        useEmployeeStore.getState().setEmployee(response);
+      }
+    } catch (error) {
+      console.error('Error fetching emp data:', error);
+    }
+  };
+
+  useEffect(() => {
+    setupEmpData();
+  }, []);
 
   useEffect(() => {
     const onBackPress = () => {
@@ -100,7 +120,7 @@ const HomeScreen = () => {
       <View className="flex-row items-center">
         <View
           className="mr-4 h-12 w-12 items-center justify-center rounded-full"
-          style={{ backgroundColor: `${card.color}20` }}>
+          style={{ backgroundColor: `${card.color}` }}>
           {card.isFontisto ? (
             <Fontisto name={card.icon} size={24} color={card.color} />
           ) : (
