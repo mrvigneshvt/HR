@@ -1,33 +1,18 @@
 import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
-import notification from '../app/emp-plugins/notification';
-import { customPlugins } from 'plugins/plug';
 
 interface userDatas {
   name: string;
   role: 'Employee' | 'Executive';
   id: string;
+  age: string;
+  gender: string;
+  mobile: string;
+  marital_status: string;
+  designation: string;
+  department: string;
+  address: string;
+  date_of_joining: string;
 }
-
-type NotificationAll = {
-  id: number;
-  name: string;
-  message: string;
-  date: string;
-  clear: boolean;
-};
-
-type NotificationApproval = {
-  id: number;
-  name: string;
-  date: string;
-  empId: string;
-  leaveReason: string;
-  from: string;
-  to: string;
-  approvalStatus: 'pending' | 'approved' | 'rejected';
-  clear: boolean;
-};
 
 interface userMonthlyDatas {
   month: string;
@@ -47,55 +32,48 @@ interface attendanceTypes {
     lon: number;
   };
 }
+
 export type Dashboard = {
   user: {
     details: userDatas;
-    dailyAttendance: attendanceTypes;
-    monthlyReports: userMonthlyDatas;
-    notificationAll: NotificationAll[];
-    notificationApproval?: NotificationApproval[];
+    dailyAttendance?: attendanceTypes;
+    monthlyReports?: userMonthlyDatas;
   };
 };
 
 interface DashMemoryType {
   dashboard: Dashboard | null;
-  setDashboard: (data: Dashboard) => void;
-  getNotification: () => NotificationAll[] | [];
-  getNotificationApp: () => NotificationApproval[] | [];
-  deleteNotification: (id: number) => boolean;
+  setEmployeeData: (raw: any) => void;
+  getEmployeeName: () => string | undefined;
+  clearDashboard: () => void;
 }
 
-const sample = true;
-
 export const DashMemory = create<DashMemoryType>((set, get) => ({
-  dashboard: sample ? customPlugins.getExampleDatas('exe') : null,
-  setDashboard: (data: Dashboard) => set({ dashboard: data }),
+  dashboard: null,
 
-  // Get all notifications
-  getNotification: () => get().dashboard?.user.notificationAll ?? [],
+  setEmployeeData: (raw) => {
+    const transformed: Dashboard = {
+      user: {
+        details: {
+          id: raw.employee_id,
+          name: raw.name,
+          role: raw.role,
+          age: raw.age,
+          gender: raw.gender?.toLowerCase(),
+          mobile: raw.contact_mobile_no,
+          marital_status: raw.marital_status,
+          designation: raw.designation.trim(),
+          department: raw.department,
+          address: raw.communication_address,
+          date_of_joining: raw.date_of_joining,
+        },
+      },
+    };
 
-  getNotificationApp: () => get().dashboard?.user.notificationApproval ?? [],
-
-  // Delete notification by ID
-  deleteNotification: (id: number) => {
-    const currentNotifications = get().dashboard?.user.notificationAll ?? [];
-    console.log(`Receiving ID to delete ${id}`);
-
-    // Filter the notifications to remove the one with the given ID
-    const updatedNotifications = currentNotifications.filter(
-      (notification) => notification.id !== id
-    );
-
-    console.log(`Receiving ID to delete ${id}`);
-
-    // Check if a notification was actually deleted
-    const deleted = updatedNotifications.length !== currentNotifications.length;
-
-    // Update the state if something was deleted
-    if (deleted) {
-      console.log(deleted);
-    }
-
-    return deleted; // return true if deleted, otherwise false
+    set({ dashboard: transformed });
   },
+
+  getEmployeeName: () => get().dashboard?.user.details.name,
+
+  clearDashboard: () => set({ dashboard: null }),
 }));

@@ -8,8 +8,10 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Fontisto from '@expo/vector-icons/Fontisto';
 
 type Props = {
-  role: 'Employee' | 'Executive';
+  role: string;
   cardSize: number;
+  empId: string;
+  isMale: boolean;
 };
 
 const names = ['Attendance', 'Pay slip', 'Uniform Request', 'Leave Request']; // Change this to test odd/even
@@ -19,9 +21,8 @@ const icon4 = <Ionicons name="shirt" size={54} color="white" />;
 const icon5 = <Fontisto name="holiday-village" size={54} color="white" />;
 const icons = [icon1, icon3, icon4, icon5];
 
-const DashLast = ({ role, cardSize }: Props) => {
+const DashLast = ({ role, cardSize, empId, isMale }: Props) => {
   const isOdd = names.length % 2 !== 0;
-
   return (
     <View
       style={[
@@ -51,8 +52,21 @@ const DashLast = ({ role, cardSize }: Props) => {
                   names[i] === 'ID Card' ||
                   names[i] === 'Pay slip' ||
                   names[i] === 'Leave Request'
-                    ? router.push(`emp-plugins/${names[i].toLowerCase().replace(' ', '_')}`)
-                    : router.replace(`/dashboard/${names[i].toLowerCase()}`);
+                    ? router.push({
+                        pathname: `/emp-plugins/${names[i].toLowerCase().replace(' ', '_')}`,
+                        params: {
+                          role,
+                          empId,
+                          isMale,
+                        },
+                      })
+                    : router.push({
+                        pathname: `/dashboard/${names[i].toLowerCase()}`,
+                        params: {
+                          role,
+                          empId,
+                        },
+                      });
                 }}
                 style={[
                   styles.card,

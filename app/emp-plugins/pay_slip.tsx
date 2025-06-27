@@ -1,8 +1,15 @@
-import { View, Text, Pressable, ScrollView } from 'react-native';
-import React, { useRef, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  Alert,
+  BackHandler,
+  ActivityIndicator,
+  Dimensions,
+} from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
 import MonthYearPickerHeader from 'components/monthCalendar';
-import SalarySlip from 'components/SalarySlip';
 import Pay___Slip from 'components/SalarySlip';
 import ProfileStack from 'Stacks/HeaderStack';
 import * as MediaLib from 'expo-media-library';
@@ -10,13 +17,68 @@ import { captureRef } from 'react-native-view-shot';
 import * as Print from 'expo-print';
 import { customPlugins } from 'plugins/plug';
 import * as Sharing from 'expo-sharing';
+import { useLocalSearchParams, router } from 'expo-router';
+import { format } from 'date-fns';
+import { Api } from 'class/HandleApi';
+import { Image } from 'expo-image';
+import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
+import { configFile } from 'config';
+
 const PaySlip = () => {
-  const [dates, setDates] = useState<{ year: number; month: number }>({
-    year: 2025,
-    month: 0,
+  const { role, empId } = useLocalSearchParams() as { role: string; empId: string };
+
+  const [dates, setDates] = useState<{ year: string; month: string }>(() => {
+    const [month, year] = format(new Date(), 'MM-yyyy').split('-');
+    return { year, month };
   });
 
+  const [apiData, setApiData] = useState<Record<string, any> | null>(null);
+  const [notFound, setNotFound] = useState(false);
+  const [apiLoading, setApiLoading] = useState(true);
   const captureRefView = useRef(null);
+
+  const onBackPress = () => {
+    const pathname = role.toLowerCase() === 'employee' ? '/(tabs)/dashboard/' : '/(admin)/home/';
+    router.replace({ pathname, params: { role, empId } });
+    return true;
+  };
+
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, [role]);
+
+  useEffect(() => {
+    const fetchPayslip = async () => {
+      setApiLoading(true);
+      setNotFound(false);
+
+      const res = await Api.fetchPaySlip({ empId, month: dates.month, year: dates.year });
+      console.log(res, 'res');
+
+      switch (res) {
+        case 'error':
+          Alert.alert('Error Fetching Api');
+          setTimeout(() => onBackPress(), 2000);
+          return;
+        case 'invalid-format':
+          Alert.alert('Invalid Format');
+          return;
+        case 'mapping':
+          Alert.alert('Api Sents Different Response\n\nERR: UnMapped Response');
+          return;
+        case 'not-found':
+          setNotFound(true);
+          setApiLoading(false);
+          return;
+        default:
+          setApiData(res);
+          setApiLoading(false);
+      }
+    };
+
+    fetchPayslip();
+  }, [dates, empId]);
 
   const downloadPayslip = async () => {
     try {
@@ -29,13 +91,10 @@ const PaySlip = () => {
       const uri = await captureRef(captureRefView, {
         format: 'png',
         quality: 1,
-        fileName: `Month-${dates.month + 1}-Year-${dates.year}`,
+        fileName: `Month-${parseInt(dates.month)}-Year-${dates.year}`,
       });
 
-      console.log(uri);
-
       const html = customPlugins.createPdfFormat(uri);
-
       const pathToPdf = await Print.printToFileAsync({
         html,
         width: 595,
@@ -43,48 +102,79 @@ const PaySlip = () => {
         base64: false,
       });
 
-      console.log(pathToPdf, '//pa');
-
       await Sharing.shareAsync(pathToPdf.uri);
       alert('Saved to Your Files !!');
-      //  const asset = await MediaLib.createAssetAsync(uri);
-      //  await MediaLib.createAlbumAsync(
-      //    `PaySlip-Month-${dates.month}-Year-${dates.year}`,
-      //    asset,
-      //    false
-      //  );
-      //
-      //  alert('Saved to Your Files');
     } catch (error) {
       console.log('error in downloadslip::', error);
     }
   };
 
-  const [showDown, setShowDown] = useState(true);
   return (
     <>
-      <ProfileStack Payslip={true} ShowDownload={showDown} />
-      <ScrollView>
-        <View>
-          <MonthYearPickerHeader onChange={setDates} />
-        </View>
+      <ProfileStack Payslip={true} ShowDownload={!apiLoading && !notFound} />
+      <ScrollView className="flex-1">
+        <MonthYearPickerHeader onChange={setDates} />
 
-        {/* Visible ScrollView for user */}
-        <ScrollView style={{ flex: 1 }}>
-          <Pay___Slip month={dates.month + 1} year={dates.year} />
-        </ScrollView>
+        {notFound && !apiLoading ? (
+          <View
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingHorizontal: scale(20),
+              backgroundColor: '#f0f4f7',
+              height: Dimensions.get('window').height - 100,
+            }}>
+            <Image
+              source={require('../../assets/no-data.svg')}
+              style={{
+                width: scale(220),
+                height: verticalScale(220),
+                marginBottom: verticalScale(20),
+                resizeMode: 'contain',
+              }}
+            />
+            <Text
+              style={{
+                fontSize: moderateScale(18),
+                fontWeight: '600',
+                textAlign: 'center',
+                marginBottom: verticalScale(20),
+                color: '#333',
+              }}>
+              Data Not Found
+            </Text>
+          </View>
+        ) : apiLoading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color={configFile.colorGreen} />
+          </View>
+        ) : (
+          <>
+            <ScrollView style={{ flex: 1 }}>
+              <Pay___Slip
+                month={parseInt(dates.month)}
+                year={parseInt(dates.year)}
+                dataRes={apiData}
+              />
+            </ScrollView>
 
-        {/* Hidden full view for screenshot */}
-        <View
-          style={{ position: 'absolute', top: 10000, left: 0 }} // hide it off-screen
-          collapsable={false}
-          ref={captureRefView}>
-          <Pay___Slip month={dates.month + 1} year={dates.year} />
-        </View>
+            <View
+              style={{ position: 'absolute', top: 10000, left: 0 }}
+              collapsable={false}
+              ref={captureRefView}>
+              <Pay___Slip
+                month={parseInt(dates.month)}
+                year={parseInt(dates.year)}
+                dataRes={apiData}
+              />
+            </View>
 
-        <Pressable onPress={downloadPayslip}>
-          <Text>Download</Text>
-        </Pressable>
+            {/* <Pressable onPress={downloadPayslip} style={{ padding: 16 }}>
+              <Text style={{ textAlign: 'center', color: '#007AFF' }}>Download Payslip</Text>
+            </Pressable> */}
+          </>
+        )}
       </ScrollView>
     </>
   );

@@ -1,32 +1,32 @@
-import { Link, Stack, Tabs, usePathname } from "expo-router";
-import { configFile } from "../../config";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import Header from "components/Header";
-import { KeyboardAvoidingView, View } from "react-native";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import { Link, Stack, Tabs, usePathname } from 'expo-router';
+import { configFile } from '../../config';
+import AntDesign from '@expo/vector-icons/AntDesign';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import Header from 'components/Header';
+import { KeyboardAvoidingView, View } from 'react-native';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
 export default function TabLayout() {
   const path = usePathname();
-  console.log(path, "patname");
+  console.log(path, 'patname');
   return (
     <>
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: "white",
-          tabBarInactiveTintColor: "black",
+          tabBarActiveTintColor: 'white',
+          tabBarInactiveTintColor: 'black',
 
           tabBarStyle: {
             backgroundColor: configFile.colorGreen,
             borderTopWidth: 0,
+            display: 'none',
           },
-        }}
-      >
+        }}>
         <Tabs.Screen
           name="dashboard/index"
           options={{
-            title: "Dashboard",
+            title: 'Dashboard',
 
             //tabBarStyle: {
             // backgroundColor: 'black',
@@ -35,7 +35,7 @@ export default function TabLayout() {
               <MaterialCommunityIcons
                 name="monitor-dashboard"
                 size={24}
-                color={path === "/dashboard" ? "white" : "black"}
+                color={path === '/dashboard' ? 'white' : 'black'}
               />
             ),
           }}
@@ -43,12 +43,12 @@ export default function TabLayout() {
         <Tabs.Screen
           name="dashboard/history"
           options={{
-            title: "History",
+            title: 'History',
             tabBarIcon: () => (
               <FontAwesome5
                 name="history"
                 size={24}
-                color={path === "/dashboard/history" ? "white" : "black"}
+                color={path === '/dashboard/history' ? 'white' : 'black'}
               />
             ),
           }}
@@ -56,12 +56,12 @@ export default function TabLayout() {
         <Tabs.Screen
           name="dashboard/attendance"
           options={{
-            title: "Attendance",
+            title: 'Attendance',
             tabBarIcon: () => (
               <AntDesign
                 name="pluscircle"
                 size={22}
-                color={path === "/dashboard/attendance" ? "white" : "black"}
+                color={path === '/dashboard/attendance' ? 'white' : 'black'}
               />
             ),
           }}
@@ -69,12 +69,12 @@ export default function TabLayout() {
         <Tabs.Screen
           name="profile/index"
           options={{
-            title: "Profile",
+            title: 'Profile',
             tabBarIcon: () => (
               <MaterialCommunityIcons
                 name="account"
                 size={24}
-                color={path === "/profile" ? "white" : "black"}
+                color={path === '/profile' ? 'white' : 'black'}
               />
             ),
           }}

@@ -1,6 +1,8 @@
 import { View } from 'react-native';
 import { Image, ImageSource } from 'expo-image';
 import ProfileScreen from '../app/(tabs)/profile';
+import { verticalScale, scale } from 'react-native-size-matters';
+import { configFile } from 'config';
 
 const defaultImage = require('../assets/profile.png');
 const plusImage = require('../assets/plus.png');
@@ -14,12 +16,25 @@ const ImageCom = ({ img, ProfileScreen }: Props) => {
   if (ProfileScreen) {
     return (
       <>
-        <Image
-          source={defaultImage}
-          contentFit="contain"
-          style={{ height: 200, width: 200, borderRadius: 2 }}
-        />
-        <Image
+        <View
+          style={{
+            height: verticalScale(200),
+            width: verticalScale(200), // keep width same as height for a perfect circle
+            borderRadius: verticalScale(100), // half of height/width
+            overflow: 'hidden',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: configFile.colorGreen, // optional background
+            borderColor: 'black',
+          }}>
+          <Image
+            source={img || defaultImage}
+            contentFit="cover"
+            style={{ height: '100%', width: '100%' }}
+          />
+        </View>
+
+        {/* <Image
           source={plusImage}
           contentFit="contain"
           style={{
@@ -31,7 +46,7 @@ const ImageCom = ({ img, ProfileScreen }: Props) => {
             backgroundColor: 'white',
             padding: 2,
           }}
-        />
+        /> */}
       </>
     );
   }

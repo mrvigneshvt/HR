@@ -16,7 +16,7 @@ type Props = {
   approvalStatus: 'pending' | 'approved' | 'rejected';
 };
 
-const ApprovalCard = ({ id, name, empId, leaveReason, from, to, date, approvalStatus }: Props) => {
+const LeaveReqCard = ({ id, name, empId, leaveReason, from, to, date, approvalStatus }: Props) => {
   const handleDelete = () => {
     alert('Delete not connected yet');
   };
@@ -72,9 +72,9 @@ const ApprovalCard = ({ id, name, empId, leaveReason, from, to, date, approvalSt
             {`${name}`}
           </Text>
           <View style={{ flexDirection: 'row', gap: moderateScale(12) }}>
-            <Pressable onPress={handleDelete}>
+            {/* <Pressable onPress={handleDelete}>
               <EvilIcons name="trash" size={moderateScale(24)} color="red" />
-            </Pressable>
+            </Pressable> */}
             <Text
               style={{
                 alignSelf: 'center',
@@ -85,7 +85,7 @@ const ApprovalCard = ({ id, name, empId, leaveReason, from, to, date, approvalSt
                 fontSize: moderateScale(12), // Font size responsive
                 color: 'white',
               }}>
-              {date}
+              {date.split('T')[0]}
             </Text>
           </View>
         </View>
@@ -118,7 +118,7 @@ const ApprovalCard = ({ id, name, empId, leaveReason, from, to, date, approvalSt
           }}>
           Status: {approvalStatus.toUpperCase()}
         </Text>
-        <View style={{ flexDirection: 'row', gap: moderateScale(16) }}>
+        {/* <View style={{ flexDirection: 'row', gap: moderateScale(16) }}>
           <TouchableOpacity>
             <Text
               style={{
@@ -145,10 +145,10 @@ const ApprovalCard = ({ id, name, empId, leaveReason, from, to, date, approvalSt
               Reject
             </Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </View>
     </View>
   );
 };
 
-export default ApprovalCard;
+export default LeaveReqCard;

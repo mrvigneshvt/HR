@@ -4,6 +4,7 @@
     "slug": "SDCE",
     "version": "1.0.1",
     "newArchEnabled": false,
+    "scheme": "myapp",
     "web": {
       "favicon": "./assets/favicon.png"
     },
@@ -39,16 +40,11 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "UIBackgroundModes": [
-          "location",
-          "background-processing"
-        ],
+        "UIBackgroundModes": ["location", "background-processing"],
         "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to location to track your position for attendance purposes.",
         "NSLocationAlwaysUsageDescription": "This app needs access to location in the background to track your position for attendance purposes."
       }

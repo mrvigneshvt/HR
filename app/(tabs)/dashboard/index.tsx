@@ -1,120 +1,138 @@
-import { View, Text, Dimensions, Pressable, ScrollView, Platform, StyleSheet } from 'react-native';
-import React, { useEffect, useRef } from 'react';
-import { configFile } from '../../../config';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { View, Text, Dimensions, ScrollView, StyleSheet, BackHandler } from 'react-native';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
+import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import DashTop from 'components/DashTop';
-
-import { router } from 'expo-router';
 import DashBottom from 'components/DashBottom';
 import DashLast from 'components/DashLast';
-import DashboardStack from 'Stacks/DashboardStack';
 import ProfileStack from 'Stacks/HeaderStack';
-import { verticalScale } from 'react-native-size-matters';
+import { useEmployeeStore } from 'Memory/Employee';
 import { DashMemory } from 'Memory/DashMem';
-import DataBase from 'components/DataBaseComp';
-import InActive from 'components/InActive';
-
-const greenColor = configFile.colorGreen;
+import { Api } from 'class/HandleApi';
+import { useIsFocused } from '@react-navigation/native';
 
 const styles = StyleSheet.create({
-  mainView: {
-    flex: 1,
-    backgroundColor: 'red',
-    // paddingBottom: verticalScale(200),
-  },
   scrollView: {
     flex: 1,
   },
   contentContainer: {
-    paddingBottom: 72,
-    position: 'relative',
-    flex: 1,
-    backgroundColor: 'white',
     paddingHorizontal: 8,
+    backgroundColor: 'white',
   },
-  dashboardContainer: {
-    flex: 1,
+  innerView: {
     flexDirection: 'column',
     borderRadius: 12,
     backgroundColor: 'white',
-    paddingBottom: 80,
-    height: '100%',
+  },
+  fallbackView: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'lightyellow',
   },
 });
 
-const index = () => {
-  const { status } = useLocalSearchParams();
-  console.log(status, 'stattt');
-  if (status == 'Active') {
-    return <InActive />;
-  }
-  const dashboard = DashMemory((state) => state.dashboard);
-  if (dashboard?.user) {
-    //const dashBottomdata = dashboard?.user.details.
+const Index = () => {
+  const isFocus = useIsFocused();
+  const { empId, role } = useLocalSearchParams<{ empId: string; role: string }>();
+  const employees = useEmployeeStore((state) => state.employee);
+  console.log(employees, '//////////////////////////////////////////employexz');
+  const [gender, setGender] = useState<string | null>(null);
+  const [empData, setEmpData] = useState<Record<string, any>>();
 
-    const { width, height } = Dimensions.get('window');
-    console.log('w:', width, ' h:', height);
-    const screenWidth = width;
-    const cardSize = (screenWidth - 16 - 8) / 2; // screen padding + gap
-    const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<ScrollView>(null);
 
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        scrollRef.current?.scrollTo({
-          y: 400,
-          animated: true,
-        });
-      }, 2000);
+  const setupEmpData = async () => {
+    try {
+      console.log('Invoking EMP ID:', empId);
+      const response = await Api.getEmpData(String(empId));
+      if (!response) {
+        console.log('Response Failed...');
+      } else {
+        console.log('Received emp Data:', response);
+        setEmpData(response); // Assuming response has .data
+        useEmployeeStore.getState().setEmployee(response);
+      }
+    } catch (error) {
+      console.error('Error fetching emp data:', error);
+    }
+  };
 
-      return () => clearTimeout(timer);
-    }, []);
+  // Initial fetch
+  useEffect(() => {
+    setupEmpData();
+  }, []);
 
-    return (
-      <>
-        <ProfileStack DashBoard={true} role={dashboard.user.details.role} />
-        <ScrollView
-          ref={scrollRef}
-          style={styles.scrollView}
-          contentContainerStyle={{
-            //   paddingBottom: verticalScale(80),
-            paddingHorizontal: 8,
-            backgroundColor: 'white',
-            // ⚠️ remove flex: 1 and position: "relative" from here
-          }}>
-          <View style={{ flexDirection: 'column', borderRadius: 12, backgroundColor: 'white' }}>
-            <DashTop
-              name={dashboard?.user.details.name}
-              role={dashboard?.user.details.role}
-              employeeId={Number(dashboard?.user.details.id)}
-            />
+  useEffect(() => {
+    const onBackPress = () => {
+      router.replace({
+        pathname: '/(tabs)/dashboard',
+        params: {
+          role,
+          empId,
+        },
+      });
+      return true;
+    };
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, []);
+  // Update gender once empData is available
+  useEffect(() => {
+    console.log('empData Recoeved', empData, 'typeee', typeof empData);
+    if (empData) {
+      console.log('Added emp data:', empData);
+      setGender(empData.gender?.toLowerCase());
+      console.log(gender, '///gender');
+    }
+  }, [empData]);
 
-            {
-              <DashBottom
-                Month={dashboard?.user?.monthlyReports?.month}
-                Days={dashboard?.user.monthlyReports.totalDays}
-                Absent={dashboard?.user.monthlyReports.absent}
-                late={dashboard?.user.monthlyReports.late}
-                Dimensions={{
-                  width: width - 16,
-                  height,
-                }}
-              />
-            }
+  // const dashboard = DashMemory((state) => state.dashboard);
 
-            <DashLast role={dashboard.user.details.role} cardSize={cardSize} />
+  const { width, height } = Dimensions.get('window');
+  const cardSize = useMemo(() => (width - 16 - 8) / 2, [width]);
 
-            {dashboard.user.details.role === 'Executive' && <DataBase />}
-          </View>
-        </ScrollView>
-      </>
-    );
-  } else {
-    return (
-      <View className="flex flex-row items-center justify-center bg-green-300">
-        <Text>Some Error Contact The Developer</Text>
-      </View>
-    );
-  }
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      scrollRef.current?.scrollTo({ y: 400, animated: true });
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const employee = useEmployeeStore((state) => state.employee);
+  console.log(employee, 'newEmployeeeeeeeeeee');
+  return (
+    <>
+      <ProfileStack DashBoard={true} role={'Employee'} />
+      <ScrollView
+        ref={scrollRef}
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}>
+        <View style={styles.innerView}>
+          <DashTop
+            role={String(role)}
+            empId={String(empId)}
+            img={employee?.profile_image}
+            name={employee?.name}
+          />
+
+          {/* <DashBottom
+            Month={dashboard?.user?.monthlyReports?.month}
+            Days={dashboard?.user.monthlyReports.totalDays}
+            Absent={dashboard?.user.monthlyReports.absent}
+            late={dashboard?.user.monthlyReports.late}
+            Dimensions={{ width: width - 16, height }}
+          /> */}
+
+          <DashLast
+            role={String(role)}
+            cardSize={cardSize}
+            empId={String(empId)}
+            isMale={gender === 'male' ? true : false}
+          />
+        </View>
+      </ScrollView>
+    </>
+  );
 };
 
-export default index;
+export default Index;

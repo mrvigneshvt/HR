@@ -25,7 +25,7 @@ class Plugins {
     lon1: number,
     lat2: number,
     lon2: number,
-    radius = 50
+    radius: number
   ): boolean {
     const R = 6371000; // Earth's radius in meters
 

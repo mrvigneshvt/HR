@@ -1,63 +1,134 @@
-import { View, Text, SafeAreaView, ScrollView, Dimensions } from 'react-native';
-import React, { useState, useEffect } from 'react';
-import ProfileStack from 'Stacks/HeaderStack';
+import { View, Text, SafeAreaView, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Image } from 'expo-image';
-import { useLocalSearchParams } from 'expo-router';
-import { configFile } from '../../config';
-import { DashMemory } from 'Memory/DashMem';
-import MailCard from 'components/MailCard';
-import NotifTop from 'components/NotifTop';
-import ApprovalCard from 'components/ApprovalCard';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 
+import ProfileStack from 'Stacks/HeaderStack';
+import LeaveReqCard from 'components/ApprovalCard';
+import UniformReqCard from 'components/UniformReqCard';
+import { configFile } from '../../config';
+import { useIsFocused } from '@react-navigation/native';
+import { Api } from 'class/HandleApi';
+import { useEmployeeStore } from 'Memory/Employee';
+
+type RequestType = 'leave' | 'uniform';
+
+type RequestItem = Record<string, any> & { type: RequestType; date: string };
+
 const NotificationScreen = () => {
-  const { role } = useLocalSearchParams();
-  console.log('role:::', role);
-
   const { height, width } = Dimensions.get('window');
+  const isFocused = useIsFocused();
+  const { employee_id: empId } = useEmployeeStore((state) => state.employee);
 
-  const getNotification = DashMemory((state) => state.getNotification());
+  const [loading, setLoading] = useState(false);
+  const [requests, setRequests] = useState<RequestItem[]>([]);
 
-  const [getNotificationApp, setGetNotificationApp] = useState<any[]>([]);
+  const fetchNotifications = useCallback(async () => {
+    if (!empId) return;
+    setLoading(true);
 
-  const [state, setState] = useState<'Ann' | 'Req'>('Ann');
+    try {
+      const [leaveRes, uniformRes] = await Promise.all([
+        Api.handleApi({ url: configFile.api.common.getLeaveReq(empId), type: 'GET' }),
+        Api.handleApi({ url: configFile.api.common.getUniformReq(empId), type: 'GET' }),
+      ]);
 
-  const callback = (data: 'Ann' | 'Req') => {
-    setState(data);
-  };
+      const leaveData = leaveRes?.data || null;
+      const uniformData = uniformRes?.data || null;
+
+      console.log(leaveData, '////LeaveData\n\n', uniformData, '////UniData');
+      const reqData: RequestItem[] = [];
+
+      if (leaveData?.employeeId) {
+        reqData.push({
+          type: 'leave',
+          id: leaveData._id,
+          empId: leaveData.employeeId,
+          name: leaveData.employeeName,
+          leaveReason: leaveData.leaveType,
+          from: leaveData.startDate,
+          to: leaveData.endDate,
+          date: leaveData.createdAt,
+          approvalStatus: leaveData.status,
+        });
+      }
+
+      if (uniformData?.empId) {
+        reqData.push({
+          type: 'uniform',
+          id: uniformData._id,
+          empId: uniformData.empId,
+          name: uniformData.name,
+          designation: uniformData.designation,
+          gender: uniformData.gender,
+          site: uniformData.site,
+          location: uniformData.location,
+          femaleAccessories: uniformData.femaleAccessories,
+          date: uniformData.createdAt,
+          status: uniformData.status,
+        });
+      }
+
+      reqData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setRequests(reqData);
+    } catch (err) {
+      console.error('Notification fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [empId]);
 
   useEffect(() => {
-    if (role === 'Executive') {
-      const notifApp = DashMemory.getState().getNotificationApp();
-      setGetNotificationApp(notifApp);
+    if (isFocused) {
+      fetchNotifications();
     }
-  }, [role]);
+  }, [isFocused, fetchNotifications]);
 
-  const showEmptyScreen = getNotification.length < 1 && getNotificationApp.length < 1;
+  const renderCards = useMemo(
+    () =>
+      requests.map((item, index) => (
+        <View key={index} style={{ margin: moderateScale(5) }}>
+          {item.type === 'leave' ? (
+            <LeaveReqCard
+              id={item.id}
+              name={item.name}
+              empId={item.empId}
+              leaveReason={item.leaveReason}
+              from={item.from}
+              to={item.to}
+              date={item.date}
+              approvalStatus={item.approvalStatus}
+            />
+          ) : (
+            <UniformReqCard
+              name={item.name}
+              empId={item.empId}
+              designation={item.designation}
+              gender={item.gender}
+              site={item.site}
+              location={item.location}
+              femaleAccessories={item.femaleAccessories}
+              date={item.date}
+              status={item.status}
+            />
+          )}
+        </View>
+      )),
+    [requests]
+  );
+
+  const showEmpty = !loading && requests.length === 0;
 
   return (
     <>
       <ProfileStack Notification={true} />
       <SafeAreaView style={{ flex: 1 }}>
-        <View style={{ flex: 1 }} className="bg-white">
-          <View style={{ margin: scale(5), marginTop: verticalScale(12) }}>
-            {role === 'Executive' && <NotifTop callback={callback} />}
-          </View>
-
-          <View
-            style={{
-              flex: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'white',
-            }}>
-            {showEmptyScreen ? (
-              <View
-                style={{
-                  alignItems: 'center',
-                  gap: moderateScale(15),
-                  backgroundColor: 'white',
-                }}>
+        <View style={{ flex: 1, backgroundColor: 'white' }}>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            {loading ? (
+              <ActivityIndicator size="large" color={configFile.colorGreen} />
+            ) : showEmpty ? (
+              <View style={{ alignItems: 'center', gap: moderateScale(15) }}>
                 <Image
                   source={require('../../assets/chill.svg')}
                   style={{
@@ -67,12 +138,8 @@ const NotificationScreen = () => {
                   }}
                 />
                 <View style={{ flexDirection: 'row' }}>
-                  <Text
-                    style={{
-                      fontSize: moderateScale(16),
-                      color: 'gray',
-                    }}>
-                    Chill! You don't have any
+                  <Text style={{ fontSize: moderateScale(16), color: 'gray' }}>
+                    Chill! You don't have any{' '}
                   </Text>
                   <Text
                     style={{
@@ -81,40 +148,15 @@ const NotificationScreen = () => {
                       color: configFile.colorGreen,
                       opacity: 0.4,
                     }}>
-                    Notification
+                    Notifications
                   </Text>
                 </View>
               </View>
             ) : (
               <ScrollView
-                style={{
-                  width: '100%',
-                  flex: 1,
-                  backgroundColor: 'white',
-                }}
-                contentContainerStyle={{
-                  padding: moderateScale(20),
-                }}>
-                {state === 'Ann'
-                  ? getNotification.map((d, i) => (
-                      <View key={i} style={{ margin: moderateScale(5) }}>
-                        <MailCard from={d.name} message={d.message} date={d.date} />
-                      </View>
-                    ))
-                  : getNotificationApp.map((d, i) => (
-                      <View key={i} style={{ margin: moderateScale(5) }}>
-                        <ApprovalCard
-                          id={d.id}
-                          name={d.name}
-                          empId={d.empId}
-                          leaveReason={d.leaveReason}
-                          from={d.from}
-                          date={d.date}
-                          to={d.to}
-                          approvalStatus={d.approvalStatus}
-                        />
-                      </View>
-                    ))}
+                style={{ flex: 1, width: '100%' }}
+                contentContainerStyle={{ padding: moderateScale(20) }}>
+                {renderCards}
               </ScrollView>
             )}
           </View>

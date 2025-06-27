@@ -8,6 +8,7 @@ import {
   Platform,
   StyleSheet,
   Keyboard,
+  BackHandler,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
@@ -22,16 +23,28 @@ import LoadingScreen from 'components/LoadingScreen';
 import { Flow } from 'class/HandleRoleFlow';
 import { Api } from 'class/HandleApi';
 import * as SecureStore from 'expo-secure-store';
+import { NavRouter } from 'class/Router';
+// import * as SecureStore from 'expo-secure-store';
 const logo = require('../assets/logo.jpg');
 
 export type PopUpTypes =
+  | 'Internal Server Error Try Again Later'
   | 'EmployeeId not Found'
   | 'Invalid Employee ID'
   | 'Incorrect OTP'
   | 'Too Late Try Again From First !';
 
 export default function LoginPage() {
-  const setDashboard = DashMemory((state) => state.setDashboard);
+  // const setDashboard = DashMemory((state) => state.setDashboard);
+  const onBackPress = () => {
+    router.replace({ pathname: '/login' });
+    return true;
+  };
+
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+  }, []);
 
   const router = useRouter();
   const [empId, setEmpId] = useState('');
@@ -64,29 +77,24 @@ export default function LoginPage() {
   }
 
   async function verifyOtp() {
-    await Api.verifyOtp({
+    await Api.verifyOtpV1({
       otp,
-      hash: otpHash,
-      apiData,
+      empId,
       triggerPopup,
       setApiLoading,
       setIsOtp,
-      setOtpHash,
-      setOtpToNumber,
-      setApiData,
     });
   }
 
   // const [password, setPassword] = useState('');
   const handleLogin = async () => {
-    console.log(empId.length, '//////////');
     if (empId.length < 4) {
       triggerPopup('Invalid Employee ID');
       return;
     }
     try {
       console.log('going udner handleAuth');
-      await Api.handleAuth({
+      await Api.handleAuthV1({
         empId,
         setApiLoading,
         triggerPopup,
@@ -100,63 +108,49 @@ export default function LoginPage() {
     }
   };
 
-  const checkToken = async () => {
-    const token = await SecureStore.getItemAsync('STOKEN');
-    console.log(token, 'tokennnnnn');
-    if (!token) {
-      return;
-    }
-    let isVerified = await Api.verifyToken(token);
-    console.log(isVerified);
+  // const checkToken = async () => {
+  //   const token = await SecureStore.getItemAsync('STOKEN');
+  //   console.log(token, 'tokennnnnn');
+  //   if (!token) {
+  //     return;
+  //   }
+  //   let isVerified = await Api.verifyToken(token);
+  //   console.log(isVerified);
 
-    if (!isVerified) {
-      //await SecureStore.deleteItemAsync('STOKEN');
-      return;
-    }
+  //   if (!isVerified) {
+  //     //await SecureStore.deleteItemAsync('STOKEN');
+  //     return;
+  //   }
 
-    console.log('IsVerifiedddd', isVerified);
-    router.replace({
-      pathname: '/ApiContex/fetchNparse',
-      params: {
-        data: JSON.stringify(isVerified.data),
-      },
-    });
-  };
+  //   console.log('IsVerifiedddd', isVerified);
+  //   router.replace({
+  //     pathname: '/ApiContex/fetchNparse',
+  //     params: {
+  //       data: JSON.stringify(isVerified.data),
+  //     },
+  //   });
+  // };
 
-  useEffect(() => {
-    checkToken();
-  }, []);
+  // useEffect(() => {
+  //   checkToken();
+  // }, []);
+  //////////////////////////////////////////////////////////
 
   useEffect(() => {
     setTimeout(() => {
-      router.replace({
-        pathname: '/(tabs)/dashboard',
-        // pathname: '/(admin)/home',
-        params: {
-          data: JSON.stringify({
-            __v: 0,
-            _id: '6836d2fb5412bdf9177fc475',
-            createdAt: '2025-05-28T09:10:19.743Z',
-            department: 'Engineering',
-            designation: 'Junior',
-            dob: '1970-01-01T00:00:37.272Z',
-            doj: '1970-01-01T00:00:45.800Z',
-            email: 'ajay@gmail.com',
-            empId: 'EMP105',
-            gender: 'Male',
-            guardianName: 'Selva',
-            inAppRole: 'Employee',
-            mobile: '8348346334',
-            name: 'Ajay',
-            role: 'Supervisor',
-            status: 'Active',
-            updatedAt: '2025-05-28T09:10:19.743Z',
-          }),
-        },
-      });
+      NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM43899' });
+      //   router.replace({
+      //     // pathname: '/(tabs)/dashboard',
+      //     pathname: '/(admin)/home',
+      //     params: {
+      //       role: 'superadmin',
+      //       empId: 'SFM007',
+      //     },
+      //   });
     }, 50);
   }, []);
 
+  ////////////////////////////////////////////////////////////
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
@@ -171,7 +165,7 @@ export default function LoginPage() {
               contentFit="contain"
             />
           </View>
-          <Text style={styles.title}>{!isOtp ? 'Employeee Login' : `Verify OTP`}</Text>
+          <Text style={styles.title}>{!isOtp ? 'Employee Login' : `Verify OTP`}</Text>
 
           <TextInput
             style={styles.input}
@@ -193,7 +187,7 @@ export default function LoginPage() {
                 verifyOtp();
               }
             }}>
-            <Text style={styles.buttonText}>{!isOtp ? 'LogsIn' : 'Verify Otp'}</Text>
+            <Text style={styles.buttonText}>{!isOtp ? 'Log In' : 'Verify Otp'}</Text>
           </Pressable>
         </Pressable>
       </Pressable>
