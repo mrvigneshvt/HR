@@ -25,6 +25,7 @@ import { isReadOnlyRole } from 'utils/roleUtils';
 import { BackHandler } from 'react-native';
 import { router } from 'expo-router';
 
+const randomId = () => crypto.randomUUID();
 const RequestsScreen = () => {
   const [activeTab, setActiveTab] = useState('uniform');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -88,6 +89,7 @@ const RequestsScreen = () => {
       ]);
       setUniformRequests(uniformData);
       setLeaveRequests(leaveData);
+      console.log(leaveData, '//////LeaveRequest');
     } catch (error) {
       console.error('Error fetching requests:', error);
       Alert.alert('Error', 'Failed to fetch requests. Please try again.');
@@ -437,9 +439,7 @@ const RequestsScreen = () => {
     showActions = true,
     idx: number
   ) => (
-    <View
-      key={req.id || req.empId || req.employeeId || idx}
-      className="mb-4 overflow-hidden rounded-xl bg-white shadow-lg">
+    <View key={idx} className="mb-4 overflow-hidden rounded-xl bg-white shadow-lg">
       <View className="p-4">
         <View className="flex-row items-center justify-between">
           <View>
@@ -646,10 +646,8 @@ const RequestsScreen = () => {
 
           <ScrollView className="flex-1 px-4">
             {activeTab === 'uniform'
-              ? filteredUniformRequests.map((req, idx) =>
-                  renderRequestCard(req, 'uniform', true, idx)
-                )
-              : filteredLeaveRequests.map((req, idx) => renderRequestCard(req, 'leave', true, idx))}
+              ? filteredUniformRequests.map((req, i) => renderRequestCard(req, 'uniform', true, i))
+              : filteredLeaveRequests.map((req, i) => renderRequestCard(req, 'leave', true, i))}
           </ScrollView>
         </>
       )}
@@ -717,10 +715,10 @@ const RequestsScreen = () => {
                 {activeTab === 'uniform'
                   ? uniformRequests
                       .filter((r) => r.status === 'Active')
-                      .map((req, idx) => renderRequestCard(req, 'uniform', true, idx))
+                      .map((req, i) => renderRequestCard(req, 'uniform', true, i))
                   : leaveRequests
                       .filter((r) => r.status === 'Approved' && r.approvedBy)
-                      .map((req, idx) => renderRequestCard(req, 'leave', true, idx))}
+                      .map((req, i) => renderRequestCard(req, 'leave', true, i))}
               </ScrollView>
             </View>
           </TouchableOpacity>

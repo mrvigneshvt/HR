@@ -21,12 +21,15 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import { Api } from 'class/HandleApi';
 import { format } from 'date-fns'; // ✅ For formatting date
 import PopupMessage from 'plugins/popupz';
+import { hiIN } from 'date-fns/locale';
+
+import { NavRouter } from 'class/Router';
 
 const LeaveRequest = () => {
   const [confirm, setConfirm] = useState(false);
   const [showPop, setShowPop] = useState(false);
   const [sent, setSent] = useState(false);
-  const { employee_id, role, name } = useEmployeeStore((state) => state.employee);
+  const { employee_id: empId, role, name } = useEmployeeStore((state) => state.employee);
 
   const [leaveReason, setLeaveReason] = useState('');
   const [fromDate, setFromDate] = useState<Date | null>(null);
@@ -45,41 +48,15 @@ const LeaveRequest = () => {
     { label: 'Other', value: 'Other' },
   ]);
 
-  const formatDateString = (date: Date) => format(date, 'yyyy/MM/dd');
+  const formatDateString = (date: Date) => format(date, 'yyyy/MM/dd', { locale: hiIN });
 
   useEffect(() => {
-    const onBackPress = () => {
-      if (role.toLowerCase() == 'employee') {
-        router.replace({
-          pathname: '/(tabs)/dashboard/',
-          params: { role, empId: employee_id },
-        });
-        return true;
-      }
-      router.replace({
-        pathname: '/(admin)/home/',
-        params: { role, empId: employee_id },
-      });
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-  }, []);
+    NavRouter.BackHandler({ empId, role });
+  }, [confirm]);
 
   useEffect(() => {
     setLeaveReason(value);
   }, [value]);
-
-  useEffect(() => {
-    if (!sent) return;
-    console.log('returning to /');
-    const clear = setTimeout(() => {
-      router.replace({
-        pathname: '/dashboard',
-        params: { role, empId: employee_id },
-      });
-    }, 2000);
-    return () => clearTimeout(clear);
-  }, [sent]);
 
   const handleSubmit = async () => {
     if (!leaveReason || !fromDate || !toDate) {
@@ -87,13 +64,13 @@ const LeaveRequest = () => {
       return;
     }
 
-    const startDate = formatDateString(fromDate);
-    const endDate = formatDateString(toDate);
-
-    console.log({ startDate, endDate, leaveReason });
+    const startDate = fromDate;
+    const endDate = toDate;
+    // console.
+    console.log('before: ', fromDate, '//start\n\n', toDate, { startDate, endDate, leaveReason });
 
     const data = await Api.postLeaveReq({
-      employeeId: employee_id,
+      employeeId: empId,
       employeeName: name,
       leaveType: leaveReason,
       startDate,
@@ -107,9 +84,9 @@ const LeaveRequest = () => {
       // setShowPop(true);
       setTimeout(() => {
         router.replace({
-          pathname: role.toLowerCase() === 'employee' ? '/(tabs)/dashboard/' : '/(admin)/home/',
+          pathname: '/emp-plugins/notification', //role.toLowerCase() === 'employee' ? '/(tabs)/dashboard/' : '/(admin)/home/',
           params: {
-            empId: employee_id,
+            empId: empId,
             role,
           },
         });
@@ -235,7 +212,7 @@ const LeaveRequest = () => {
 
             {/* Employee ID */}
             <Text className="font-semibold">Employee ID:</Text>
-            <TextInput value={employee_id || ''} editable={false} style={inputStyle} />
+            <TextInput value={empId || ''} editable={false} style={inputStyle} />
 
             {/* Role */}
             <Text className="font-semibold">Role:</Text>

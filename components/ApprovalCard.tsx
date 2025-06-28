@@ -80,12 +80,12 @@ const LeaveReqCard = ({ id, name, empId, leaveReason, from, to, date, approvalSt
                 alignSelf: 'center',
                 borderRadius: moderateScale(8),
                 backgroundColor: configFile.colorGreen,
-                paddingVertical: moderateScale(4),
-                paddingHorizontal: moderateScale(8),
-                fontSize: moderateScale(12), // Font size responsive
+                // paddingVertical: moderateScale(4),
+                // paddingHorizontal: moderateScale(8),
+                fontSize: moderateScale(10), // Font size responsive
                 color: 'white',
               }}>
-              {date.split('T')[0]}
+              {/* {date} */}
             </Text>
           </View>
         </View>

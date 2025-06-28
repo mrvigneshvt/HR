@@ -266,7 +266,11 @@ const PayrollScreen = () => {
       )}
 
       {/* Payroll Detail Modal */}
-      <Modal visible={!!selectedEmployee} transparent animationType="fade" onRequestClose={closeModal}>
+      <Modal
+        visible={!!selectedEmployee}
+        transparent
+        animationType="fade"
+        onRequestClose={closeModal}>
         <View
           style={{
             flex: 1,
@@ -337,9 +341,7 @@ const PayrollScreen = () => {
               borderTopLeftRadius: 20,
               borderTopRightRadius: 20,
             }}>
-            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12 }}>
-              Select Month
-            </Text>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12 }}>Select Month</Text>
 
             <AdminCalendar
               onDayPress={handleCalendarDayPress}

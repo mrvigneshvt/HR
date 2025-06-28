@@ -7,6 +7,7 @@ import {
   BackHandler,
   ActivityIndicator,
   Dimensions,
+  TouchableOpacity,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import MonthYearPickerHeader from 'components/monthCalendar';
@@ -112,7 +113,25 @@ const PaySlip = () => {
   return (
     <>
       {/* <ProfileStack Payslip={true} ShowDownload={!apiLoading && !notFound} /> */}
-      <Stack.Screen options={{ headerShown: false }} />
+      {/* <Stack.Screen options={{ headerShown: false }} /> */}
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: 'Home',
+          headerStyle: { backgroundColor: configFile.colorGreen },
+          headerTintColor: 'white',
+          headerRight: () => (
+            <View className="flex flex-row gap-1">
+              <TouchableOpacity onPress={() => router.push('/emp-plugins/notification')}>
+                <Ionicons name="notifications" size={24} color="#3a7129" />
+              </TouchableOpacity>
+              <Pressable onPress={() => router.replace('/login')} style={{ paddingHorizontal: 10 }}>
+                <MaterialIcons name="logout" size={24} color="white" />
+              </Pressable>
+            </View>
+          ),
+        }}
+      />
       <ScrollView className="flex-1">
         <MonthYearPickerHeader onChange={setDates} />
 
