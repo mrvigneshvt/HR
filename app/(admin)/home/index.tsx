@@ -150,7 +150,7 @@ const HomeScreen = () => {
         )}
 
         {role.toLowerCase() == 'executive' && (
-          <Pressable onPress={() => navigateTo('/dashboard/attendance')}>
+          <Pressable onPress={() => navigateTo('/(tabs)/dashboard/attendance')}>
             <View className="mb-3 flex-row items-center rounded-lg bg-white p-6 shadow-sm">
               <Text className="grow text-2xl font-bold">Mark your Attendance</Text>
               <Ionicons name="chevron-forward" size={24} color="#666" />
