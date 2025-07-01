@@ -17,6 +17,17 @@ export const configFile = {
     get baseUrl() {
       return backendBaseUrl;
     },
+    attendance: {
+      checkIn() {
+        return `${backendBaseUrl}api/attendance/checkIn`; //post
+      },
+      lunchIn() {
+        return `${backendBaseUrl}api/attendance/lunchIn`; //post
+      },
+      checkOut() {
+        return `${backendBaseUrl}api/attendance/checkOut`; //post
+      },
+    },
     common: {
       login() {
         return `${backendBaseUrl}api/auth/login`;
@@ -64,6 +75,18 @@ export const configFile = {
       deleteClients(id: string) {},
       assignWork() {
         return `${backendBaseUrl}api/attendance/assignWork`;
+      },
+      request: {
+        uniform: {
+          delete(id: string) {
+            return `${backendBaseUrl}api/uniforms/${id}`;
+          },
+        },
+      },
+      clients: {
+        delete(id: string) {
+          return `${backendBaseUrl}api/clients/by-client-no/${id}`; //delete
+        },
       },
       employees: {
         add() {

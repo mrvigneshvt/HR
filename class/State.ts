@@ -1,4 +1,5 @@
 import { useEmployeeStore } from 'Memory/Employee';
+import { tokenMemory } from 'Memory/Token';
 
 export class State {
   public static storeEmpData(response) {
@@ -11,4 +12,24 @@ export class State {
 
     return data;
   }
+
+  ///////////////////////////////JWT///////////////////////////////////////////
+
+  public static storeToken(token: string) {
+    if (token) {
+      tokenMemory.getState().setAuthToken(token);
+      return true;
+    }
+    return false;
+  }
+
+  public static getToken() {
+    return tokenMemory.getState().getAuthToken();
+  }
+
+  public static deleteToken() {
+    return tokenMemory.getState().deleteAuthToken();
+  }
+
+  ////////////////////////////////////////////////////////////////////////////
 }

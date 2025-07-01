@@ -24,9 +24,11 @@ import LeaveRequestForm from '../../../components/LeaveRequestForm';
 import { isReadOnlyRole } from 'utils/roleUtils';
 import { BackHandler } from 'react-native';
 import { router } from 'expo-router';
+import { State } from 'class/State';
 
 const randomId = () => crypto.randomUUID();
 const RequestsScreen = () => {
+  const [token, setToken] = useState<string>('');
   const [activeTab, setActiveTab] = useState('uniform');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -78,6 +80,9 @@ const RequestsScreen = () => {
 
   useEffect(() => {
     fetchRequests();
+    const Token = State.getToken();
+    setToken(Token);
+    console.log(token, '/////', Token);
   }, []);
 
   const fetchRequests = async () => {
@@ -241,7 +246,7 @@ const RequestsScreen = () => {
     try {
       setLoading(true);
       if (activeTab === 'uniform') {
-        await requestsService.deleteUniformRequest(selectedRequest._id);
+        // await requestsService.deleteUniformRequest(selectedRequest._id);
       } else {
         const id = selectedRequest._id || selectedRequest.id;
         if (!id) {
@@ -443,9 +448,7 @@ const RequestsScreen = () => {
       <View className="p-4">
         <View className="flex-row items-center justify-between">
           <View>
-            <Text className="text-xl font-bold text-gray-800">
-              {req.employeeName || req.employeeName}
-            </Text>
+            <Text className="text-xl font-bold text-gray-800">{req.name || req.employeeName}</Text>
             <Text className="text-gray-600">ID: {req.employeeId || req.empId}</Text>
             {type === 'uniform' ? (
               <>

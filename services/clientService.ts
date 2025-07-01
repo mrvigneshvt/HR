@@ -105,9 +105,12 @@ export const clientService = {
   // Delete client
   deleteClient: async (clientNo: string) => {
     try {
+      console.log(clientNo, '/////ClientnNOOOo');
       const response = await axios.delete(`${BASE_URL}/clients/by-client-no/${clientNo}`);
       return response.data;
     } catch (error) {
+      console.log(error, '//ERROR');
+      // console.log(error.response, '//////?/Res');
       throw error;
     }
   },

@@ -73,7 +73,9 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
         value={form.designation}
         onChangeText={(text) => onChange('designation', text)}
       />
-      {errors.designation && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.designation}</Text>}
+      {errors.designation && (
+        <Text style={{ color: 'red', marginBottom: 4 }}>{errors.designation}</Text>
+      )}
       <TextInput
         className="mb-4 rounded-lg border border-gray-300 p-3"
         placeholder="Site"
@@ -93,20 +95,18 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
         <View className="flex-row gap-4">
           <Pressable
             onPress={() => onChange('gender', 'Male')}
-            className={`rounded-lg px-4 py-2 ${form.gender === 'Male' ? 'bg-blue-500' : 'bg-gray-200'}`}
-          >
+            className={`rounded-lg px-4 py-2 ${form.gender === 'Male' ? 'bg-blue-500' : 'bg-gray-200'}`}>
             <Text className={form.gender === 'Male' ? 'text-white' : 'text-black'}>Male</Text>
           </Pressable>
           <Pressable
             onPress={() => onChange('gender', 'Female')}
-            className={`rounded-lg px-4 py-2 ${form.gender === 'Female' ? 'bg-blue-500' : 'bg-gray-200'}`}
-          >
+            className={`rounded-lg px-4 py-2 ${form.gender === 'Female' ? 'bg-blue-500' : 'bg-gray-200'}`}>
             <Text className={form.gender === 'Female' ? 'text-white' : 'text-black'}>Female</Text>
           </Pressable>
         </View>
       </View>
       {errors.gender && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.gender}</Text>}
-      <View className="mb-4 flex-row items-center justify-between">
+      {/* <View className="mb-4 flex-row items-center justify-between">
         <Text>Status:</Text>
         <View className="flex-row gap-4">
           <Pressable
@@ -122,7 +122,7 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
             <Text className={form.status === 'Inactive' ? 'text-white' : 'text-black'}>Inactive</Text>
           </Pressable>
         </View>
-      </View>
+      </View> */}
       {errors.status && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.status}</Text>}
       {form.gender === 'Male' ? (
         <>
@@ -133,7 +133,9 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
             onChangeText={(text) => onChange('shirtSize', text)}
             keyboardType="numeric"
           />
-          {errors.shirtSize && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.shirtSize}</Text>}
+          {errors.shirtSize && (
+            <Text style={{ color: 'red', marginBottom: 4 }}>{errors.shirtSize}</Text>
+          )}
           <TextInput
             className="mb-4 rounded-lg border border-gray-300 p-3"
             placeholder="Pant Size"
@@ -141,7 +143,9 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
             onChangeText={(text) => onChange('pantSize', text)}
             keyboardType="numeric"
           />
-          {errors.pantSize && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.pantSize}</Text>}
+          {errors.pantSize && (
+            <Text style={{ color: 'red', marginBottom: 4 }}>{errors.pantSize}</Text>
+          )}
         </>
       ) : (
         <>
@@ -152,7 +156,9 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
             onChangeText={(text) => onChange('chuditharSize', text)}
             keyboardType="numeric"
           />
-          {errors.chuditharSize && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.chuditharSize}</Text>}
+          {errors.chuditharSize && (
+            <Text style={{ color: 'red', marginBottom: 4 }}>{errors.chuditharSize}</Text>
+          )}
           <TextInput
             className="mb-4 rounded-lg border border-gray-300 p-3"
             placeholder="Female Shoe Size"
@@ -160,7 +166,9 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
             onChangeText={(text) => onChange('femaleShoeSize', text)}
             keyboardType="numeric"
           />
-          {errors.femaleShoeSize && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.femaleShoeSize}</Text>}
+          {errors.femaleShoeSize && (
+            <Text style={{ color: 'red', marginBottom: 4 }}>{errors.femaleShoeSize}</Text>
+          )}
         </>
       )}
       {form.gender === 'Male' && (
@@ -172,7 +180,9 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
             onChangeText={(text) => onChange('shoeSize', text)}
             keyboardType="numeric"
           />
-          {errors.shoeSize && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.shoeSize}</Text>}
+          {errors.shoeSize && (
+            <Text style={{ color: 'red', marginBottom: 4 }}>{errors.shoeSize}</Text>
+          )}
         </>
       )}
       {/* Accessories (comma separated) */}
@@ -180,13 +190,29 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
         className="mb-4 rounded-lg border border-gray-300 p-3"
         placeholder="Accessories (comma separated)"
         value={form.accessories.join(',')}
-        onChangeText={(text) => onChange('accessories', text.split(',').map((a) => a.trim()).filter(Boolean))}
+        onChangeText={(text) =>
+          onChange(
+            'accessories',
+            text
+              .split(',')
+              .map((a) => a.trim())
+              .filter(Boolean)
+          )
+        }
       />
       <TextInput
         className="mb-4 rounded-lg border border-gray-300 p-3"
         placeholder="Female Accessories (comma separated)"
         value={form.femaleAccessories.join(',')}
-        onChangeText={(text) => onChange('femaleAccessories', text.split(',').map((a) => a.trim()).filter(Boolean))}
+        onChangeText={(text) =>
+          onChange(
+            'femaleAccessories',
+            text
+              .split(',')
+              .map((a) => a.trim())
+              .filter(Boolean)
+          )
+        }
       />
       {/* Requested Date */}
       <TextInput
@@ -195,7 +221,9 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
         value={form.requestedDate}
         onChangeText={(text) => onChange('requestedDate', text)}
       />
-      {errors.requestedDate && <Text style={{ color: 'red', marginBottom: 4 }}>{errors.requestedDate}</Text>}
+      {errors.requestedDate && (
+        <Text style={{ color: 'red', marginBottom: 4 }}>{errors.requestedDate}</Text>
+      )}
       {/* Flab */}
       <TextInput
         className="mb-4 rounded-lg border border-gray-300 p-3"
@@ -207,8 +235,7 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
         <Pressable
           onPress={handleSubmit}
           className="rounded-lg bg-blue-500 px-4 py-2"
-          disabled={loading}
-        >
+          disabled={loading}>
           <Text className="text-white">{loading ? 'Submitting...' : 'Submit'}</Text>
         </Pressable>
       </View>
@@ -216,4 +243,4 @@ const UniformRequestForm: React.FC<UniformRequestFormProps> = ({
   );
 };
 
-export default UniformRequestForm; 
+export default UniformRequestForm;

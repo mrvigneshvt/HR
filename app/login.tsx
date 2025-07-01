@@ -23,6 +23,7 @@ import LoadingScreen from 'components/LoadingScreen';
 import { Flow } from 'class/HandleRoleFlow';
 import { Api } from 'class/HandleApi';
 import * as SecureStore from 'expo-secure-store';
+import { State } from 'class/State';
 // import * as SecureStore from 'expo-secure-store';
 const logo = require('../assets/logo.jpg');
 
@@ -40,6 +41,8 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
+    State.deleteToken();
+
     BackHandler.addEventListener('hardwareBackPress', onBackPress);
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
   }, []);

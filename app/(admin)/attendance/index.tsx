@@ -146,7 +146,7 @@ const AttendanceScreen = () => {
     setFiltered(
       attendance.filter(
         (item) =>
-          item.employee_name.toLowerCase().includes(search.toLowerCase()) ||
+          // item.employee_name.toLowerCase().includes(search.toLowerCase()) ||
           item.employee_id.toLowerCase().includes(search.toLowerCase()) ||
           item.attendance_date.includes(search)
       )
@@ -173,8 +173,10 @@ const AttendanceScreen = () => {
   };
 
   const handleCardPress = async (item: AttendanceData) => {
+    console.log(item, 'itemmmm');
     setSelectedAttendance(item);
-    await fetchAttendanceDetails(item.employee_id, item.attendance_date);
+    setDetailedAttendance(item);
+    // await fetchAttendanceDetails(item.employee_id, item.attendance_date,item.id);
   };
 
   const getStatusColor = (status: string) => {
@@ -255,6 +257,7 @@ const AttendanceScreen = () => {
             <Text style={styles.employeeId}>ID: {item.employee_id}</Text>
             <Text style={styles.date}>Date: {item.attendance_date}</Text>
             <Text style={styles.company}>Company: {item.company_name}</Text>
+            <Text style={styles.company}>Company ID: {item.client_no}</Text>
           </TouchableOpacity>
         )}
       />

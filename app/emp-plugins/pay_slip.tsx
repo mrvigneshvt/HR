@@ -24,6 +24,8 @@ import { Api } from 'class/HandleApi';
 import { Image } from 'expo-image';
 import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
 import { configFile } from 'config';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 const PaySlip = () => {
   const { role, empId } = useLocalSearchParams() as { role: string; empId: string };

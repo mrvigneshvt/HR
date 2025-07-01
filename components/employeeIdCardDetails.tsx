@@ -13,12 +13,11 @@ interface Props {
 }
 
 const EmployeeIdCardDetail: React.FC<Props> = ({ employee }: any) => {
-
   return (
     <View style={styles.card}>
       {/* Header */}
       <View style={styles.header}>
-        <Image source={require('../assets/sdceLogo.png')} style={styles.logo} />
+        {/* <Image source={require('../assets/sdceLogo.png')} style={styles.logo} /> */}
       </View>
       <Text style={styles.title}>Employee Details</Text>
 
@@ -34,9 +33,7 @@ const EmployeeIdCardDetail: React.FC<Props> = ({ employee }: any) => {
       </View>
 
       {/* Name (if exists) */}
-      {employee.name && (
-        <Text style={styles.name}>Name: {employee.name}</Text>
-      )}
+      {employee.name && <Text style={styles.name}>Name: {employee.name}</Text>}
 
       {/* Emergency Contact */}
       <Text style={styles.label}>Emergency Contact:</Text>

@@ -138,7 +138,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     setTimeout(() => {
-      NavRouter.backOrigin({ role: 'executive', empId: 'SFM101' });
+      NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM43899' });
       //   router.replace({
       //     // pathname: '/(tabs)/dashboard',
       //     pathname: '/(admin)/home',
