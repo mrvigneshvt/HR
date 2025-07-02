@@ -54,6 +54,7 @@ const NotificationScreen = () => {
       const leaveData = leaveRes?.data ?? [];
       const uniformData = uniformRes?.data ?? [];
 
+      console.log(leaveData, '///LeaveData\n\n');
       const formattedLeaves = leaveData
         .filter((d: any) => d?.employeeId)
         .map((d: any) => ({
@@ -66,7 +67,11 @@ const NotificationScreen = () => {
           to: d.endDate.split('T')[0],
           date: d.createdAt.split('T')[0],
           approvalStatus: d.status,
+          approvedBy: d.approvedBy,
+          approvedName: d.approvedname,
         }));
+
+      console.log(formattedLeaves, '////Formatted LEaces');
 
       const formattedUniforms = uniformData
         .filter((d: any) => d?.empId)
@@ -89,6 +94,7 @@ const NotificationScreen = () => {
       );
 
       setRequests(allRequests);
+      console.log('\n\n', requests);
     } catch (err) {
       console.error('Notification fetch error:', err);
     } finally {

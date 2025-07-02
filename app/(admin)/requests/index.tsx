@@ -8,6 +8,9 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import Feather from '@expo/vector-icons/Feather';
+import Entypo from '@expo/vector-icons/Entypo';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import React, { useState, useEffect } from 'react';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { configFile } from '../../../config';
@@ -25,11 +28,17 @@ import { isReadOnlyRole } from 'utils/roleUtils';
 import { BackHandler } from 'react-native';
 import { router } from 'expo-router';
 import { State } from 'class/State';
+import { Api } from 'class/HandleApi';
+import { useIsFocused } from '@react-navigation/native';
 
 const randomId = () => crypto.randomUUID();
 const RequestsScreen = () => {
+  const isFocus = useIsFocused();
   const [token, setToken] = useState<string>('');
   const [activeTab, setActiveTab] = useState('uniform');
+  const [showAcceptModal, setShowAcceptModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -82,8 +91,7 @@ const RequestsScreen = () => {
     fetchRequests();
     const Token = State.getToken();
     setToken(Token);
-    console.log(token, '/////', Token);
-  }, []);
+  }, [isFocus]);
 
   const fetchRequests = async () => {
     try {
@@ -94,6 +102,8 @@ const RequestsScreen = () => {
       ]);
       setUniformRequests(uniformData);
       setLeaveRequests(leaveData);
+      console.log(uniformData, '//////uniFORM\n\n');
+
       console.log(leaveData, '//////LeaveRequest');
     } catch (error) {
       console.error('Error fetching requests:', error);
@@ -246,7 +256,7 @@ const RequestsScreen = () => {
     try {
       setLoading(true);
       if (activeTab === 'uniform') {
-        // await requestsService.deleteUniformRequest(selectedRequest._id);
+        await requestsService.deleteUniformRequest(selectedRequest._id);
       } else {
         const id = selectedRequest._id || selectedRequest.id;
         if (!id) {
@@ -399,6 +409,132 @@ const RequestsScreen = () => {
     </Modal>
   );
 
+  const renderAcceptModal = () => (
+    <Modal
+      visible={showAcceptModal}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setShowAcceptModal(false)}>
+      <TouchableOpacity
+        className="flex-1 justify-end bg-black/50"
+        activeOpacity={1}
+        onPress={() => setShowAcceptModal(false)}>
+        <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+          <View className="rounded-t-3xl bg-white p-6">
+            <Text className="mb-4 text-xl font-bold">Accept Request</Text>
+            <Text className="mb-4 text-gray-600">
+              Are you sure you want to Accept this request?
+            </Text>
+            <View className="flex-row justify-end gap-2">
+              <Pressable
+                onPress={() => {
+                  setShowAcceptModal(false);
+                  setSelectedRequest(null);
+                }}
+                className="rounded-lg bg-gray-200 px-4 py-2">
+                <Text>Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  console.log('\n\nAccpet Triggered');
+                  handleToggle('accept');
+                }}
+                className="rounded-lg bg-green-500 px-4 py-2"
+                disabled={loading}>
+                {loading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-white">Accept</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
+  );
+
+  const renderRejectModal = () => (
+    <Modal
+      visible={showRejectModal}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setShowRejectModal(false)}>
+      <TouchableOpacity
+        className="flex-1 justify-end bg-black/50"
+        activeOpacity={1}
+        onPress={() => setShowRejectModal(false)}>
+        <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+          <View className="rounded-t-3xl bg-white p-6">
+            <Text className="mb-4 text-xl font-bold">Reject Request</Text>
+            <Text className="mb-4 text-gray-600">
+              Are you sure you want to Reject this request?
+            </Text>
+            <View className="flex-row justify-end gap-2">
+              <Pressable
+                onPress={() => {
+                  setShowRejectModal(false);
+                  setSelectedRequest(null);
+                }}
+                className="rounded-lg bg-gray-200 px-4 py-2">
+                <Text>Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  console.log('\n\nAccpet Triggered');
+                  handleToggle('reject');
+                }}
+                className="rounded-lg bg-red-500 px-4 py-2"
+                disabled={loading}>
+                {loading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-white">Reject</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
+  );
+
+  const handleToggle = async (data: 'accept' | 'reject') => {
+    console.log('triggring toggle::', selectedRequest);
+    let url;
+    let action = data == 'accept' ? 'Approved' : 'Rejected';
+    if (selectedRequest.gender) {
+      url = configFile.api.superAdmin.request.uniform.update(selectedRequest.empId);
+      const body = {
+        ...selectedRequest,
+        status: action,
+      };
+      console.log(url, '///\n\n', body, '///////////////////body');
+      const api = await Api.handleApi({ url, type: 'PUT', payload: body, token });
+      Alert.alert(api.status == 200 ? 'Success' : 'Failed', api.data.message);
+      if (api.status == 200) {
+        setSelectedRequest(null);
+        action == 'Approved' ? setShowAcceptModal(false) : setShowRejectModal(false);
+        fetchRequests();
+        return;
+      }
+    } else {
+      url = configFile.api.superAdmin.request.leaves.update(selectedRequest.employeeId);
+      const body = {
+        ...selectedRequest,
+        status: action,
+      };
+      const api = await Api.handleApi({ url, type: 'PUT', payload: body, token });
+      Alert.alert(api.status == 200 ? 'Success' : 'Failed', api.data.message);
+      if (api.status == 200) {
+        setSelectedRequest(null);
+        action == 'Approved' ? setShowAcceptModal(false) : setShowRejectModal(false);
+        fetchRequests();
+        return;
+      }
+    }
+  };
+
   const renderDeleteModal = () => (
     <Modal
       visible={showDeleteModal}
@@ -478,7 +614,7 @@ const RequestsScreen = () => {
           </View>
           {showActions && !readOnly && (
             <View className="flex-row gap-2">
-              <Pressable
+              {/* <Pressable
                 onPress={() => {
                   setSelectedRequest(req);
                   if (type === 'uniform') {
@@ -490,7 +626,7 @@ const RequestsScreen = () => {
                 }}
                 className="rounded-full bg-blue-100 p-2">
                 <MaterialIcons name="edit" size={20} color="#4A90E2" />
-              </Pressable>
+              </Pressable> */}
               <Pressable
                 onPress={() => {
                   setSelectedRequest(req);
@@ -505,30 +641,44 @@ const RequestsScreen = () => {
         <View className="mt-4 flex-row items-center justify-between">
           <View className="flex-row items-center">
             <Text className="mr-2 font-semibold text-gray-700">Status:</Text>
-            <View
-              className="rounded-full px-3 py-1"
-              style={{ backgroundColor: `${getStatusColor(req.status)}20` }}>
-              <Text style={{ color: getStatusColor(req.status) }}>{req.status}</Text>
+            <View className="flex flex-row gap-2">
+              <View
+                className="flex-row gap-1 rounded-full px-3 py-1"
+                style={{ backgroundColor: `${getStatusColor(req.status)}20` }}>
+                <Text style={{ color: getStatusColor(req.status) }}>{`${req.status}`}</Text>
+                {req.status.toLowerCase() !== 'pending' &&
+                  (req.status.toLowerCase() === 'approved' ? (
+                    <Feather name="user-check" size={20} color="green" />
+                  ) : (
+                    <Feather name="user-x" size={20} color="red" />
+                  ))}
+                <Text style={{ color: getStatusColor(req.status) }}>{req.approvedBy}</Text>
+                {/*</TouchableOpacity> */}
+              </View>
             </View>
           </View>
           {req.status === 'Pending' && !readOnly && (
-            <View className="flex-row gap-2">
-              <Pressable
-                onPress={() => {
-                  // Handle approve
-                }}
-                className="rounded-lg bg-green-500 px-4 py-2">
-                <Text className="text-white">Approve</Text>
-              </Pressable>
-              <Pressable
+            <TouchableOpacity className="flex-row gap-2">
+              <TouchableOpacity
                 onPress={() => {
                   setSelectedRequest(req);
-                  setShowDeleteModal(true);
+                  setShowAcceptModal(true);
+                  console.log(req, '////Req');
+                }}
+                className="rounded-lg bg-green-500 px-4 py-2">
+                {/* <Text className="text-white">Approve</Text> */}
+                <FontAwesome name="check-circle" size={19} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedRequest(req);
+                  setShowRejectModal(true);
                 }}
                 className="rounded-lg bg-red-500 px-4 py-2">
-                <Text className="text-white">Reject</Text>
-              </Pressable>
-            </View>
+                {/* <Text className="text-white">Reject</Text> */}
+                <Entypo name="circle-with-cross" size={19} color="white" />
+              </TouchableOpacity>
+            </TouchableOpacity>
           )}
         </View>
       </View>
@@ -536,7 +686,7 @@ const RequestsScreen = () => {
   );
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'pending':
         return '#FFA500';
       case 'approved':
@@ -658,6 +808,8 @@ const RequestsScreen = () => {
       {!readOnly && renderAddModal()}
       {!readOnly && renderEditModal()}
       {!readOnly && renderDeleteModal()}
+      {!readOnly && renderAcceptModal()}
+      {!readOnly && renderRejectModal()}
 
       {/* Filter Modal */}
       <Modal

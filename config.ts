@@ -81,6 +81,14 @@ export const configFile = {
           delete(id: string) {
             return `${backendBaseUrl}api/uniforms/${id}`;
           },
+          update(id: string) {
+            return `${backendBaseUrl}api/uniforms/${id}`; //put
+          },
+        },
+        leaves: {
+          update(id: string) {
+            return `${backendBaseUrl}api/leaves/${id}`;
+          },
         },
       },
       clients: {
@@ -88,6 +96,7 @@ export const configFile = {
           return `${backendBaseUrl}api/clients/by-client-no/${id}`; //delete
         },
       },
+
       employees: {
         add() {
           return `${backendBaseUrl}api/employees`; //post method

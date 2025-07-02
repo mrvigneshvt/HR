@@ -140,12 +140,7 @@ const HomeScreen = () => {
 
       <ScrollView className="flex-1 p-4">
         {empData && (
-          <DashTop
-            role={role ?? ''}
-            name={empData.name}
-            empId={empId}
-            img={empData.profile_image}
-          />
+          <DashTop role={''} name={empData.name} empId={empId} img={empData.profile_image} />
         )}
 
         {role && (
