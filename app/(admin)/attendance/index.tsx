@@ -19,6 +19,7 @@ import { configFile } from 'config';
 import axios from 'axios';
 import { isReadOnlyRole } from 'utils/roleUtils';
 import { useIsFocused } from '@react-navigation/native';
+import { NavRouter } from 'class/Router';
 
 interface AttendanceData {
   id: number;
@@ -146,7 +147,7 @@ const AttendanceScreen = () => {
     setFiltered(
       attendance.filter(
         (item) =>
-          // item.employee_name.toLowerCase().includes(search.toLowerCase()) ||
+          item.employee_name.toLowerCase().includes(search.toLowerCase()) ||
           item.employee_id.toLowerCase().includes(search.toLowerCase()) ||
           item.attendance_date.includes(search)
       )
@@ -154,15 +155,16 @@ const AttendanceScreen = () => {
   }, [search, attendance]);
 
   useEffect(() => {
-    const onBackPress = () => {
-      router.replace({
-        pathname: '/home',
-        params: { role, empId },
-      });
-      return true;
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    // const onBackPress = () => {
+    //   router.replace({
+    //     pathname: '/home',
+    //     params: { role, empId },
+    //   });
+    //   return true;
+    // };
+    // BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    NavRouter.BackHandler({ empId, role });
   }, []);
 
   const handleCalendarDayPress = (day: any) => {

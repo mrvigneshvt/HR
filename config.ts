@@ -82,12 +82,12 @@ export const configFile = {
             return `${backendBaseUrl}api/uniforms/${id}`;
           },
           update(id: string) {
-            return `${backendBaseUrl}api/uniforms/${id}`; //put
+            return `${backendBaseUrl}api/uniforms/docId/${id}`; //put
           },
         },
         leaves: {
           update(id: string) {
-            return `${backendBaseUrl}api/leaves/${id}`;
+            return `${backendBaseUrl}api/leaves/docId/${id}`;
           },
         },
       },

@@ -30,7 +30,10 @@ import EmployeeIdCardDetail from '../../../components/employeeIdCardDetails';
 import { Api } from 'class/HandleApi';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useIsFocused } from '@react-navigation/native';
-
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import AntDesign from '@expo/vector-icons/AntDesign';
+import { differenceInYears, format } from 'date-fns';
 const { width: screenWidth } = Dimensions.get('window');
 const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
 
@@ -201,6 +204,7 @@ const EmployeesScreen = () => {
     `);
   };
 
+  const [showCalendar, setShowCalendar] = useState<boolean>(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -277,6 +281,10 @@ const EmployeesScreen = () => {
       })
     );
   }, [search, employeeList]);
+
+  useEffect(() => {
+    console.log('Selected Emp Updated: ', selectedEmployee);
+  }, [selectedEmployee]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -596,12 +604,9 @@ const EmployeesScreen = () => {
 
       updateFields = {
         ...updateFields,
-        date_of_joining: '',
-        dob: '',
       };
 
-      delete updateFields.dob;
-      delete updateFields.date_of_joining;
+      console.log(updateFields);
 
       const response = await axios.put(
         `${BASE_URL}/employees/${selectedEmployee.employee_id}`,
@@ -762,7 +767,7 @@ const EmployeesScreen = () => {
                   setNewEmployee({ ...newEmployee, gender: 'Male' });
                   if (errors.gender) setErrors({ ...errors, gender: undefined });
                 }}>
-                <Text>Male</Text>
+                <FontAwesome name="male" size={24} color="black" />{' '}
               </Pressable>
               <Pressable
                 style={[
@@ -1287,6 +1292,15 @@ const EmployeesScreen = () => {
     </Modal>
   );
 
+  const handleClose = (from: 'update') => {
+    switch (from) {
+      case 'update':
+        setSelectedEmployee(null);
+        setShowCalendar(false);
+        setShowEditModal(false);
+    }
+  };
+
   useEffect(() => {
     const onBackPress = () => {
       router.replace({
@@ -1341,7 +1355,9 @@ const EmployeesScreen = () => {
           visible={showEditModal}
           transparent
           animationType="slide"
-          onRequestClose={() => setShowEditModal(false)}>
+          onRequestClose={() => {
+            handleClose('update');
+          }}>
           <TouchableOpacity
             activeOpacity={1}
             style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}
@@ -1365,7 +1381,7 @@ const EmployeesScreen = () => {
                   {/* <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Edit Employee Details</Text> */}
 
                   <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Update Employee Details</Text>
-                  <TouchableOpacity onPress={() => setShowEditModal(false)}>
+                  <TouchableOpacity onPress={() => handleClose('update')}>
                     <MaterialIcons name="close" size={24} color="#666" />
                   </TouchableOpacity>
                 </View>
@@ -1417,8 +1433,61 @@ const EmployeesScreen = () => {
                   style={styles.input}
                 />
 
-                <Text>Date of Birth</Text>
-                <TextInput
+                <View className="w-full flex-row ">
+                  <Text className="w-" numberOfLines={1}>
+                    Date of Birth
+                  </Text>
+                  <TouchableOpacity
+                    className=""
+                    onPress={() => {
+                      console.log();
+                      setShowCalendar(true);
+                    }}>
+                    <AntDesign name="calendar" size={24} color="green" />
+                  </TouchableOpacity>
+                </View>
+
+                {showCalendar && (
+                  <DateTimePicker
+                    value={new Date(selectedEmployee?.dob)}
+                    maximumDate={new Date()}
+                    mode="date"
+                    display="calendar"
+                    onChange={(e, selectedDate) => {
+                      if (e.type === 'dismissed') {
+                        setShowCalendar(false);
+                        return;
+                      }
+
+                      if (selectedDate) {
+                        const formatted = format(selectedDate, 'yyyy-MM-dd');
+                        const age = differenceInYears(new Date(), new Date(formatted));
+
+                        setSelectedEmployee((prev) => ({
+                          ...prev,
+                          dob: formatted,
+                          age: age.toString(),
+                        }));
+
+                        setShowCalendar(false); // close picker
+                        // console.log('DOB updated to:', formatted, 'Age:', age);
+                      }
+                    }}
+                  />
+                )}
+
+                {selectedEmployee?.dob && (
+                  <TextInput
+                    editable={false}
+                    value={selectedEmployee?.dob.split('T')[0] || selectedEmployee.dob}
+                    onChangeText={(text) =>
+                      selectedEmployee && setSelectedEmployee({ ...selectedEmployee, dob: text })
+                    }
+                    placeholder="YYYY-MM-DD"
+                    style={styles.input}
+                  />
+                )}
+                {/* <TextInput
                   editable={false}
                   value={selectedEmployee?.dob}
                   onChangeText={(text) =>
@@ -1427,6 +1496,7 @@ const EmployeesScreen = () => {
                   placeholder="YYYY-MM-DD"
                   style={styles.input}
                 />
+                */}
 
                 <Text>Gender *</Text>
                 <View style={styles.radioGroup}>
@@ -1439,24 +1509,25 @@ const EmployeesScreen = () => {
                       selectedEmployee &&
                       setSelectedEmployee({ ...selectedEmployee, gender: 'Male' })
                     }>
-                    <Text>Male</Text>
+                    <FontAwesome name="male" size={24} color="green" />
                   </Pressable>
                   <Pressable
                     style={[
                       styles.radioButton,
-                      selectedEmployee?.gender === 'Female' && styles.radioButtonSelected,
+                      selectedEmployee?.gender === 'Female' && styles.radioButtonSelectedFemale,
                     ]}
                     onPress={() =>
                       selectedEmployee &&
                       setSelectedEmployee({ ...selectedEmployee, gender: 'Female' })
                     }>
-                    <Text>Female</Text>
+                    <FontAwesome name="female" size={24} color="#be25ab" />
                   </Pressable>
                 </View>
                 {errors.gender && <Text style={styles.errorText}>{errors.gender}</Text>}
 
                 <Text>Age</Text>
                 <TextInput
+                  editable={false}
                   value={selectedEmployee?.age?.toString() || ''}
                   onChangeText={(text) =>
                     selectedEmployee &&
@@ -2169,6 +2240,10 @@ const styles = StyleSheet.create({
   },
   radioButtonSelected: {
     borderColor: '#4A90E2',
+    backgroundColor: '#E3F2FD',
+  },
+  radioButtonSelectedFemale: {
+    borderColor: '#be25ab',
     backgroundColor: '#E3F2FD',
   },
   buttonContainer: {

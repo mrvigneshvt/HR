@@ -30,6 +30,7 @@ import { router } from 'expo-router';
 import { State } from 'class/State';
 import { Api } from 'class/HandleApi';
 import { useIsFocused } from '@react-navigation/native';
+import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
 
 const randomId = () => crypto.randomUUID();
 const RequestsScreen = () => {
@@ -100,8 +101,8 @@ const RequestsScreen = () => {
         requestsService.getUniformRequests(),
         requestsService.getLeaveRequests(),
       ]);
-      setUniformRequests(uniformData);
-      setLeaveRequests(leaveData);
+      setUniformRequests(uniformData.reverse());
+      setLeaveRequests(leaveData.reverse());
       console.log(uniformData, '//////uniFORM\n\n');
 
       console.log(leaveData, '//////LeaveRequest');
@@ -504,7 +505,7 @@ const RequestsScreen = () => {
     let url;
     let action = data == 'accept' ? 'Approved' : 'Rejected';
     if (selectedRequest.gender) {
-      url = configFile.api.superAdmin.request.uniform.update(selectedRequest.empId);
+      url = configFile.api.superAdmin.request.uniform.update(selectedRequest._id);
       const body = {
         ...selectedRequest,
         status: action,
@@ -519,7 +520,7 @@ const RequestsScreen = () => {
         return;
       }
     } else {
-      url = configFile.api.superAdmin.request.leaves.update(selectedRequest.employeeId);
+      url = configFile.api.superAdmin.request.leaves.update(selectedRequest._id);
       const body = {
         ...selectedRequest,
         status: action,
@@ -774,23 +775,49 @@ const RequestsScreen = () => {
       ) : (
         <>
           <SearchBar value={search} onChangeText={setSearch} placeholder="Search employee..." />
-          <View className="mx-4 my-4 flex-row justify-around rounded-2xl bg-gray-200 p-0.5">
+          <View
+            style={{
+              marginHorizontal: scale(16),
+              marginVertical: verticalScale(16),
+              flexDirection: 'row',
+              justifyContent: 'space-around',
+              borderRadius: moderateScale(16),
+              backgroundColor: '#e5e7eb',
+              padding: moderateScale(4),
+            }}>
             <Pressable onPress={() => setActiveTab('uniform')}>
               <View
-                className={`rounded-3xl p-3 px-6 ${activeTab === 'uniform' ? `bg-[#238c58]` : ''}`}
-                style={{ borderRadius: 12 }}>
+                style={{
+                  borderRadius: moderateScale(12),
+                  paddingVertical: verticalScale(12),
+                  paddingHorizontal: scale(24),
+                  backgroundColor: activeTab === 'uniform' ? '#238c58' : 'transparent',
+                }}>
                 <Text
-                  className={`text-lg font-semibold ${activeTab !== 'uniform' ? 'text-black' : 'text-white'}`}>
+                  style={{
+                    fontSize: moderateScale(12),
+                    fontWeight: '600',
+                    color: activeTab === 'uniform' ? '#ffffff' : '#000000',
+                  }}>
                   Uniform Request
                 </Text>
               </View>
             </Pressable>
+
             <Pressable onPress={() => setActiveTab('leave')}>
               <View
-                className={`rounded-3xl p-3 px-6 ${activeTab === 'leave' ? `bg-[#238c58]` : ''}`}
-                style={{ borderRadius: 12 }}>
+                style={{
+                  borderRadius: moderateScale(12),
+                  paddingVertical: verticalScale(12),
+                  paddingHorizontal: scale(24),
+                  backgroundColor: activeTab === 'leave' ? '#238c58' : 'transparent',
+                }}>
                 <Text
-                  className={`text-lg font-semibold ${activeTab !== 'leave' ? 'text-black' : 'text-white'}`}>
+                  style={{
+                    fontSize: moderateScale(12),
+                    fontWeight: '600',
+                    color: activeTab === 'leave' ? '#ffffff' : '#000000',
+                  }}>
                   Leave Request
                 </Text>
               </View>

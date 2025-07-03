@@ -43,7 +43,7 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    State.deleteToken()
+    State.deleteToken();
     BackHandler.addEventListener('hardwareBackPress', onBackPress);
     return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
   }, []);
@@ -53,15 +53,15 @@ export default function LoginPage() {
   const [apiLoading, setApiLoading] = useState(false);
   const [popup, setPopUp] = useState(false);
   const [popMsg, setPopMsg] = useState('');
-  const [popUpMessages] = useState({
-    notFound: 'EmployeeId not Found',
-    invalid: 'Invalid Employee ID',
-  });
   const [isOtp, setIsOtp] = useState(false);
   const [otp, setOtp] = useState<string>('');
   const [otpHash, setOtpHash] = useState<string>('');
   const [otpToNumber, setOtpToNumber] = useState('');
   const [apiData, setApiData] = useState(null);
+  const [popUpMessages] = useState({
+    notFound: 'EmployeeId not Found',
+    invalid: 'Invalid Employee ID',
+  });
 
   const triggerPopup = (data: PopUpTypes) => {
     setPopMsg(data);
@@ -136,23 +136,17 @@ export default function LoginPage() {
   // useEffect(() => {
   //   checkToken();
   // }, []);
-  //////////////////////////////////////////////////////////
+
+  ///////////////////////////////////////////////////////////////////////////////////
 
   useEffect(() => {
     setTimeout(() => {
       NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM43899' });
-      //   router.replace({
-      //     // pathname: '/(tabs)/dashboard',
-      //     pathname: '/(admin)/home',
-      //     params: {
-      //       role: 'superadmin',
-      //       empId: 'SFM007',
-      //     },
-      //   });
     }, 50);
   }, []);
 
-  ////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////////
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
