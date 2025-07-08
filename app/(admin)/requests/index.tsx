@@ -31,6 +31,7 @@ import { State } from 'class/State';
 import { Api } from 'class/HandleApi';
 import { useIsFocused } from '@react-navigation/native';
 import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
+import { NavRouter } from 'class/Router';
 
 const randomId = () => crypto.randomUUID();
 const RequestsScreen = () => {
@@ -89,6 +90,7 @@ const RequestsScreen = () => {
   console.log('RequestsScreen readOnly:', readOnly, 'role:', role);
 
   useEffect(() => {
+    NavRouter.BackHandler({ empId, role });
     fetchRequests();
     const Token = State.getToken();
     setToken(Token);
@@ -596,7 +598,10 @@ const RequestsScreen = () => {
                     <Text className="text-gray-600">Pant Size: {req.pantSize}</Text>
                   </>
                 ) : (
-                  <Text className="text-gray-600">Chudithar Size: {req.chuditharSize}</Text>
+                  <>
+                    <Text className="text-gray-600">Chudithar Size: {req.chuditharSize}</Text>
+                    <Text className="text-gray-600">Pant Size: {req.pantSize}</Text>
+                  </>
                 )}
                 <Text className="text-gray-600">Shoe Size: {req.shoeSize}</Text>
               </>
@@ -710,18 +715,6 @@ const RequestsScreen = () => {
       req.employeeName.toLowerCase().includes(search.toLowerCase()) ||
       req.employeeId.toLowerCase().includes(search.toLowerCase())
   );
-
-  useEffect(() => {
-    const onBackPress = () => {
-      router.replace({
-        pathname: '/home',
-        params: { role, empId },
-      });
-      return true;
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-  }, []);
 
   return (
     <View className="flex-1 bg-gray-50">

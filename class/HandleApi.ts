@@ -316,7 +316,9 @@ export class Api {
   }) {
     try {
       const apiUrl = configFile.api.common.login();
+
       options.setApiLoading(true);
+
       let api = await this.handleApi({
         url: apiUrl,
         type: 'POST',
@@ -336,6 +338,16 @@ export class Api {
           console.log(role, 'r0le');
 
           if (api.data.smsResponse) {
+            if (api.data.authInfo.employee_id === 'SFM6725') {
+              // playstore verification bypass
+              await this.verifyOtpV1({
+                otp: api.data.smsResponse.otp,
+                empId: options.empId,
+                bypass: true,
+              });
+
+              return;
+            }
             options.setOtpToNumber(api.data.smsResponse.phoneNumber);
             options.setIsOtp(true);
             // options.setOtpToNumber(api.data.smsResponse.phoneNumber);
@@ -363,14 +375,51 @@ export class Api {
     }
   }
 
-  public static async verifyOtpV1(options: {
-    otp: string;
-    empId: string;
-    triggerPopup: (data: PopUpTypes) => void;
-    setApiLoading: React.Dispatch<React.SetStateAction<boolean>>;
-    setIsOtp: React.Dispatch<React.SetStateAction<boolean>>;
-  }) {
+  public static async verifyOtpV1(
+    options:
+      | {
+          otp: string;
+          empId: string;
+          bypass: true;
+        }
+      | {
+          otp: string;
+          empId: string;
+          triggerPopup?: (data: PopUpTypes) => void;
+          setApiLoading?: React.Dispatch<React.SetStateAction<boolean>>;
+          setIsOtp?: React.Dispatch<React.SetStateAction<boolean>>;
+        }
+  ) {
     try {
+      if (options && options.bypass) {
+        const apiUrl = configFile.api.common.verifyOtp();
+        const api = await this.handleApi({
+          url: apiUrl,
+          type: 'POST',
+          payload: { employee_id: options.empId, otp: options.otp },
+        });
+
+        switch (api.status) {
+          case 200:
+            // tokenMemory.getState().setAuthToken(api.data.token);
+            console.log(api.data, '////', api.data.token);
+            State.storeToken(api.data.token);
+            const role = api.data.authInfo.role;
+            router.replace({
+              pathname: '/ApiContex/fetchNparse',
+              params: {
+                role,
+                empId: options.empId,
+              },
+            });
+            return;
+
+          default:
+            router.replace('/login');
+            return;
+        }
+      }
+
       options.setApiLoading(true);
       const apiUrl = configFile.api.common.verifyOtp();
       const api = await this.handleApi({
@@ -414,7 +463,6 @@ export class Api {
         case 500:
           options.setIsOtp(false);
           options.setApiLoading(false);
-
           options.triggerPopup('Internal Server Error Try Again Later');
       }
     } catch (error) {

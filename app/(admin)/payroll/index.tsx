@@ -17,6 +17,7 @@ import { configFile } from '../../../config';
 import { isReadOnlyRole } from '../../../utils/roleUtils';
 import { BackHandler } from 'react-native';
 import moment from 'moment';
+import { NavRouter } from 'class/Router';
 
 const PayslipDetail = ({ detail }: { detail: any }) => {
   if (!detail || !detail.payslips || detail.payslips.length === 0) {
@@ -204,15 +205,16 @@ const PayrollScreen = () => {
   };
 
   useEffect(() => {
-    const onBackPress = () => {
-      router.replace({
-        pathname: '/(admin)/home',
-        params: { role, empId },
-      });
-      return true;
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    // const onBackPress = () => {
+    //   router.replace({
+    //     pathname: '/(admin)/home',
+    //     params: { role, empId },
+    //   });
+    //   return true;
+    // };
+    // BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    NavRouter.BackHandler({ empId, role });
   }, [role, empId]);
 
   return (

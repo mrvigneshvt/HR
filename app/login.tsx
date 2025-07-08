@@ -24,6 +24,7 @@ import { Flow } from 'class/HandleRoleFlow';
 import { Api } from 'class/HandleApi';
 import * as SecureStore from 'expo-secure-store';
 import { State } from 'class/State';
+import { NavRouter } from 'class/Router';
 // import * as SecureStore from 'expo-secure-store';
 const logo = require('../assets/logo.jpg');
 
@@ -43,8 +44,9 @@ export default function LoginPage() {
   useEffect(() => {
     State.deleteToken();
 
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    // BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    NavRouter.stayBack();
   }, []);
   // const setDashboard = DashMemory((state) => state.setDashboard);
 

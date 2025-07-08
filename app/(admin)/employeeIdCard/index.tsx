@@ -19,6 +19,7 @@ import EmployeeIdCardDetail from 'components/employeeIdCardDetails';
 import { isReadOnlyRole } from 'utils/roleUtils';
 import { BackHandler } from 'react-native';
 import { router } from 'expo-router';
+import { NavRouter } from 'class/Router';
 
 const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
   const [loading, setLoading] = useState(true);
@@ -44,15 +45,16 @@ const EmployeeIdCardScreen = ({ navigation }: { navigation: any }) => {
   console.log('EmployeeIdCardScreen readOnly:', readOnly, 'role:', role);
 
   useEffect(() => {
-    const onBackPress = () => {
-      router.replace({
-        pathname: '/home',
-        params: { role, empId },
-      });
-      return true;
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    // const onBackPress = () => {
+    //   router.replace({
+    //     pathname: '/home',
+    //     params: { role, empId },
+    //   });
+    //   return true;
+    // };
+    // BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    NavRouter.BackHandler({ empId, role });
   }, []);
 
   useEffect(() => {

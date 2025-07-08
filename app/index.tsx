@@ -44,8 +44,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     State.deleteToken();
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    NavRouter.stayBack();
   }, []);
 
   const router = useRouter();
@@ -110,40 +109,13 @@ export default function LoginPage() {
     }
   };
 
-  // const checkToken = async () => {
-  //   const token = await SecureStore.getItemAsync('STOKEN');
-  //   console.log(token, 'tokennnnnn');
-  //   if (!token) {
-  //     return;
-  //   }
-  //   let isVerified = await Api.verifyToken(token);
-  //   console.log(isVerified);
-
-  //   if (!isVerified) {
-  //     //await SecureStore.deleteItemAsync('STOKEN');
-  //     return;
-  //   }
-
-  //   console.log('IsVerifiedddd', isVerified);
-  //   router.replace({
-  //     pathname: '/ApiContex/fetchNparse',
-  //     params: {
-  //       data: JSON.stringify(isVerified.data),
-  //     },
-  //   });
-  // };
-
-  // useEffect(() => {
-  //   checkToken();
-  // }, []);
-
   ///////////////////////////////////////////////////////////////////////////////////
 
-  useEffect(() => {
-    setTimeout(() => {
-      NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM43899' });
-    }, 50);
-  }, []);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM43899' });
+  //   }, 50);
+  // }, []);
 
   ////////////////////////////////////////////////////////////////////////////////////
 

@@ -26,6 +26,7 @@ import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
 import { configFile } from 'config';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { MaterialIcons } from '@expo/vector-icons';
+import { NavRouter } from 'class/Router';
 
 const PaySlip = () => {
   const { role, empId } = useLocalSearchParams() as { role: string; empId: string };
@@ -40,15 +41,16 @@ const PaySlip = () => {
   const [apiLoading, setApiLoading] = useState(true);
   const captureRefView = useRef(null);
 
-  const onBackPress = () => {
-    const pathname = role.toLowerCase() === 'employee' ? '/(tabs)/dashboard/' : '/(admin)/home/';
-    router.replace({ pathname, params: { role, empId } });
-    return true;
-  };
+  // const onBackPress = () => {
+  //   const pathname = role.toLowerCase() === 'employee' ? '/(tabs)/dashboard/' : '/(admin)/home/';
+  //   router.replace({ pathname, params: { role, empId } });
+  //   return true;
+  // };
 
   useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    // BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    NavRouter.BackHandler({ empId, role });
   }, [role]);
 
   useEffect(() => {
@@ -144,7 +146,7 @@ const PaySlip = () => {
               alignItems: 'center',
               justifyContent: 'center',
               paddingHorizontal: scale(20),
-              backgroundColor: '#f0f4f7',
+              backgroundColor: '#fff',
               height: Dimensions.get('window').height - 100,
             }}>
             <Image

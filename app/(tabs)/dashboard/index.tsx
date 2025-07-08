@@ -9,6 +9,7 @@ import { useEmployeeStore } from 'Memory/Employee';
 import { DashMemory } from 'Memory/DashMem';
 import { Api } from 'class/HandleApi';
 import { useIsFocused } from '@react-navigation/native';
+import { NavRouter } from 'class/Router';
 
 const styles = StyleSheet.create({
   scrollView: {
@@ -63,18 +64,19 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    const onBackPress = () => {
-      router.replace({
-        pathname: '/(tabs)/dashboard',
-        params: {
-          role,
-          empId,
-        },
-      });
-      return true;
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    // const onBackPress = () => {
+    //   router.replace({
+    //     pathname: '/(tabs)/dashboard',
+    //     params: {
+    //       role,
+    //       empId,
+    //     },
+    //   });
+    //   return true;
+    // };
+    // BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    NavRouter.BackHandler({ role, empId });
   }, []);
   // Update gender once empData is available
   useEffect(() => {

@@ -148,9 +148,7 @@ const HomeScreen = () => {
             <View className="mb-4 flex-row items-center justify-between rounded-xl bg-white p-5 shadow-md">
               <View>
                 <Text className="text-lg font-semibold text-gray-800">Mark your</Text>
-                <Text className={`text-xl font-bold text-[${configFile.colorGreen}]`}>
-                  Attendance
-                </Text>
+                <Text className={`text-xl font-bold text-[#238c58]`}>Attendance</Text>
               </View>
               <View className="rounded-full p-3" style={{ backgroundColor: configFile.colorGreen }}>
                 <FontAwesome name="calendar-check-o" size={22} color="white" />

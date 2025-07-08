@@ -16,9 +16,12 @@
     },
     "production": {
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle",
+        "autoIncrement": true // 👈 this auto increments versionCode on every build
       },
-      "autoIncrement": true
+      "ios": {
+        "autoIncrement": true // 👈 optional, adds buildNumber automatically
+      }
     }
   },
   "submit": {

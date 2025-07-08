@@ -431,7 +431,8 @@ const ClientsScreen = () => {
     <View className="mb-4">
       <Text className="mb-1 text-sm font-medium text-gray-700">{label}</Text>
       <TextInput
-        className={`rounded-lg border p-2 ${errors[field] ? 'border-red-500' : 'border-gray-300'}`}
+        placeholderTextColor={'#b9b9b9'}
+        className={` rounded-lg border p-2 text-black ${errors[field] ? 'border-red-500' : 'border-gray-300'}`}
         value={
           formData[field] !== undefined && formData[field] !== null ? String(formData[field]) : ''
         }
@@ -452,6 +453,7 @@ const ClientsScreen = () => {
     <View className="mb-4">
       <Text className="mb-1 text-sm font-medium text-gray-700">{label}</Text>
       <TextInput
+        placeholderTextColor={'#b9b9b9'}
         className={`rounded-lg border p-2 ${assignWorkErrors[field] ? 'border-red-500' : 'border-gray-300'}`}
         value={assignWorkFormData[field]}
         onChangeText={(value) => handleAssignWorkInputChange(field, value.toUpperCase())}
@@ -516,7 +518,9 @@ const ClientsScreen = () => {
         onPress={() => (isEdit ? setShowEditModal(false) : setShowAddModal(false))}>
         <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
           <ScrollView className="max-h-[90vh] rounded-t-3xl bg-white p-6">
-            <Text className="mb-4 text-xl font-bold">{isEdit ? 'Edit Client' : 'Add Client'}</Text>
+            <Text className="mb-4 text-xl font-bold text-black">
+              {isEdit ? 'Edit Client' : 'Add Client'}
+            </Text>
 
             {renderFormField('Client Name *', 'clientName', 'Enter client name')}
             {renderFormField('Company Name *', 'companyName', 'Enter company name')}
@@ -730,15 +734,7 @@ const ClientsScreen = () => {
   );
 
   useEffect(() => {
-    const onBackPress = () => {
-      router.replace({
-        pathname: '/home',
-        params: { role, empId },
-      });
-      return true;
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    NavRouter.BackHandler({ role, empId });
   }, []);
 
   const renderItem = ({ item }: { item: Client }) => renderClientCard(item);

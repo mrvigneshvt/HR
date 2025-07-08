@@ -284,7 +284,9 @@ const AttendanceScreen = () => {
             ) : detailedAttendance ? (
               <>
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>{detailedAttendance.employee_name}</Text>
+                  <Text style={styles.modalTitle} className="text-black">
+                    {detailedAttendance.employee_name}
+                  </Text>
                   <View
                     style={[
                       styles.statusBadge,
@@ -470,6 +472,7 @@ const styles = StyleSheet.create({
   employeeName: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: configFile.colorGreen,
   },
   statusBadge: {
     paddingHorizontal: 8,

@@ -207,19 +207,19 @@ const LeaveRequest = () => {
             </Text>
 
             {/* Name */}
-            <Text className="font-semibold">Name:</Text>
+            <Text className="font-semibold text-black">Name:</Text>
             <TextInput value={name || ''} editable={false} style={inputStyle} />
 
             {/* Employee ID */}
-            <Text className="font-semibold">Employee ID:</Text>
+            <Text className="font-semibold  text-black">Employee ID:</Text>
             <TextInput value={empId || ''} editable={false} style={inputStyle} />
 
             {/* Role */}
-            <Text className="font-semibold">Role:</Text>
+            <Text className="font-semibold  text-black">Role:</Text>
             <TextInput value={role || ''} editable={false} style={inputStyle} />
 
             {/* Reason */}
-            <Text className="font-semibold">Leave Reason:</Text>
+            <Text className="font-semibold  text-black">Leave Reason:</Text>
             <DropDownPicker
               open={open}
               value={value}
@@ -233,9 +233,11 @@ const LeaveRequest = () => {
             />
 
             {/* From Date */}
-            <Text className="font-semibold">From Date:</Text>
+            <Text className="font-semibold  text-black">From Date:</Text>
             <TouchableOpacity style={inputStyle} onPress={() => setShowFromPicker(true)}>
-              <Text>{fromDate ? formatDateString(fromDate) : 'Select From Date'}</Text>
+              <Text className=" text-black">
+                {fromDate ? formatDateString(fromDate) : 'Select From Date'}
+              </Text>
             </TouchableOpacity>
             {showFromPicker && (
               <DateTimePicker
@@ -251,9 +253,11 @@ const LeaveRequest = () => {
             )}
 
             {/* To Date */}
-            <Text className="font-semibold">To Date:</Text>
+            <Text className="font-semibold  text-black">To Date:</Text>
             <TouchableOpacity style={inputStyle} onPress={() => setShowToPicker(true)}>
-              <Text>{toDate ? formatDateString(toDate) : 'Select To Date'}</Text>
+              <Text className=" text-black">
+                {toDate ? formatDateString(toDate) : 'Select To Date'}
+              </Text>
             </TouchableOpacity>
             {showToPicker && (
               <DateTimePicker

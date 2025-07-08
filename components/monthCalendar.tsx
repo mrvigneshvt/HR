@@ -39,7 +39,7 @@ export default function MonthYearPickerHeader({ onChange }: Props) {
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: 16,
-        backgroundColor: '#f0f0f0',
+        backgroundColor: '#fff',
         borderRadius: 8,
       }}>
       <Pressable onPress={handlePrev}>

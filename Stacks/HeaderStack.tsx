@@ -136,7 +136,7 @@ const options = (
       ),
       headerRight: () => (
         <>
-          <View className="flex-row gap-4">
+          {/* <View className="flex-row gap-4">
             <Pressable
               onPress={() =>
                 router.push({
@@ -146,12 +146,12 @@ const options = (
                   },
                 })
               }>
-              <Ionicons name="notifications" size={24} color="#3a7129" />
+              <Ionicons name="notifications" size={24} color="#fff" />
             </Pressable>
             <Pressable onPress={() => router.replace('/login')}>
               <MaterialIcons name="logout" size={24} color="black" />
             </Pressable>
-          </View>
+          </View> */}
         </>
       ),
     };

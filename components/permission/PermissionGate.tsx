@@ -12,9 +12,9 @@ export default function PermissionsGate({ children }: { children: React.ReactNod
     setLoading(true);
     try {
       const { status: locationStatus } = await Location.requestForegroundPermissionsAsync();
-      const { status: mediaStatus } = await MediaLibrary.requestPermissionsAsync();
+      // const { status: mediaStatus } = await MediaLibrary.requestPermissionsAsync();
 
-      if (locationStatus === 'granted' && mediaStatus === 'granted') {
+      if (locationStatus === 'granted') {
         setPermissionsGranted(true);
       } else {
         setPermissionsGranted(false);
@@ -36,7 +36,7 @@ export default function PermissionsGate({ children }: { children: React.ReactNod
   if (!permissionsGranted) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Please grant Location and File Access permissions to continue.</Text>
+        <Text>Please grant Location Access permissions to continue.</Text>
         <Button title="Try Again" onPress={requestPermissions} />
       </View>
     );
