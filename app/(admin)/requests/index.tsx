@@ -8,6 +8,9 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import Feather from '@expo/vector-icons/Feather';
+import Entypo from '@expo/vector-icons/Entypo';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import React, { useState, useEffect } from 'react';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { configFile } from '../../../config';
@@ -24,9 +27,20 @@ import LeaveRequestForm from '../../../components/LeaveRequestForm';
 import { isReadOnlyRole } from 'utils/roleUtils';
 import { BackHandler } from 'react-native';
 import { router } from 'expo-router';
+import { State } from 'class/State';
+import { Api } from 'class/HandleApi';
+import { useIsFocused } from '@react-navigation/native';
+import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
+import { NavRouter } from 'class/Router';
 
+const randomId = () => crypto.randomUUID();
 const RequestsScreen = () => {
+  const isFocus = useIsFocused();
+  const [token, setToken] = useState<string>('');
   const [activeTab, setActiveTab] = useState('uniform');
+  const [showAcceptModal, setShowAcceptModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -76,8 +90,11 @@ const RequestsScreen = () => {
   console.log('RequestsScreen readOnly:', readOnly, 'role:', role);
 
   useEffect(() => {
+    NavRouter.BackHandler({ empId, role });
     fetchRequests();
-  }, []);
+    const Token = State.getToken();
+    setToken(Token);
+  }, [isFocus]);
 
   const fetchRequests = async () => {
     try {
@@ -86,8 +103,11 @@ const RequestsScreen = () => {
         requestsService.getUniformRequests(),
         requestsService.getLeaveRequests(),
       ]);
-      setUniformRequests(uniformData);
-      setLeaveRequests(leaveData);
+      setUniformRequests(uniformData.reverse());
+      setLeaveRequests(leaveData.reverse());
+      console.log(uniformData, '//////uniFORM\n\n');
+
+      console.log(leaveData, '//////LeaveRequest');
     } catch (error) {
       console.error('Error fetching requests:', error);
       Alert.alert('Error', 'Failed to fetch requests. Please try again.');
@@ -392,6 +412,132 @@ const RequestsScreen = () => {
     </Modal>
   );
 
+  const renderAcceptModal = () => (
+    <Modal
+      visible={showAcceptModal}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setShowAcceptModal(false)}>
+      <TouchableOpacity
+        className="flex-1 justify-end bg-black/50"
+        activeOpacity={1}
+        onPress={() => setShowAcceptModal(false)}>
+        <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+          <View className="rounded-t-3xl bg-white p-6">
+            <Text className="mb-4 text-xl font-bold">Accept Request</Text>
+            <Text className="mb-4 text-gray-600">
+              Are you sure you want to Accept this request?
+            </Text>
+            <View className="flex-row justify-end gap-2">
+              <Pressable
+                onPress={() => {
+                  setShowAcceptModal(false);
+                  setSelectedRequest(null);
+                }}
+                className="rounded-lg bg-gray-200 px-4 py-2">
+                <Text>Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  console.log('\n\nAccpet Triggered');
+                  handleToggle('accept');
+                }}
+                className="rounded-lg bg-green-500 px-4 py-2"
+                disabled={loading}>
+                {loading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-white">Accept</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
+  );
+
+  const renderRejectModal = () => (
+    <Modal
+      visible={showRejectModal}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setShowRejectModal(false)}>
+      <TouchableOpacity
+        className="flex-1 justify-end bg-black/50"
+        activeOpacity={1}
+        onPress={() => setShowRejectModal(false)}>
+        <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
+          <View className="rounded-t-3xl bg-white p-6">
+            <Text className="mb-4 text-xl font-bold">Reject Request</Text>
+            <Text className="mb-4 text-gray-600">
+              Are you sure you want to Reject this request?
+            </Text>
+            <View className="flex-row justify-end gap-2">
+              <Pressable
+                onPress={() => {
+                  setShowRejectModal(false);
+                  setSelectedRequest(null);
+                }}
+                className="rounded-lg bg-gray-200 px-4 py-2">
+                <Text>Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  console.log('\n\nAccpet Triggered');
+                  handleToggle('reject');
+                }}
+                className="rounded-lg bg-red-500 px-4 py-2"
+                disabled={loading}>
+                {loading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text className="text-white">Reject</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
+  );
+
+  const handleToggle = async (data: 'accept' | 'reject') => {
+    console.log('triggring toggle::', selectedRequest);
+    let url;
+    let action = data == 'accept' ? 'Approved' : 'Rejected';
+    if (selectedRequest.gender) {
+      url = configFile.api.superAdmin.request.uniform.update(selectedRequest._id);
+      const body = {
+        ...selectedRequest,
+        status: action,
+      };
+      console.log(url, '///\n\n', body, '///////////////////body');
+      const api = await Api.handleApi({ url, type: 'PUT', payload: body, token });
+      Alert.alert(api.status == 200 ? 'Success' : 'Failed', api.data.message);
+      if (api.status == 200) {
+        setSelectedRequest(null);
+        action == 'Approved' ? setShowAcceptModal(false) : setShowRejectModal(false);
+        fetchRequests();
+        return;
+      }
+    } else {
+      url = configFile.api.superAdmin.request.leaves.update(selectedRequest._id);
+      const body = {
+        ...selectedRequest,
+        status: action,
+      };
+      const api = await Api.handleApi({ url, type: 'PUT', payload: body, token });
+      Alert.alert(api.status == 200 ? 'Success' : 'Failed', api.data.message);
+      if (api.status == 200) {
+        setSelectedRequest(null);
+        action == 'Approved' ? setShowAcceptModal(false) : setShowRejectModal(false);
+        fetchRequests();
+        return;
+      }
+    }
+  };
+
   const renderDeleteModal = () => (
     <Modal
       visible={showDeleteModal}
@@ -437,15 +583,11 @@ const RequestsScreen = () => {
     showActions = true,
     idx: number
   ) => (
-    <View
-      key={req.id || req.empId || req.employeeId || idx}
-      className="mb-4 overflow-hidden rounded-xl bg-white shadow-lg">
+    <View key={idx} className="mb-4 overflow-hidden rounded-xl bg-white shadow-lg">
       <View className="p-4">
         <View className="flex-row items-center justify-between">
           <View>
-            <Text className="text-xl font-bold text-gray-800">
-              {req.employeeName || req.employeeName}
-            </Text>
+            <Text className="text-xl font-bold text-gray-800">{req.name || req.employeeName}</Text>
             <Text className="text-gray-600">ID: {req.employeeId || req.empId}</Text>
             {type === 'uniform' ? (
               <>
@@ -456,7 +598,10 @@ const RequestsScreen = () => {
                     <Text className="text-gray-600">Pant Size: {req.pantSize}</Text>
                   </>
                 ) : (
-                  <Text className="text-gray-600">Chudithar Size: {req.chuditharSize}</Text>
+                  <>
+                    <Text className="text-gray-600">Chudithar Size: {req.chuditharSize}</Text>
+                    <Text className="text-gray-600">Pant Size: {req.pantSize}</Text>
+                  </>
                 )}
                 <Text className="text-gray-600">Shoe Size: {req.shoeSize}</Text>
               </>
@@ -475,7 +620,7 @@ const RequestsScreen = () => {
           </View>
           {showActions && !readOnly && (
             <View className="flex-row gap-2">
-              <Pressable
+              {/* <Pressable
                 onPress={() => {
                   setSelectedRequest(req);
                   if (type === 'uniform') {
@@ -487,7 +632,7 @@ const RequestsScreen = () => {
                 }}
                 className="rounded-full bg-blue-100 p-2">
                 <MaterialIcons name="edit" size={20} color="#4A90E2" />
-              </Pressable>
+              </Pressable> */}
               <Pressable
                 onPress={() => {
                   setSelectedRequest(req);
@@ -502,30 +647,44 @@ const RequestsScreen = () => {
         <View className="mt-4 flex-row items-center justify-between">
           <View className="flex-row items-center">
             <Text className="mr-2 font-semibold text-gray-700">Status:</Text>
-            <View
-              className="rounded-full px-3 py-1"
-              style={{ backgroundColor: `${getStatusColor(req.status)}20` }}>
-              <Text style={{ color: getStatusColor(req.status) }}>{req.status}</Text>
+            <View className="flex flex-row gap-2">
+              <View
+                className="flex-row gap-1 rounded-full px-3 py-1"
+                style={{ backgroundColor: `${getStatusColor(req.status)}20` }}>
+                <Text style={{ color: getStatusColor(req.status) }}>{`${req.status}`}</Text>
+                {req.status.toLowerCase() !== 'pending' &&
+                  (req.status.toLowerCase() === 'approved' ? (
+                    <Feather name="user-check" size={20} color="green" />
+                  ) : (
+                    <Feather name="user-x" size={20} color="red" />
+                  ))}
+                <Text style={{ color: getStatusColor(req.status) }}>{req.approvedBy}</Text>
+                {/*</TouchableOpacity> */}
+              </View>
             </View>
           </View>
           {req.status === 'Pending' && !readOnly && (
-            <View className="flex-row gap-2">
-              <Pressable
-                onPress={() => {
-                  // Handle approve
-                }}
-                className="rounded-lg bg-green-500 px-4 py-2">
-                <Text className="text-white">Approve</Text>
-              </Pressable>
-              <Pressable
+            <TouchableOpacity className="flex-row gap-2">
+              <TouchableOpacity
                 onPress={() => {
                   setSelectedRequest(req);
-                  setShowDeleteModal(true);
+                  setShowAcceptModal(true);
+                  console.log(req, '////Req');
+                }}
+                className="rounded-lg bg-green-500 px-4 py-2">
+                {/* <Text className="text-white">Approve</Text> */}
+                <FontAwesome name="check-circle" size={19} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setSelectedRequest(req);
+                  setShowRejectModal(true);
                 }}
                 className="rounded-lg bg-red-500 px-4 py-2">
-                <Text className="text-white">Reject</Text>
-              </Pressable>
-            </View>
+                {/* <Text className="text-white">Reject</Text> */}
+                <Entypo name="circle-with-cross" size={19} color="white" />
+              </TouchableOpacity>
+            </TouchableOpacity>
           )}
         </View>
       </View>
@@ -533,7 +692,7 @@ const RequestsScreen = () => {
   );
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'pending':
         return '#FFA500';
       case 'approved':
@@ -556,18 +715,6 @@ const RequestsScreen = () => {
       req.employeeName.toLowerCase().includes(search.toLowerCase()) ||
       req.employeeId.toLowerCase().includes(search.toLowerCase())
   );
-
-  useEffect(() => {
-    const onBackPress = () => {
-      router.replace({
-        pathname: '/home',
-        params: { role, empId },
-      });
-      return true;
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-  }, []);
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -621,23 +768,49 @@ const RequestsScreen = () => {
       ) : (
         <>
           <SearchBar value={search} onChangeText={setSearch} placeholder="Search employee..." />
-          <View className="mx-4 my-4 flex-row justify-around rounded-2xl bg-gray-200 p-0.5">
+          <View
+            style={{
+              marginHorizontal: scale(16),
+              marginVertical: verticalScale(16),
+              flexDirection: 'row',
+              justifyContent: 'space-around',
+              borderRadius: moderateScale(16),
+              backgroundColor: '#e5e7eb',
+              padding: moderateScale(4),
+            }}>
             <Pressable onPress={() => setActiveTab('uniform')}>
               <View
-                className={`rounded-3xl p-3 px-6 ${activeTab === 'uniform' ? `bg-[#238c58]` : ''}`}
-                style={{ borderRadius: 12 }}>
+                style={{
+                  borderRadius: moderateScale(12),
+                  paddingVertical: verticalScale(12),
+                  paddingHorizontal: scale(24),
+                  backgroundColor: activeTab === 'uniform' ? '#238c58' : 'transparent',
+                }}>
                 <Text
-                  className={`text-lg font-semibold ${activeTab !== 'uniform' ? 'text-black' : 'text-white'}`}>
+                  style={{
+                    fontSize: moderateScale(12),
+                    fontWeight: '600',
+                    color: activeTab === 'uniform' ? '#ffffff' : '#000000',
+                  }}>
                   Uniform Request
                 </Text>
               </View>
             </Pressable>
+
             <Pressable onPress={() => setActiveTab('leave')}>
               <View
-                className={`rounded-3xl p-3 px-6 ${activeTab === 'leave' ? `bg-[#238c58]` : ''}`}
-                style={{ borderRadius: 12 }}>
+                style={{
+                  borderRadius: moderateScale(12),
+                  paddingVertical: verticalScale(12),
+                  paddingHorizontal: scale(24),
+                  backgroundColor: activeTab === 'leave' ? '#238c58' : 'transparent',
+                }}>
                 <Text
-                  className={`text-lg font-semibold ${activeTab !== 'leave' ? 'text-black' : 'text-white'}`}>
+                  style={{
+                    fontSize: moderateScale(12),
+                    fontWeight: '600',
+                    color: activeTab === 'leave' ? '#ffffff' : '#000000',
+                  }}>
                   Leave Request
                 </Text>
               </View>
@@ -646,10 +819,8 @@ const RequestsScreen = () => {
 
           <ScrollView className="flex-1 px-4">
             {activeTab === 'uniform'
-              ? filteredUniformRequests.map((req, idx) =>
-                  renderRequestCard(req, 'uniform', true, idx)
-                )
-              : filteredLeaveRequests.map((req, idx) => renderRequestCard(req, 'leave', true, idx))}
+              ? filteredUniformRequests.map((req, i) => renderRequestCard(req, 'uniform', true, i))
+              : filteredLeaveRequests.map((req, i) => renderRequestCard(req, 'leave', true, i))}
           </ScrollView>
         </>
       )}
@@ -657,6 +828,8 @@ const RequestsScreen = () => {
       {!readOnly && renderAddModal()}
       {!readOnly && renderEditModal()}
       {!readOnly && renderDeleteModal()}
+      {!readOnly && renderAcceptModal()}
+      {!readOnly && renderRejectModal()}
 
       {/* Filter Modal */}
       <Modal
@@ -717,10 +890,10 @@ const RequestsScreen = () => {
                 {activeTab === 'uniform'
                   ? uniformRequests
                       .filter((r) => r.status === 'Active')
-                      .map((req, idx) => renderRequestCard(req, 'uniform', true, idx))
+                      .map((req, i) => renderRequestCard(req, 'uniform', true, i))
                   : leaveRequests
                       .filter((r) => r.status === 'Approved' && r.approvedBy)
-                      .map((req, idx) => renderRequestCard(req, 'leave', true, idx))}
+                      .map((req, i) => renderRequestCard(req, 'leave', true, i))}
               </ScrollView>
             </View>
           </TouchableOpacity>

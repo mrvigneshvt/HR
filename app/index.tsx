@@ -24,6 +24,7 @@ import { Flow } from 'class/HandleRoleFlow';
 import { Api } from 'class/HandleApi';
 import * as SecureStore from 'expo-secure-store';
 import { NavRouter } from 'class/Router';
+import { State } from 'class/State';
 // import * as SecureStore from 'expo-secure-store';
 const logo = require('../assets/logo.jpg');
 
@@ -42,8 +43,8 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    State.deleteToken();
+    NavRouter.stayBack();
   }, []);
 
   const router = useRouter();
@@ -51,15 +52,15 @@ export default function LoginPage() {
   const [apiLoading, setApiLoading] = useState(false);
   const [popup, setPopUp] = useState(false);
   const [popMsg, setPopMsg] = useState('');
-  const [popUpMessages] = useState({
-    notFound: 'EmployeeId not Found',
-    invalid: 'Invalid Employee ID',
-  });
   const [isOtp, setIsOtp] = useState(false);
   const [otp, setOtp] = useState<string>('');
   const [otpHash, setOtpHash] = useState<string>('');
   const [otpToNumber, setOtpToNumber] = useState('');
   const [apiData, setApiData] = useState(null);
+  const [popUpMessages] = useState({
+    notFound: 'EmployeeId not Found',
+    invalid: 'Invalid Employee ID',
+  });
 
   const triggerPopup = (data: PopUpTypes) => {
     setPopMsg(data);
@@ -108,49 +109,16 @@ export default function LoginPage() {
     }
   };
 
-  // const checkToken = async () => {
-  //   const token = await SecureStore.getItemAsync('STOKEN');
-  //   console.log(token, 'tokennnnnn');
-  //   if (!token) {
-  //     return;
-  //   }
-  //   let isVerified = await Api.verifyToken(token);
-  //   console.log(isVerified);
-
-  //   if (!isVerified) {
-  //     //await SecureStore.deleteItemAsync('STOKEN');
-  //     return;
-  //   }
-
-  //   console.log('IsVerifiedddd', isVerified);
-  //   router.replace({
-  //     pathname: '/ApiContex/fetchNparse',
-  //     params: {
-  //       data: JSON.stringify(isVerified.data),
-  //     },
-  //   });
-  // };
+  ///////////////////////////////////////////////////////////////////////////////////
 
   // useEffect(() => {
-  //   checkToken();
+  //   setTimeout(() => {
+  //     NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM43899' });
+  //   }, 50);
   // }, []);
-  //////////////////////////////////////////////////////////
 
-  useEffect(() => {
-    setTimeout(() => {
-      NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM43899' });
-      //   router.replace({
-      //     // pathname: '/(tabs)/dashboard',
-      //     pathname: '/(admin)/home',
-      //     params: {
-      //       role: 'superadmin',
-      //       empId: 'SFM007',
-      //     },
-      //   });
-    }, 50);
-  }, []);
+  ////////////////////////////////////////////////////////////////////////////////////
 
-  ////////////////////////////////////////////////////////////
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />

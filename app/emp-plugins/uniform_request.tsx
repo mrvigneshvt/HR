@@ -22,6 +22,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Api } from 'class/HandleApi';
 
 import PopupMessage from 'plugins/popupz';
+import { NavRouter } from 'class/Router';
 
 // ... same imports
 
@@ -51,12 +52,13 @@ const Uniform = () => {
   const [popupMessage, setPopupMessage] = useState('');
 
   useEffect(() => {
-    const onBackPress = () => {
-      router.replace({ pathname: '/(tabs)/dashboard/', params: { role, empId } });
-      return true;
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    // const onBackPress = () => {
+    //   router.replace({ pathname: '/(tabs)/dashboard/', params: { role, empId } });
+    //   return true;
+    // };
+    // BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    NavRouter.BackHandler({ empId, role });
   }, []);
 
   const toggleSwitch = (key: keyof typeof state) => {

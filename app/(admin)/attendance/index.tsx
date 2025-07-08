@@ -19,6 +19,7 @@ import { configFile } from 'config';
 import axios from 'axios';
 import { isReadOnlyRole } from 'utils/roleUtils';
 import { useIsFocused } from '@react-navigation/native';
+import { NavRouter } from 'class/Router';
 
 interface AttendanceData {
   id: number;
@@ -154,15 +155,16 @@ const AttendanceScreen = () => {
   }, [search, attendance]);
 
   useEffect(() => {
-    const onBackPress = () => {
-      router.replace({
-        pathname: '/home',
-        params: { role, empId },
-      });
-      return true;
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    // const onBackPress = () => {
+    //   router.replace({
+    //     pathname: '/home',
+    //     params: { role, empId },
+    //   });
+    //   return true;
+    // };
+    // BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    NavRouter.BackHandler({ empId, role });
   }, []);
 
   const handleCalendarDayPress = (day: any) => {
@@ -173,8 +175,10 @@ const AttendanceScreen = () => {
   };
 
   const handleCardPress = async (item: AttendanceData) => {
+    console.log(item, 'itemmmm');
     setSelectedAttendance(item);
-    await fetchAttendanceDetails(item.employee_id, item.attendance_date);
+    setDetailedAttendance(item);
+    // await fetchAttendanceDetails(item.employee_id, item.attendance_date,item.id);
   };
 
   const getStatusColor = (status: string) => {
@@ -255,6 +259,7 @@ const AttendanceScreen = () => {
             <Text style={styles.employeeId}>ID: {item.employee_id}</Text>
             <Text style={styles.date}>Date: {item.attendance_date}</Text>
             <Text style={styles.company}>Company: {item.company_name}</Text>
+            <Text style={styles.company}>Company ID: {item.client_no}</Text>
           </TouchableOpacity>
         )}
       />
@@ -279,7 +284,9 @@ const AttendanceScreen = () => {
             ) : detailedAttendance ? (
               <>
                 <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>{detailedAttendance.employee_name}</Text>
+                  <Text style={styles.modalTitle} className="text-black">
+                    {detailedAttendance.employee_name}
+                  </Text>
                   <View
                     style={[
                       styles.statusBadge,
@@ -465,6 +472,7 @@ const styles = StyleSheet.create({
   employeeName: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: configFile.colorGreen,
   },
   statusBadge: {
     paddingHorizontal: 8,

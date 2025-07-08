@@ -7,6 +7,7 @@ import {
   BackHandler,
   ActivityIndicator,
   Dimensions,
+  TouchableOpacity,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import MonthYearPickerHeader from 'components/monthCalendar';
@@ -17,12 +18,15 @@ import { captureRef } from 'react-native-view-shot';
 import * as Print from 'expo-print';
 import { customPlugins } from 'plugins/plug';
 import * as Sharing from 'expo-sharing';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, Stack } from 'expo-router';
 import { format } from 'date-fns';
 import { Api } from 'class/HandleApi';
 import { Image } from 'expo-image';
 import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
 import { configFile } from 'config';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { MaterialIcons } from '@expo/vector-icons';
+import { NavRouter } from 'class/Router';
 
 const PaySlip = () => {
   const { role, empId } = useLocalSearchParams() as { role: string; empId: string };
@@ -37,15 +41,16 @@ const PaySlip = () => {
   const [apiLoading, setApiLoading] = useState(true);
   const captureRefView = useRef(null);
 
-  const onBackPress = () => {
-    const pathname = role.toLowerCase() === 'employee' ? '/(tabs)/dashboard/' : '/(admin)/home/';
-    router.replace({ pathname, params: { role, empId } });
-    return true;
-  };
+  // const onBackPress = () => {
+  //   const pathname = role.toLowerCase() === 'employee' ? '/(tabs)/dashboard/' : '/(admin)/home/';
+  //   router.replace({ pathname, params: { role, empId } });
+  //   return true;
+  // };
 
   useEffect(() => {
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    // BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    NavRouter.BackHandler({ empId, role });
   }, [role]);
 
   useEffect(() => {
@@ -111,7 +116,26 @@ const PaySlip = () => {
 
   return (
     <>
-      <ProfileStack Payslip={true} ShowDownload={!apiLoading && !notFound} />
+      {/* <ProfileStack Payslip={true} ShowDownload={!apiLoading && !notFound} /> */}
+      {/* <Stack.Screen options={{ headerShown: false }} /> */}
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: 'Home',
+          headerStyle: { backgroundColor: configFile.colorGreen },
+          headerTintColor: 'white',
+          headerRight: () => (
+            <View className="flex flex-row gap-1">
+              <TouchableOpacity onPress={() => router.push('/emp-plugins/notification')}>
+                <Ionicons name="notifications" size={24} color="#3a7129" />
+              </TouchableOpacity>
+              <Pressable onPress={() => router.replace('/login')} style={{ paddingHorizontal: 10 }}>
+                <MaterialIcons name="logout" size={24} color="white" />
+              </Pressable>
+            </View>
+          ),
+        }}
+      />
       <ScrollView className="flex-1">
         <MonthYearPickerHeader onChange={setDates} />
 
@@ -122,7 +146,7 @@ const PaySlip = () => {
               alignItems: 'center',
               justifyContent: 'center',
               paddingHorizontal: scale(20),
-              backgroundColor: '#f0f4f7',
+              backgroundColor: '#fff',
               height: Dimensions.get('window').height - 100,
             }}>
             <Image

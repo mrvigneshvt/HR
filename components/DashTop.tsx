@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 
 type Props = {
-  role: string;
+  role?: string;
   name?: string;
   empId: string;
   img?: string;
@@ -17,15 +17,16 @@ const IconImage = require('../assets/profile.png');
 const DashTop = ({ role, name, empId, img }: Props) => {
   return (
     <Pressable
-      onPress={() =>
-        router.push({
-          pathname: '/profile',
-          params: {
-            role,
-            empId,
-          },
-        })
-      }>
+    // onPress={() =>
+    //   router.push({
+    //     pathname: '/profile',
+    //     params: {
+    //       role,
+    //       empId,
+    //     },
+    //   })
+    // }
+    >
       <View
         style={{
           marginHorizontal: scale(16),
@@ -64,7 +65,7 @@ const DashTop = ({ role, name, empId, img }: Props) => {
               }}>
               Welcome back
             </Text>
-            <Text className="text-md  font-bold "> {role.toUpperCase()}</Text>
+            <Text className="text-md  font-bold "> {role?.toUpperCase() || ''}</Text>
           </View>
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale(8) }}>
@@ -82,7 +83,7 @@ const DashTop = ({ role, name, empId, img }: Props) => {
                 fontWeight: 'bold',
                 color: configFile.colorGreen,
               }}>
-              {name}
+              {name || ''}
             </Text>
           </View>
 
@@ -93,7 +94,7 @@ const DashTop = ({ role, name, empId, img }: Props) => {
               fontWeight: '600',
               color: 'black',
             }}>
-            ID: {empId}
+            ID: {empId || ''}
           </Text>
         </View>
       </View>

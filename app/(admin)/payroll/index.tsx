@@ -17,6 +17,7 @@ import { configFile } from '../../../config';
 import { isReadOnlyRole } from '../../../utils/roleUtils';
 import { BackHandler } from 'react-native';
 import moment from 'moment';
+import { NavRouter } from 'class/Router';
 
 const PayslipDetail = ({ detail }: { detail: any }) => {
   if (!detail || !detail.payslips || detail.payslips.length === 0) {
@@ -204,15 +205,16 @@ const PayrollScreen = () => {
   };
 
   useEffect(() => {
-    const onBackPress = () => {
-      router.replace({
-        pathname: '/(admin)/home',
-        params: { role, empId },
-      });
-      return true;
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    // const onBackPress = () => {
+    //   router.replace({
+    //     pathname: '/(admin)/home',
+    //     params: { role, empId },
+    //   });
+    //   return true;
+    // };
+    // BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    NavRouter.BackHandler({ empId, role });
   }, [role, empId]);
 
   return (
@@ -266,7 +268,11 @@ const PayrollScreen = () => {
       )}
 
       {/* Payroll Detail Modal */}
-      <Modal visible={!!selectedEmployee} transparent animationType="fade" onRequestClose={closeModal}>
+      <Modal
+        visible={!!selectedEmployee}
+        transparent
+        animationType="fade"
+        onRequestClose={closeModal}>
         <View
           style={{
             flex: 1,
@@ -337,9 +343,7 @@ const PayrollScreen = () => {
               borderTopLeftRadius: 20,
               borderTopRightRadius: 20,
             }}>
-            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12 }}>
-              Select Month
-            </Text>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 12 }}>Select Month</Text>
 
             <AdminCalendar
               onDayPress={handleCalendarDayPress}

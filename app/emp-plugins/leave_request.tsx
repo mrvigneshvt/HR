@@ -21,12 +21,15 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import { Api } from 'class/HandleApi';
 import { format } from 'date-fns'; // ✅ For formatting date
 import PopupMessage from 'plugins/popupz';
+import { hiIN } from 'date-fns/locale';
+
+import { NavRouter } from 'class/Router';
 
 const LeaveRequest = () => {
   const [confirm, setConfirm] = useState(false);
   const [showPop, setShowPop] = useState(false);
   const [sent, setSent] = useState(false);
-  const { employee_id, role, name } = useEmployeeStore((state) => state.employee);
+  const { employee_id: empId, role, name } = useEmployeeStore((state) => state.employee);
 
   const [leaveReason, setLeaveReason] = useState('');
   const [fromDate, setFromDate] = useState<Date | null>(null);
@@ -45,35 +48,15 @@ const LeaveRequest = () => {
     { label: 'Other', value: 'Other' },
   ]);
 
-  const formatDateString = (date: Date) => format(date, 'yyyy/MM/dd');
+  const formatDateString = (date: Date) => format(date, 'yyyy/MM/dd', { locale: hiIN });
 
   useEffect(() => {
-    const onBackPress = () => {
-      router.replace({
-        pathname: '/(tabs)/dashboard/',
-        params: { role, empId: employee_id },
-      });
-      return true;
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-  }, []);
+    NavRouter.BackHandler({ empId, role });
+  }, [confirm]);
 
   useEffect(() => {
     setLeaveReason(value);
   }, [value]);
-
-  useEffect(() => {
-    if (!sent) return;
-    console.log('returning to /');
-    const clear = setTimeout(() => {
-      router.replace({
-        pathname: '/dashboard',
-        params: { role, empId: employee_id },
-      });
-    }, 2000);
-    return () => clearTimeout(clear);
-  }, [sent]);
 
   const handleSubmit = async () => {
     if (!leaveReason || !fromDate || !toDate) {
@@ -81,13 +64,13 @@ const LeaveRequest = () => {
       return;
     }
 
-    const startDate = formatDateString(fromDate);
-    const endDate = formatDateString(toDate);
-
-    console.log({ startDate, endDate, leaveReason });
+    const startDate = fromDate;
+    const endDate = toDate;
+    // console.
+    console.log('before: ', fromDate, '//start\n\n', toDate, { startDate, endDate, leaveReason });
 
     const data = await Api.postLeaveReq({
-      employeeId: employee_id,
+      employeeId: empId,
       employeeName: name,
       leaveType: leaveReason,
       startDate,
@@ -97,22 +80,22 @@ const LeaveRequest = () => {
     console.log(data, '.......dat////////////');
 
     if (data?.status || data?.status == true) {
-      Alert.alert(data.message.toUpperCase());
+      Alert.alert('Success', 'Leave Request Posted Successfully Wait till Management Responds');
       // setShowPop(true);
       setTimeout(() => {
         router.replace({
-          pathname: '/(tabs)/dashboard/',
+          pathname: '/emp-plugins/notification', //role.toLowerCase() === 'employee' ? '/(tabs)/dashboard/' : '/(admin)/home/',
           params: {
-            empId: employee_id,
+            empId: empId,
             role,
           },
         });
       }, 2000);
       return;
     } else {
-      Alert.alert(data?.message);
+      Alert.alert('Failed', data?.message);
       // setApiMsg(data?.message);
-      setShowPop(true);
+      // setShowPop(true);
     }
   };
 
@@ -224,19 +207,19 @@ const LeaveRequest = () => {
             </Text>
 
             {/* Name */}
-            <Text className="font-semibold">Name:</Text>
+            <Text className="font-semibold text-black">Name:</Text>
             <TextInput value={name || ''} editable={false} style={inputStyle} />
 
             {/* Employee ID */}
-            <Text className="font-semibold">Employee ID:</Text>
-            <TextInput value={employee_id || ''} editable={false} style={inputStyle} />
+            <Text className="font-semibold  text-black">Employee ID:</Text>
+            <TextInput value={empId || ''} editable={false} style={inputStyle} />
 
             {/* Role */}
-            <Text className="font-semibold">Role:</Text>
+            <Text className="font-semibold  text-black">Role:</Text>
             <TextInput value={role || ''} editable={false} style={inputStyle} />
 
             {/* Reason */}
-            <Text className="font-semibold">Leave Reason:</Text>
+            <Text className="font-semibold  text-black">Leave Reason:</Text>
             <DropDownPicker
               open={open}
               value={value}
@@ -250,9 +233,11 @@ const LeaveRequest = () => {
             />
 
             {/* From Date */}
-            <Text className="font-semibold">From Date:</Text>
+            <Text className="font-semibold  text-black">From Date:</Text>
             <TouchableOpacity style={inputStyle} onPress={() => setShowFromPicker(true)}>
-              <Text>{fromDate ? formatDateString(fromDate) : 'Select From Date'}</Text>
+              <Text className=" text-black">
+                {fromDate ? formatDateString(fromDate) : 'Select From Date'}
+              </Text>
             </TouchableOpacity>
             {showFromPicker && (
               <DateTimePicker
@@ -268,9 +253,11 @@ const LeaveRequest = () => {
             )}
 
             {/* To Date */}
-            <Text className="font-semibold">To Date:</Text>
+            <Text className="font-semibold  text-black">To Date:</Text>
             <TouchableOpacity style={inputStyle} onPress={() => setShowToPicker(true)}>
-              <Text>{toDate ? formatDateString(toDate) : 'Select To Date'}</Text>
+              <Text className=" text-black">
+                {toDate ? formatDateString(toDate) : 'Select To Date'}
+              </Text>
             </TouchableOpacity>
             {showToPicker && (
               <DateTimePicker

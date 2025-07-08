@@ -1,117 +1,118 @@
-import React, { useEffect, useMemo } from 'react';
-import { View, Text, Pressable, ScrollView, BackHandler, Alert } from 'react-native';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { View, Text, Pressable, ScrollView, TouchableOpacity } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import Fontisto from '@expo/vector-icons/Fontisto';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { configFile } from '../../../config';
-import { useEmployeeStore } from 'Memory/Employee';
+import { Api } from 'class/HandleApi';
+import { State } from 'class/State';
+import { NavRouter } from 'class/Router';
+import DashTop from 'components/DashTop';
 
 const HomeScreen = () => {
   const router = useRouter();
-  const { role, empId } = useLocalSearchParams();
+  const { role, empId } = useLocalSearchParams<{ role: string; empId: string }>();
+  const [empData, setEmpData] = useState<Record<string, any> | null>(null);
+
+  const navigateTo = useCallback(
+    (pathname: string) => router.push({ pathname, params: { role, empId } }),
+    [router, role, empId]
+  );
+
+  const setupEmpData = useCallback(async () => {
+    try {
+      const response = await Api.getEmpData(String(empId));
+      if (response) {
+        State.storeEmpData(response);
+        setEmpData(response);
+      }
+    } catch (error) {
+      console.error('Error fetching emp data:', error);
+    }
+  }, [empId]);
 
   useEffect(() => {
-    const onBackPress = () => {
-      router.replace({
-        pathname: '/(admin)/home',
-        params: { role, empId },
-      });
-      return true;
-    };
-
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-  }, []);
-
-  const navigateTo = (pathname: string) => {
-    router.push({ pathname, params: { role, empId } });
-  };
-
-  const handlePluginPress = (plugin: 'payslip' | 'leave_request') => {
-    const pathMap = {
-      payslip: '/emp-plugins/pay_slip',
-      leave_request: '/emp-plugins/leave_request',
-    };
-    navigateTo(pathMap[plugin]);
-  };
+    setupEmpData();
+    NavRouter.BackHandler({ role, empId });
+  }, [setupEmpData]);
 
   const menuCards = useMemo(
     () => [
       {
+        key: 'employees',
         title: 'Employees',
         icon: 'people',
-        route: '/employees',
+        description: 'Manage employee records',
         color: '#4A90E2',
-        description: 'Manage employee information and records',
-        onPress: () => navigateTo('/employees'),
+        route: '/employees',
       },
       {
+        key: 'requests',
         title: 'Requests',
         icon: 'document-text',
-        route: '/requests',
+        description: 'Manage uniform & leave requests',
         color: '#50C878',
-        description: 'Handle uniform and leave requests',
-        onPress: () => navigateTo('/requests'),
+        route: '/requests',
       },
       {
+        key: 'clients',
         title: 'Clients',
         icon: 'business',
-        route: '/clients',
+        description: 'Handle client data',
         color: '#FF6B6B',
-        description: 'Manage client information and status',
-        onPress: () => navigateTo('/clients'),
+        route: '/clients',
       },
       {
+        key: 'attendance',
         title: 'Attendance',
         icon: 'calendar',
+        description: 'View attendance logs',
+        color: '#FFA500',
         route: '/attendance',
-        color: '#FF6B6B',
-        description: 'View employee attendance details',
-        onPress: () => navigateTo('/attendance'),
       },
       {
+        key: 'payslip',
         title: 'Pay Slip',
         icon: 'cash',
+        description: 'Access payslip info',
+        color: '#6A5ACD',
         route: '/emp-plugins/pay_slip',
-        color: '#4A90E2',
-        description: 'View your PaySlip details',
-        onPress: () => handlePluginPress('payslip'),
       },
       {
+        key: 'leave_request',
         title: 'Leave Request',
         icon: 'holiday-village',
-        route: '/emp-plugins/leave_request',
-        color: '#4A90E2',
-        description: 'Raise Leave Request to Management',
-        onPress: () => handlePluginPress('leave_request'),
         isFontisto: true,
+        description: 'Apply for leave',
+        color: '#2E8B57',
+        route: '/emp-plugins/leave_request',
       },
     ],
-    [role, empId]
+    [navigateTo]
   );
 
-  const renderMenuCard = (card: any) => (
+  const renderMenuCard = ({ key, icon, title, description, color, route, isFontisto }: any) => (
     <Pressable
-      key={card.title}
-      onPress={card.onPress}
-      className="mb-4 rounded-lg bg-white p-6 shadow-sm">
+      key={key}
+      onPress={() => navigateTo(route)}
+      className="mb-4 rounded-2xl bg-white p-5 shadow-md">
       <View className="flex-row items-center">
         <View
           className="mr-4 h-12 w-12 items-center justify-center rounded-full"
-          style={{ backgroundColor: `${card.color}20` }}>
-          {card.isFontisto ? (
-            <Fontisto name={card.icon} size={24} color={card.color} />
+          style={{ backgroundColor: `${color}20` }}>
+          {isFontisto ? (
+            <Fontisto name={icon} size={22} color={color} />
           ) : (
-            <Ionicons name={card.icon} size={24} color={card.color} />
+            <Ionicons name={icon} size={24} color={color} />
           )}
         </View>
         <View className="flex-1">
-          <Text className="text-xl font-semibold">{card.title}</Text>
-          <Text className="mt-1 text-gray-600">{card.description}</Text>
+          <Text className="text-lg font-semibold text-gray-800">{title}</Text>
+          <Text className="mt-1 text-sm text-gray-600">{description}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={24} color="#666" />
+        <Ionicons name="chevron-forward" size={22} color="#ccc" />
       </View>
     </Pressable>
   );
@@ -121,35 +122,41 @@ const HomeScreen = () => {
       <Stack.Screen
         options={{
           headerShown: true,
-          title: 'Home',
-          headerStyle: {
-            backgroundColor: configFile.colorGreen,
-          },
-          headerRight: () => (
-            <Pressable onPress={() => router.replace('/login')} style={{ paddingHorizontal: 10 }}>
-              <MaterialIcons name="logout" size={24} color="white" />
-            </Pressable>
-          ),
+          title: 'Dashboard',
+          headerStyle: { backgroundColor: configFile.colorGreen },
           headerTintColor: 'white',
+          headerRight: () => (
+            <View className="flex flex-row gap-3 pr-3">
+              <TouchableOpacity onPress={() => router.push('/emp-plugins/notification')}>
+                <Ionicons name="notifications" size={24} color="#fff" />
+              </TouchableOpacity>
+              <Pressable onPress={() => router.replace('/login')}>
+                <MaterialIcons name="logout" size={24} color="#fff" />
+              </Pressable>
+            </View>
+          ),
         }}
       />
 
       <ScrollView className="flex-1 p-4">
-        {/* Welcome */}
-        <View className="mb-3 bg-white p-6">
-          <Text className="text-2xl font-bold">Welcome, {role}</Text>
-          <Text className="mt-1 text-gray-600">ID: {empId}</Text>
-        </View>
+        {empData && (
+          <DashTop role={''} name={empData.name} empId={empId} img={empData.profile_image} />
+        )}
 
-        {/* Attendance Shortcut */}
-        <Pressable onPress={() => navigateTo('/dashboard/attendance')}>
-          <View className="mb-3 flex-row items-center rounded-lg bg-white p-6 shadow-sm">
-            <Text className="grow text-2xl font-bold">Mark your Attendance</Text>
-            <Ionicons name="chevron-forward" size={24} color="#666" />
-          </View>
-        </Pressable>
+        {role && (
+          <Pressable onPress={() => navigateTo('/(tabs)/dashboard/attendance')}>
+            <View className="mb-4 flex-row items-center justify-between rounded-xl bg-white p-5 shadow-md">
+              <View>
+                <Text className="text-lg font-semibold text-gray-800">Mark your</Text>
+                <Text className={`text-xl font-bold text-[#238c58]`}>Attendance</Text>
+              </View>
+              <View className="rounded-full p-3" style={{ backgroundColor: configFile.colorGreen }}>
+                <FontAwesome name="calendar-check-o" size={22} color="white" />
+              </View>
+            </View>
+          </Pressable>
+        )}
 
-        {/* Menu */}
         {menuCards.map(renderMenuCard)}
       </ScrollView>
     </View>

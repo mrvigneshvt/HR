@@ -10,108 +10,107 @@ import { configFile } from '../../config';
 import { useIsFocused } from '@react-navigation/native';
 import { Api } from 'class/HandleApi';
 import { useEmployeeStore } from 'Memory/Employee';
+import { NavRouter } from 'class/Router';
 
 type RequestType = 'leave' | 'uniform';
-
 type RequestItem = Record<string, any> & { type: RequestType; date: string };
 
 const NotificationScreen = () => {
   const { height, width } = Dimensions.get('window');
   const isFocused = useIsFocused();
-  const { employee_id: empId } = useEmployeeStore((state) => state.employee);
+  const { employee_id: empId, role } = useEmployeeStore((state) => state.employee);
+
+  useEffect(() => {
+    NavRouter.BackHandler({ role, empId });
+  }, []);
 
   const [loading, setLoading] = useState(false);
   const [requests, setRequests] = useState<RequestItem[]>([]);
+
+  const getApiRequests = (empId: string, role: string) => {
+    const leaveReq = Api.handleApi({
+      url: configFile.api.common.getLeaveReq(empId),
+      type: 'GET',
+    });
+
+    const uniformReq =
+      role.toLowerCase() === 'employee'
+        ? Api.handleApi({
+            url: configFile.api.common.getUniformReq(empId),
+            type: 'GET',
+          })
+        : Promise.resolve(null);
+
+    return Promise.all([leaveReq, uniformReq]);
+  };
 
   const fetchNotifications = useCallback(async () => {
     if (!empId) return;
     setLoading(true);
 
     try {
-      const [leaveRes, uniformRes] = await Promise.all([
-        Api.handleApi({ url: configFile.api.common.getLeaveReq(empId), type: 'GET' }),
-        Api.handleApi({ url: configFile.api.common.getUniformReq(empId), type: 'GET' }),
-      ]);
+      setRequests([]);
+      const [leaveRes, uniformRes] = await getApiRequests(empId, role);
+      const leaveData = leaveRes?.data ?? [];
+      const uniformData = uniformRes?.data ?? [];
 
-      const leaveData = leaveRes?.data || null;
-      const uniformData = uniformRes?.data || null;
-
-      console.log(leaveData, '////LeaveData\n\n', uniformData, '////UniData');
-      const reqData: RequestItem[] = [];
-
-      if (leaveData?.employeeId) {
-        reqData.push({
+      console.log(leaveData, '///LeaveData\n\n');
+      const formattedLeaves = leaveData
+        .filter((d: any) => d?.employeeId)
+        .map((d: any) => ({
           type: 'leave',
-          id: leaveData._id,
-          empId: leaveData.employeeId,
-          name: leaveData.employeeName,
-          leaveReason: leaveData.leaveType,
-          from: leaveData.startDate,
-          to: leaveData.endDate,
-          date: leaveData.createdAt,
-          approvalStatus: leaveData.status,
-        });
-      }
+          id: d._id,
+          empId: d.employeeId,
+          name: d.employeeName,
+          leaveReason: d.leaveType,
+          from: d.startDate.split('T')[0],
+          to: d.endDate.split('T')[0],
+          date: d.createdAt.split('T')[0],
+          approvalStatus: d.status,
+          approvedBy: d.approvedBy,
+          approvedName: d.approvedname,
+        }));
 
-      if (uniformData?.empId) {
-        reqData.push({
+      console.log(formattedLeaves, '////Formatted LEaces');
+
+      const formattedUniforms = uniformData
+        .filter((d: any) => d?.empId)
+        .map((d: any) => ({
           type: 'uniform',
-          id: uniformData._id,
-          empId: uniformData.empId,
-          name: uniformData.name,
-          designation: uniformData.designation,
-          gender: uniformData.gender,
-          site: uniformData.site,
-          location: uniformData.location,
-          femaleAccessories: uniformData.femaleAccessories,
-          date: uniformData.createdAt,
-          status: uniformData.status,
-        });
-      }
+          id: d._id,
+          empId: d.empId,
+          name: d.name,
+          designation: d.designation,
+          gender: d.gender,
+          site: d.site,
+          location: d.location,
+          femaleAccessories: d.femaleAccessories,
+          date: d.createdAt,
+          status: d.status,
+        }));
 
-      reqData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      setRequests(reqData);
+      const allRequests = [...formattedLeaves, ...formattedUniforms].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+
+      setRequests(allRequests);
+      console.log('\n\n', requests);
     } catch (err) {
       console.error('Notification fetch error:', err);
     } finally {
       setLoading(false);
     }
-  }, [empId]);
+  }, [empId, role]);
 
   useEffect(() => {
-    if (isFocused) {
-      fetchNotifications();
-    }
+    if (isFocused) fetchNotifications();
   }, [isFocused, fetchNotifications]);
 
   const renderCards = useMemo(
     () =>
       requests.map((item, index) => (
-        <View key={index} style={{ margin: moderateScale(5) }}>
-          {item.type === 'leave' ? (
-            <LeaveReqCard
-              id={item.id}
-              name={item.name}
-              empId={item.empId}
-              leaveReason={item.leaveReason}
-              from={item.from}
-              to={item.to}
-              date={item.date}
-              approvalStatus={item.approvalStatus}
-            />
-          ) : (
-            <UniformReqCard
-              name={item.name}
-              empId={item.empId}
-              designation={item.designation}
-              gender={item.gender}
-              site={item.site}
-              location={item.location}
-              femaleAccessories={item.femaleAccessories}
-              date={item.date}
-              status={item.status}
-            />
-          )}
+        <View key={item.id || index} style={{ margin: moderateScale(5) }}>
+          {item.type === 'leave' ? <LeaveReqCard {...item} /> : <UniformReqCard {...item} />}
         </View>
       )),
     [requests]

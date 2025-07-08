@@ -9,6 +9,7 @@ import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import { DashMemory } from 'Memory/DashMem';
 import { router } from 'expo-router';
 import { BackHandler } from 'react-native';
+import { NavRouter } from 'class/Router';
 
 const green = configFile.colorGreen;
 const date = 10;
@@ -38,15 +39,16 @@ const DashBottom = ({ Dimensions, Month, Days, Absent, late }: Props) => {
   console.log('fole fetched', getRole);
 
   useEffect(() => {
-    const onBackPress = () => {
-      router.replace({
-        pathname: '/home',
-        params: { role, empId },
-      });
-      return true;
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    // const onBackPress = () => {
+    //   router.replace({
+    //     pathname: '/home',
+    //     params: { role, empId },
+    //   });
+    //   return true;
+    // };
+    // BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    NavRouter.BackHandler({ role, empId });
   }, []);
 
   return (

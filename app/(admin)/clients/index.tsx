@@ -33,6 +33,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { isReadOnlyRole } from 'utils/roleUtils';
 import { Api } from 'class/HandleApi';
 import { NavRouter } from 'class/Router';
+import { State } from 'class/State';
+import { useIsFocused } from '@react-navigation/native';
 
 const ClientsScreen = () => {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -71,6 +73,9 @@ const ClientsScreen = () => {
     fromDate: '',
     toDate: '',
   });
+
+  const isFocus = useIsFocused();
+
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [assignWorkErrors, setAssignWorkErrors] = useState<ValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -83,10 +88,12 @@ const ClientsScreen = () => {
   const empId = params.empId as string | undefined;
   const readOnly = isReadOnlyRole(role);
   console.log('ClientsScreen readOnly:', readOnly, 'role:', role);
-
+  const [token, setToken] = useState<string>('');
   useEffect(() => {
     fetchClients(1);
-  }, []);
+    const token = State.getToken();
+    setToken(token);
+  }, [isFocus]);
 
   const fetchClients = async (pageNo: number) => {
     if (pageNo > totalPages) return;
@@ -387,8 +394,11 @@ const ClientsScreen = () => {
     if (!selectedClient?.clientNo) return;
     try {
       setIsDeleting(true);
-      await clientService.deleteClient(selectedClient.clientNo);
-      Alert.alert('Success', 'Client deleted successfully!');
+      // await clientService.deleteClient(selectedClient.clientNo);
+      const url = configFile.api.superAdmin.clients.delete(selectedClient.clientNo);
+      // console.log(url, '///DeleteURl');
+      const api = await Api.handleApi({ url, type: 'DELETE', token }); // TOKEN
+      Alert.alert(api.status == 200 ? 'Success' : 'Failed', api.data.message);
       await fetchClients(1);
       setShowDeleteModal(false);
     } catch (error: any) {
@@ -421,7 +431,8 @@ const ClientsScreen = () => {
     <View className="mb-4">
       <Text className="mb-1 text-sm font-medium text-gray-700">{label}</Text>
       <TextInput
-        className={`rounded-lg border p-2 ${errors[field] ? 'border-red-500' : 'border-gray-300'}`}
+        placeholderTextColor={'#b9b9b9'}
+        className={` rounded-lg border p-2 text-black ${errors[field] ? 'border-red-500' : 'border-gray-300'}`}
         value={
           formData[field] !== undefined && formData[field] !== null ? String(formData[field]) : ''
         }
@@ -442,6 +453,7 @@ const ClientsScreen = () => {
     <View className="mb-4">
       <Text className="mb-1 text-sm font-medium text-gray-700">{label}</Text>
       <TextInput
+        placeholderTextColor={'#b9b9b9'}
         className={`rounded-lg border p-2 ${assignWorkErrors[field] ? 'border-red-500' : 'border-gray-300'}`}
         value={assignWorkFormData[field]}
         onChangeText={(value) => handleAssignWorkInputChange(field, value.toUpperCase())}
@@ -469,11 +481,11 @@ const ClientsScreen = () => {
           </View>
           {!readOnly && (
             <View className="flex-row gap-2">
-              <Pressable
+              {/* <Pressable
                 onPress={() => handleAssignWorkClick(client)}
                 className="rounded-full bg-green-100 p-2">
                 <MaterialIcons name="work" size={20} color="#4CAF50" />
-              </Pressable>
+              </Pressable> */}
               <Pressable
                 onPress={() => openEditClientModal(client)}
                 className="rounded-full bg-blue-100 p-2">
@@ -506,7 +518,9 @@ const ClientsScreen = () => {
         onPress={() => (isEdit ? setShowEditModal(false) : setShowAddModal(false))}>
         <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
           <ScrollView className="max-h-[90vh] rounded-t-3xl bg-white p-6">
-            <Text className="mb-4 text-xl font-bold">{isEdit ? 'Edit Client' : 'Add Client'}</Text>
+            <Text className="mb-4 text-xl font-bold text-black">
+              {isEdit ? 'Edit Client' : 'Add Client'}
+            </Text>
 
             {renderFormField('Client Name *', 'clientName', 'Enter client name')}
             {renderFormField('Company Name *', 'companyName', 'Enter company name')}
@@ -720,15 +734,7 @@ const ClientsScreen = () => {
   );
 
   useEffect(() => {
-    const onBackPress = () => {
-      router.replace({
-        pathname: '/home',
-        params: { role, empId },
-      });
-      return true;
-    };
-    BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    NavRouter.BackHandler({ role, empId });
   }, []);
 
   const renderItem = ({ item }: { item: Client }) => renderClientCard(item);

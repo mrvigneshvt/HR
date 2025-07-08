@@ -14,16 +14,30 @@ type Props = {
   to: string;
   date: string;
   approvalStatus: 'pending' | 'approved' | 'rejected';
+  approvedBy?: string;
+  approvedName?: string;
 };
 
-const LeaveReqCard = ({ id, name, empId, leaveReason, from, to, date, approvalStatus }: Props) => {
+const LeaveReqCard = ({
+  id,
+  name,
+  empId,
+  leaveReason,
+  from,
+  to,
+  date,
+  approvalStatus,
+  approvedBy,
+  approvedName,
+}: Props) => {
+  console.log(approvedName, '/////////////////////////?NAME');
   const handleDelete = () => {
     alert('Delete not connected yet');
   };
 
   const getStatusColor = () => {
-    if (approvalStatus === 'approved') return 'green';
-    if (approvalStatus === 'rejected') return 'red';
+    if (approvalStatus.toLocaleLowerCase() === 'approved') return 'green';
+    if (approvalStatus.toLocaleLowerCase() === 'rejected') return 'red';
     return 'orange';
   };
 
@@ -80,12 +94,12 @@ const LeaveReqCard = ({ id, name, empId, leaveReason, from, to, date, approvalSt
                 alignSelf: 'center',
                 borderRadius: moderateScale(8),
                 backgroundColor: configFile.colorGreen,
-                paddingVertical: moderateScale(4),
-                paddingHorizontal: moderateScale(8),
-                fontSize: moderateScale(12), // Font size responsive
+                // paddingVertical: moderateScale(4),
+                // paddingHorizontal: moderateScale(8),
+                fontSize: moderateScale(10), // Font size responsive
                 color: 'white',
               }}>
-              {date.split('T')[0]}
+              {/* {date} */}
             </Text>
           </View>
         </View>
@@ -116,8 +130,27 @@ const LeaveReqCard = ({ id, name, empId, leaveReason, from, to, date, approvalSt
             color: 'white',
             backgroundColor: getStatusColor(),
           }}>
-          Status: {approvalStatus.toUpperCase()}
+          Status: {approvalStatus}
         </Text>
+        {approvalStatus.toLowerCase() !== 'pending' && (
+          <>
+            <Text
+              style={{
+                alignSelf: 'flex-start',
+                borderRadius: moderateScale(8),
+                paddingVertical: moderateScale(4),
+                paddingHorizontal: moderateScale(8),
+                fontSize: moderateScale(12), // Font size responsive
+                fontWeight: 'bold',
+                color: 'white',
+                backgroundColor:
+                  approvalStatus.toLowerCase() === 'approved' ? configFile.colorGreen : 'red',
+              }}>
+              {approvalStatus.toLowerCase() == 'approved' ? `Approved By ` : `Rejected By `}
+              {` ${approvedBy} `}
+            </Text>
+          </>
+        )}
         {/* <View style={{ flexDirection: 'row', gap: moderateScale(16) }}>
           <TouchableOpacity>
             <Text

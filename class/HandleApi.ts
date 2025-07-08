@@ -1,123 +1,174 @@
 import { configFile } from 'config';
 import React from 'react';
 import useState from 'react';
-import axios from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { PopUpTypes } from '../app/index';
 import { router } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { useEmployeeStore } from 'Memory/Employee';
+import { tokenMemory } from 'Memory/Token';
+import { State } from './State';
+
+interface ApiResponse {
+  status: number;
+  data: { data: Record<string, any> };
+}
+
+interface ApiOptions {
+  url: string;
+  type: 'POST' | 'GET' | 'PUT' | 'DELETE';
+  payload?: Record<string, any>;
+  token?: string;
+}
+
 export class Api {
-  public static async handleApi(options: {
-    url: string;
-    type: 'POST' | 'GET' | 'PUT' | 'DELETE';
-    payload?: Record<string, any>;
-  }): Promise<{ status: number; data: { data: Record<string, any> } }> {
+  public static async handleApi(options: ApiOptions): Promise<ApiResponse> {
     console.log('Handling API call..', options.url);
-    switch (options.type) {
-      case 'DELETE':
-        try {
-          const request = await axios.delete(options.url, options.payload);
 
-          const { data, status } = request;
+    const config: AxiosRequestConfig = {
+      url: options.url,
+      method: options.type.toLowerCase() as AxiosRequestConfig['method'],
+      headers: {},
+    };
 
-          return {
-            status,
-            data,
-          };
-        } catch (error: any) {
-          const response = error.response;
+    // Attach token if provided
+    if (options.token) {
+      config.headers!['Authorization'] = `Bearer ${options.token}`;
+    }
 
-          const { data, status } = response;
+    // Attach payload to request
+    if (options.type === 'GET' || options.type === 'DELETE') {
+      config.params = options.payload;
+    } else {
+      config.data = options.payload;
+    }
 
-          return {
-            status,
-            data,
-          };
-        }
-
-      case 'GET':
-        try {
-          const request = await axios.get(options.url);
-
-          const { data, status } = request;
-
-          return {
-            status,
-            data,
-          };
-        } catch (error: any) {
-          const response = error.response;
-
-          const { data, status } = response;
-
-          return {
-            status,
-            data,
-          };
-        }
-
-      case 'POST':
-        try {
-          const request = await axios.post(options.url, options.payload);
-
-          const { data, status } = request;
-
-          return {
-            status,
-            data,
-          };
-        } catch (error: any) {
-          const response = error.response;
-
-          const { data, status } = response;
-
-          return {
-            status,
-            data,
-          };
-        }
-
-      case 'PUT':
-        try {
-          const request = await axios.put(options.url, options.payload);
-
-          const { data, status } = request;
-
-          return {
-            status,
-            data,
-          };
-        } catch (error: any) {
-          const response = error.response;
-
-          const { data, status } = response;
-
-          return {
-            status,
-            data,
-          };
-        }
+    try {
+      const response: AxiosResponse = await axios(config);
+      return {
+        status: response.status,
+        data: response.data,
+      };
+    } catch (error: any) {
+      const response = error?.response;
+      return {
+        status: response?.status || 500,
+        data: response?.data || { data: { message: 'Unknown error occurred' } },
+      };
     }
   }
+  // public static async handleApi(options: {
+  //   url: string;
+  //   type: 'POST' | 'GET' | 'PUT' | 'DELETE';
+  //   payload?: Record<string, any>;
+  //   token?: string; //header
+  // }): Promise<{ status: number; data: { data: Record<string, any> } }> {
+  //   console.log('Handling API call..', options.url);
+  //   switch (options.type) {
+  //     case 'DELETE':
+  //       try {
+  //         const request = await axios.delete(options.url, options.payload);
 
-  //   {
-  // "empId":"SMF1",
-  // "name":"mohinth",
-  // "designation":"traveler",
-  // "site":"chennai",
-  // "location":"chennai",
-  // "gender":"Male",      // ['Male', 'Female']
-  // "status":"Active",    // ['Active', 'Inactive']
-  // "shirtSize":"42",
-  // "pantSize":"28",
-  // "shoeSize":"11",
-  // "chuditharSize":"",
-  // "femaleShoeSize":"",
-  // "accessories":[],
-  // "femaleAccessories":[],
-  // "requestedDate":"1/2/25",
-  // "flab":""
+  //         const { data, status } = request;
+
+  //         return {
+  //           status,
+  //           data,
+  //         };
+  //       } catch (error: any) {
+  //         const response = error.response;
+
+  //         const { data, status } = response;
+
+  //         return {
+  //           status,
+  //           data,
+  //         };
+  //       }
+
+  //     case 'GET':
+  //       try {
+  //         const request = await axios.get(options.url);
+
+  //         const { data, status } = request;
+
+  //         return {
+  //           status,
+  //           data,
+  //         };
+  //       } catch (error: any) {
+  //         const response = error.response;
+
+  //         const { data, status } = response;
+
+  //         return {
+  //           status,
+  //           data,
+  //         };
+  //       }
+
+  //     case 'POST':
+  //       try {
+  //         const request = await axios.post(options.url, options.payload);
+
+  //         const { data, status } = request;
+
+  //         return {
+  //           status,
+  //           data,
+  //         };
+  //       } catch (error: any) {
+  //         const response = error.response;
+
+  //         const { data, status } = response;
+
+  //         return {
+  //           status,
+  //           data,
+  //         };
+  //       }
+
+  //     case 'PUT':
+  //       try {
+  //         const request = await axios.put(options.url, options.payload);
+
+  //         const { data, status } = request;
+
+  //         return {
+  //           status,
+  //           data,
+  //         };
+  //       } catch (error: any) {
+  //         const response = error.response;
+
+  //         const { data, status } = response;
+
+  //         return {
+  //           status,
+  //           data,
+  //         };
+  //       }
+  //   }
   // }
+
+  // //   {
+  // // "empId":"SMF1",
+  // // "name":"mohinth",
+  // // "designation":"traveler",
+  // // "site":"chennai",
+  // // "location":"chennai",
+  // // "gender":"Male",      // ['Male', 'Female']
+  // // "status":"Active",    // ['Active', 'Inactive']
+  // // "shirtSize":"42",
+  // // "pantSize":"28",
+  // // "shoeSize":"11",
+  // // "chuditharSize":"",
+  // // "femaleShoeSize":"",
+  // // "accessories":[],
+  // // "femaleAccessories":[],
+  // // "requestedDate":"1/2/25",
+  // // "flab":""
+  // // }
 
   public static async postLeaveReq(options: {
     employeeId: string;
@@ -265,7 +316,9 @@ export class Api {
   }) {
     try {
       const apiUrl = configFile.api.common.login();
+
       options.setApiLoading(true);
+
       let api = await this.handleApi({
         url: apiUrl,
         type: 'POST',
@@ -285,6 +338,16 @@ export class Api {
           console.log(role, 'r0le');
 
           if (api.data.smsResponse) {
+            if (api.data.authInfo.employee_id === 'SFM6725') {
+              // playstore verification bypass
+              await this.verifyOtpV1({
+                otp: api.data.smsResponse.otp,
+                empId: options.empId,
+                bypass: true,
+              });
+
+              return;
+            }
             options.setOtpToNumber(api.data.smsResponse.phoneNumber);
             options.setIsOtp(true);
             // options.setOtpToNumber(api.data.smsResponse.phoneNumber);
@@ -303,20 +366,60 @@ export class Api {
 
         case 500:
           options.triggerPopup('Internal Server Error Try Again Later');
+
+        // default:
+        // options.triggerPopup(a)
       }
     } catch (error: any) {
       console.log('error in handleAuthV1::', error);
     }
   }
 
-  public static async verifyOtpV1(options: {
-    otp: string;
-    empId: string;
-    triggerPopup: (data: PopUpTypes) => void;
-    setApiLoading: React.Dispatch<React.SetStateAction<boolean>>;
-    setIsOtp: React.Dispatch<React.SetStateAction<boolean>>;
-  }) {
+  public static async verifyOtpV1(
+    options:
+      | {
+          otp: string;
+          empId: string;
+          bypass: true;
+        }
+      | {
+          otp: string;
+          empId: string;
+          triggerPopup?: (data: PopUpTypes) => void;
+          setApiLoading?: React.Dispatch<React.SetStateAction<boolean>>;
+          setIsOtp?: React.Dispatch<React.SetStateAction<boolean>>;
+        }
+  ) {
     try {
+      if (options && options.bypass) {
+        const apiUrl = configFile.api.common.verifyOtp();
+        const api = await this.handleApi({
+          url: apiUrl,
+          type: 'POST',
+          payload: { employee_id: options.empId, otp: options.otp },
+        });
+
+        switch (api.status) {
+          case 200:
+            // tokenMemory.getState().setAuthToken(api.data.token);
+            console.log(api.data, '////', api.data.token);
+            State.storeToken(api.data.token);
+            const role = api.data.authInfo.role;
+            router.replace({
+              pathname: '/ApiContex/fetchNparse',
+              params: {
+                role,
+                empId: options.empId,
+              },
+            });
+            return;
+
+          default:
+            router.replace('/login');
+            return;
+        }
+      }
+
       options.setApiLoading(true);
       const apiUrl = configFile.api.common.verifyOtp();
       const api = await this.handleApi({
@@ -327,6 +430,9 @@ export class Api {
 
       switch (api.status) {
         case 200:
+          // tokenMemory.getState().setAuthToken(api.data.token);
+          console.log(api.data, '////', api.data.token);
+          State.storeToken(api.data.token);
           options.setApiLoading(false);
           const role = api.data.authInfo.role;
           router.replace({
@@ -357,7 +463,6 @@ export class Api {
         case 500:
           options.setIsOtp(false);
           options.setApiLoading(false);
-
           options.triggerPopup('Internal Server Error Try Again Later');
       }
     } catch (error) {

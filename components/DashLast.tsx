@@ -14,12 +14,11 @@ type Props = {
   isMale: boolean;
 };
 
-const names = ['Attendance', 'Pay slip', 'Uniform Request', 'Leave Request']; // Change this to test odd/even
-const icon1 = <Ionicons name="finger-print" size={54} color="white" />;
+const names = ['Pay slip', 'Uniform Request', 'Leave Request']; // Change this to test odd/even
 const icon3 = <MaterialCommunityIcons name="cash-check" size={54} color="white" />;
 const icon4 = <Ionicons name="shirt" size={54} color="white" />;
 const icon5 = <Fontisto name="holiday-village" size={54} color="white" />;
-const icons = [icon1, icon3, icon4, icon5];
+const icons = [icon3, icon4, icon5];
 
 const DashLast = ({ role, cardSize, empId, isMale }: Props) => {
   const isOdd = names.length % 2 !== 0;
@@ -60,13 +59,14 @@ const DashLast = ({ role, cardSize, empId, isMale }: Props) => {
                           isMale,
                         },
                       })
-                    : router.push({
-                        pathname: `/dashboard/${names[i].toLowerCase()}`,
-                        params: {
-                          role,
-                          empId,
-                        },
-                      });
+                    : null;
+                  // router.push({
+                  //     pathname: `/dashboard/${names[i].toLowerCase()}`,
+                  //     params: {
+                  //       role,
+                  //       empId,
+                  //     },
+                  //   });
                 }}
                 style={[
                   styles.card,

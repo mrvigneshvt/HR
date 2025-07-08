@@ -54,7 +54,7 @@ const options = (
                       },
                     })
                   }>
-                  <Ionicons name="notifications" size={24} color="black" />
+                  <Ionicons name="notifications" size={24} color="#3a7129" />
                 </Pressable>
               </>
             )}
@@ -96,12 +96,12 @@ const options = (
     return {
       headerLeft: () => (
         <>
-          <Pressable
+          {/* <Pressable
             onPress={() => router.back()}
             style={{ display: 'flex', flexDirection: 'row', right: 16 }}>
             <Ionicons name="chevron-back" size={24} color="white" />
             <AntDesign name="home" size={24} color="white" />
-          </Pressable>
+          </Pressable> */}
         </>
       ),
       tabBarHideOnKeyboard: true,
@@ -136,7 +136,7 @@ const options = (
       ),
       headerRight: () => (
         <>
-          <View className="flex-row gap-4">
+          {/* <View className="flex-row gap-4">
             <Pressable
               onPress={() =>
                 router.push({
@@ -146,12 +146,12 @@ const options = (
                   },
                 })
               }>
-              <Ionicons name="notifications" size={24} color="black" />
+              <Ionicons name="notifications" size={24} color="#fff" />
             </Pressable>
             <Pressable onPress={() => router.replace('/login')}>
               <MaterialIcons name="logout" size={24} color="black" />
             </Pressable>
-          </View>
+          </View> */}
         </>
       ),
     };
