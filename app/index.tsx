@@ -43,8 +43,9 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    State.deleteToken();
-    NavRouter.stayBack();
+    // State.deleteToken();
+    // NavRouter.stayBack();
+    router.replace('/login');
   }, []);
 
   const router = useRouter();

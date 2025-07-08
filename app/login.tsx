@@ -3,30 +3,23 @@ import {
   Text,
   TextInput,
   Pressable,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
   Keyboard,
-  BackHandler,
+  StyleSheet,
+  useColorScheme,
+  Animated,
+  Easing,
 } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Stack, useRouter } from 'expo-router';
 import { Image } from 'expo-image';
-import { useEffect, useState } from 'react';
-import { Link, Stack, useRouter } from 'expo-router';
-import DropDownPicker from 'react-native-dropdown-picker';
-import '../global.css';
-import { Dashboard, DashMemory, DashMemoryType } from 'Memory/DashMem';
-import { customPlugins } from 'plugins/plug';
-import { configFile } from 'config';
-import PopupMessage from 'components/Popup';
-import LoadingScreen from 'components/LoadingScreen';
-import { Flow } from 'class/HandleRoleFlow';
+
 import { Api } from 'class/HandleApi';
-import * as SecureStore from 'expo-secure-store';
 import { State } from 'class/State';
 import { NavRouter } from 'class/Router';
-// import * as SecureStore from 'expo-secure-store';
-const logo = require('../assets/logo.jpg');
+import { configFile } from 'config';
+import { Themez } from 'class/Theme';
+import PopupMessage from 'components/Popup';
+import logo from '../assets/logomainsdce.png';
 
 export type PopUpTypes =
   | 'Internal Server Error Try Again Later'
@@ -35,69 +28,58 @@ export type PopUpTypes =
   | 'Incorrect OTP'
   | 'Too Late Try Again From First !';
 
-export default function LoginPage() {
-  const onBackPress = () => {
-    router.replace({ pathname: '/login' });
-    return true;
-  };
+const LoginPage = () => {
+  const theme = useColorScheme() as 'dark' | 'light';
+  const router = useRouter();
+
+  const [empId, setEmpId] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpHash, setOtpHash] = useState('');
+  const [otpToNumber, setOtpToNumber] = useState('');
+  const [isOtp, setIsOtp] = useState(false);
+  const [apiLoading, setApiLoading] = useState(false);
+  const [apiData, setApiData] = useState(null);
+  const [popup, setPopup] = useState(false);
+  const [popMsg, setPopMsg] = useState('');
+
+  const glowAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     State.deleteToken();
-
-    // BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
     NavRouter.stayBack();
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: false,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 0,
+          duration: 1000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: false,
+        }),
+      ])
+    ).start();
   }, []);
-  // const setDashboard = DashMemory((state) => state.setDashboard);
 
-  const router = useRouter();
-  const [empId, setEmpId] = useState('');
-  const [apiLoading, setApiLoading] = useState(false);
-  const [popup, setPopUp] = useState(false);
-  const [popMsg, setPopMsg] = useState('');
-  const [popUpMessages] = useState({
-    notFound: 'EmployeeId not Found',
-    invalid: 'Invalid Employee ID',
+  const shadowGlow = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['rgba(118,185,0,0.2)', 'rgba(118,185,0,0.8)'],
   });
-  const [isOtp, setIsOtp] = useState(false);
-  const [otp, setOtp] = useState<string>('');
-  const [otpHash, setOtpHash] = useState<string>('');
-  const [otpToNumber, setOtpToNumber] = useState('');
-  const [apiData, setApiData] = useState(null);
 
-  const triggerPopup = (data: PopUpTypes) => {
-    setPopMsg(data);
-    setPopUp(true);
-    setTimeout(() => setPopUp(false), 2000); // hide manually if needed
+  const triggerPopup = (message: PopUpTypes) => {
+    setPopMsg(message);
+    setPopup(true);
+    setTimeout(() => setPopup(false), 2000);
   };
 
-  function handleEmpId(text: string) {
-    console.log(empId);
-    setEmpId(() => text.toLocaleUpperCase());
-  }
-
-  function handleOtp(text: string) {
-    setOtp(text);
-  }
-
-  async function verifyOtp() {
-    await Api.verifyOtpV1({
-      otp,
-      empId,
-      triggerPopup,
-      setApiLoading,
-      setIsOtp,
-    });
-  }
-
-  // const [password, setPassword] = useState('');
   const handleLogin = async () => {
-    if (empId.length < 4) {
-      triggerPopup('Invalid Employee ID');
-      return;
-    }
+    if (empId.length < 4) return triggerPopup('Invalid Employee ID');
+
     try {
-      console.log('going udner handleAuth');
       await Api.handleAuthV1({
         empId,
         setApiLoading,
@@ -108,58 +90,37 @@ export default function LoginPage() {
         setApiData,
       });
     } catch (error) {
-      console.log('error in loginPage:', error);
+      console.error('Login Error:', error);
     }
   };
 
-  // const checkToken = async () => {
-  //   const token = await SecureStore.getItemAsync('STOKEN');
-  //   console.log(token, 'tokennnnnn');
-  //   if (!token) {
-  //     return;
-  //   }
-  //   let isVerified = await Api.verifyToken(token);
-  //   console.log(isVerified);
+  const handleVerifyOtp = async () => {
+    await Api.verifyOtpV1({
+      otp,
+      empId,
+      triggerPopup,
+      setApiLoading,
+      setIsOtp,
+    });
+  };
 
-  //   if (!isVerified) {
-  //     //await SecureStore.deleteItemAsync('STOKEN');
-  //     return;
-  //   }
-
-  //   console.log('IsVerifiedddd', isVerified);
-  //   router.replace({
-  //     pathname: '/ApiContex/fetchNparse',
-  //     params: {
-  //       data: JSON.stringify(isVerified.data),
-  //     },
-  //   });
-  // };
-
-  // useEffect(() => {
-  //   checkToken();
-  // }, []);
-  //////////////////////////////////////////////////////////
-
-  //   useEffect(() => {
-  //     setTimeout(() => {
-  //       router.replace({
-  //         pathname: '/(admin)/home',
-  //         // pathname: '/(admin)/home',
-  //         params: {
-  //           role: 'superadmin',
-  //           empId: 'SFM43899',
-  //         },
-  //       });
-  //     }, 50);
-  //   }, []);
-  ////////////////////////////////////////////////////////////
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <Pressable onPress={Keyboard.dismiss} style={styles.container}>
+
+      <Pressable
+        onPress={Keyboard.dismiss}
+        style={[styles.container, { backgroundColor: Themez.color({ theme, for: 'main-bg' }) }]}>
         {popup && <PopupMessage text={popMsg} duration={3000} />}
 
-        <Pressable onPress={Keyboard.dismiss} style={styles.formContainer}>
+        <Animated.View
+          style={[
+            styles.formContainer,
+            {
+              backgroundColor: Themez.color({ theme, for: 'card-bg' }),
+              shadowColor: shadowGlow,
+            },
+          ]}>
           <View style={styles.logoContainer}>
             <Image
               source={logo}
@@ -167,112 +128,89 @@ export default function LoginPage() {
               contentFit="contain"
             />
           </View>
-          <Text style={styles.title}>{!isOtp ? 'Employee Login' : `Verify OTP`}</Text>
+
+          <Text style={[styles.title, { color: Themez.color({ theme, for: 'main-text' }) }]}>
+            {!isOtp ? 'Employee Login' : `Verify OTP`}
+          </Text>
 
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                borderColor: configFile.colorGreen,
+                backgroundColor: theme === 'dark' ? '#1e1e1e' : '#fff',
+                color: theme === 'dark' ? '#fff' : '#000',
+              },
+            ]}
             keyboardType={!isOtp ? 'default' : 'number-pad'}
             placeholder={!isOtp ? 'Employee ID' : `OTP Sent to ${otpToNumber}`}
             placeholderTextColor="#888"
-            value={!isOtp ? empId.toLocaleUpperCase() : otp}
-            onChangeText={!isOtp ? handleEmpId : handleOtp}
+            value={!isOtp ? empId.toUpperCase() : otp}
+            onChangeText={!isOtp ? setEmpId : setOtp}
           />
 
           <Pressable
-            style={styles.loginButton}
-            className={`${apiLoading ? 'bg-black' : `bg-[${configFile.colorGreen}]`}`}
-            disabled={apiLoading ? true : false}
+            style={[
+              styles.loginButton,
+              { backgroundColor: apiLoading ? 'black' : configFile.colorGreen },
+            ]}
+            disabled={apiLoading}
             onPress={() => {
-              if (!isOtp) {
-                handleLogin();
-              } else {
-                verifyOtp();
-              }
+              if (!isOtp) handleLogin();
+              else handleVerifyOtp();
             }}>
-            <Text style={styles.buttonText}>{!isOtp ? 'Log In' : 'Verify Otp'}</Text>
+            <Text style={styles.buttonText}>{!isOtp ? 'Log In' : 'Verify OTP'}</Text>
           </Pressable>
-        </Pressable>
+        </Animated.View>
       </Pressable>
     </>
   );
-}
+};
+
+export default LoginPage;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
+    alignItems: 'center',
     paddingHorizontal: 16,
-    marginBottom: 32,
   },
   formContainer: {
     width: '100%',
     maxWidth: 384,
-    borderRadius: 12,
-    backgroundColor: '#fff',
     padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.8,
-    elevation: 5,
+    borderRadius: 12,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 10,
   },
   logoContainer: {
-    marginBottom: 16,
     alignItems: 'center',
+    marginBottom: 16,
   },
   title: {
-    marginBottom: 16,
-    textAlign: 'center',
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#238c58',
+    marginBottom: 16,
+    textAlign: 'center',
   },
   input: {
-    marginBottom: 12,
-    borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#238c58',
-    backgroundColor: 'white',
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    color: 'black',
-  },
-  dropdownContainer: {
-    zIndex: 1000,
-    marginBottom: 16,
-  },
-  dropdown: {
-    borderColor: '#238c58',
-    height: 50,
-  },
-  dropdownMenu: {
-    borderColor: '#238c58',
-    maxHeight: 150,
+    paddingVertical: 10,
+    borderRadius: 6,
+    marginBottom: 12,
   },
   loginButton: {
-    marginBottom: 16,
-    borderRadius: 4,
-    backgroundColor: '#238c58',
-    paddingVertical: 8,
-  },
-  dashboardButton: {
-    marginTop: 40,
-    alignItems: 'center',
-    alignSelf: 'center',
-    borderRadius: 4,
-    backgroundColor: '#16a34a',
-    padding: 8,
+    borderRadius: 6,
+    paddingVertical: 10,
+    marginBottom: 8,
   },
   buttonText: {
-    textAlign: 'center',
-    fontWeight: '600',
     color: 'white',
-  },
-  linkText: {
+    fontWeight: '600',
     textAlign: 'center',
-    color: '#238c58',
-    textDecorationLine: 'underline',
   },
 });
