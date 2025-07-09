@@ -77,7 +77,7 @@ export const requestsService = {
   },
 
   async deleteLeaveRequest(id: string) {
-    const response = await axios.delete(`${BASE_URL}/Leaves/${id}`);
+    const response = await axios.delete(`${BASE_URL}/Leaves/docId/${id}`);
     return response.data;
-  }
-}; 
+  },
+};

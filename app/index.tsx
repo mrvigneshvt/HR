@@ -37,14 +37,15 @@ export type PopUpTypes =
 
 export default function LoginPage() {
   // const setDashboard = DashMemory((state) => state.setDashboard);
-  const onBackPress = () => {
-    router.replace({ pathname: '/login' });
-    return true;
-  };
 
   useEffect(() => {
     State.deleteToken();
     NavRouter.stayBack();
+    const onBackPress = () => {
+      router.replace({ pathname: '/login' });
+      return true;
+    };
+    onBackPress();
   }, []);
 
   const router = useRouter();
@@ -111,11 +112,6 @@ export default function LoginPage() {
 
   ///////////////////////////////////////////////////////////////////////////////////
 
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM43899' });
-  //   }, 50);
-  // }, []);
 
   ////////////////////////////////////////////////////////////////////////////////////
 

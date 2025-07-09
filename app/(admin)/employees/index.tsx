@@ -633,9 +633,11 @@ const EmployeesScreen = () => {
 
       updateFields = {
         ...updateFields,
+        dob: updateFields.dob.split('T')[0] || updateFields.dob,
+        updated_at: updateFields.updated_at.split('T')[0] || updateFields.updated_at,
       };
 
-      console.log(updateFields, '///', BASE_URL, '///', selectedEmployee.employee_id);
+      console.log(updateFields, '///');
 
       // const response = await axios.put(
       //   `${BASE_URL}/employees/${selectedEmployee.employee_id}`,

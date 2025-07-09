@@ -21,22 +21,22 @@ const HomeScreen = () => {
     [router, role, empId]
   );
 
-  const setupEmpData = useCallback(async () => {
-    try {
-      const response = await Api.getEmpData(String(empId));
-      if (response) {
-        State.storeEmpData(response);
-        setEmpData(response);
-      }
-    } catch (error) {
-      console.error('Error fetching emp data:', error);
-    }
-  }, [empId]);
-
   useEffect(() => {
-    setupEmpData();
+    const fetchEmpData = async () => {
+      try {
+        const response = await Api.getEmpData(String(empId));
+        if (response) {
+          State.storeEmpData(response);
+          setEmpData(response);
+        }
+      } catch (error) {
+        console.error('Error fetching emp data:', error);
+      }
+    };
+
+    fetchEmpData();
     NavRouter.BackHandler({ role, empId });
-  }, [setupEmpData]);
+  }, [empId]);
 
   const menuCards = useMemo(
     () => [
@@ -45,7 +45,7 @@ const HomeScreen = () => {
         title: 'Employees',
         icon: 'people',
         description: 'Manage employee records',
-        color: '#4A90E2',
+        color: '#6a11cb',
         route: '/employees',
       },
       {
@@ -53,7 +53,7 @@ const HomeScreen = () => {
         title: 'Requests',
         icon: 'document-text',
         description: 'Manage uniform & leave requests',
-        color: '#50C878',
+        color: '#43cea2',
         route: '/requests',
       },
       {
@@ -61,7 +61,7 @@ const HomeScreen = () => {
         title: 'Clients',
         icon: 'business',
         description: 'Handle client data',
-        color: '#FF6B6B',
+        color: '#ff512f',
         route: '/clients',
       },
       {
@@ -69,7 +69,7 @@ const HomeScreen = () => {
         title: 'Attendance',
         icon: 'calendar',
         description: 'View attendance logs',
-        color: '#FFA500',
+        color: '#00c6ff',
         route: '/attendance',
       },
       {
@@ -77,7 +77,7 @@ const HomeScreen = () => {
         title: 'Pay Slip',
         icon: 'cash',
         description: 'Access payslip info',
-        color: '#6A5ACD',
+        color: '#f7971e',
         route: '/emp-plugins/pay_slip',
       },
       {
@@ -86,8 +86,16 @@ const HomeScreen = () => {
         icon: 'holiday-village',
         isFontisto: true,
         description: 'Apply for leave',
-        color: '#2E8B57',
+        color: '#00b09b',
         route: '/emp-plugins/leave_request',
+      },
+      {
+        key: 'uniform_request',
+        title: 'Uniform Request',
+        icon: 'shirt',
+        description: 'Raise Uniform Request for Employees',
+        color: '#b92b27',
+        route: '/emp-plugins/uniform_request',
       },
     ],
     [navigateTo]
@@ -97,36 +105,48 @@ const HomeScreen = () => {
     <Pressable
       key={key}
       onPress={() => navigateTo(route)}
-      className="mb-4 rounded-2xl bg-white p-5 shadow-md">
+      className="mb-6 rounded-2xl bg-white p-5 shadow-md"
+      style={{
+        borderLeftWidth: 6,
+        borderLeftColor: color,
+        elevation: 4,
+      }}>
       <View className="flex-row items-center">
         <View
-          className="mr-4 h-12 w-12 items-center justify-center rounded-full"
-          style={{ backgroundColor: `${color}20` }}>
+          className="mr-4 h-12 w-12 items-center justify-center rounded-xl"
+          style={{ backgroundColor: '#f4f4f4' }}>
           {isFontisto ? (
-            <Fontisto name={icon} size={22} color={color} />
+            <Fontisto name={icon} size={20} color={color} />
           ) : (
             <Ionicons name={icon} size={24} color={color} />
           )}
         </View>
         <View className="flex-1">
-          <Text className="text-lg font-semibold text-gray-800">{title}</Text>
+          <Text className="text-lg font-bold text-gray-900">{title}</Text>
           <Text className="mt-1 text-sm text-gray-600">{description}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={22} color="#ccc" />
+        <Ionicons name="chevron-forward-circle-outline" size={22} color={color} />
       </View>
     </Pressable>
   );
 
   return (
-    <View className="flex-1 bg-gray-100">
+    <View className="flex-1 bg-white">
       <Stack.Screen
         options={{
           headerShown: true,
           title: 'Dashboard',
-          headerStyle: { backgroundColor: configFile.colorGreen },
+          headerStyle: {
+            backgroundColor: configFile.colorGreen,
+            elevation: 10,
+          },
           headerTintColor: 'white',
+          headerTitleStyle: {
+            fontSize: 22,
+            fontWeight: 'bold',
+          },
           headerRight: () => (
-            <View className="flex flex-row gap-3 pr-3">
+            <View className="flex flex-row gap-4 pr-3">
               <TouchableOpacity onPress={() => router.push('/emp-plugins/notification')}>
                 <Ionicons name="notifications" size={24} color="#fff" />
               </TouchableOpacity>
@@ -138,24 +158,33 @@ const HomeScreen = () => {
         }}
       />
 
-      <ScrollView className="flex-1 p-4">
+      <ScrollView className="flex-1 px-4 pt-4">
         {empData && (
           <DashTop role={''} name={empData.name} empId={empId} img={empData.profile_image} />
         )}
 
-        {role && (
-          <Pressable onPress={() => navigateTo('/(tabs)/dashboard/attendance')}>
-            <View className="mb-4 flex-row items-center justify-between rounded-xl bg-white p-5 shadow-md">
-              <View>
-                <Text className="text-lg font-semibold text-gray-800">Mark your</Text>
-                <Text className={`text-xl font-bold text-[#238c58]`}>Attendance</Text>
-              </View>
-              <View className="rounded-full p-3" style={{ backgroundColor: configFile.colorGreen }}>
-                <FontAwesome name="calendar-check-o" size={22} color="white" />
-              </View>
+        {/* Quick Action Card */}
+        <Pressable
+          onPress={() => navigateTo('/(tabs)/dashboard/attendance')}
+          className="mb-6 flex-row items-center justify-between rounded-2xl bg-white p-5 shadow-md"
+          style={{
+            borderWidth: 1,
+            borderColor: '#e2e8f0',
+            elevation: 4,
+          }}>
+          <View>
+            <Text className="mb-1 text-sm font-medium text-gray-500">Quick Action</Text>
+            <View className="flex-row gap-1.5">
+              <Text className="text-xl font-bold text-gray-800">Mark</Text>
+              <Text className="text-xl font-bold" style={{ color: configFile.colorGreen }}>
+                Attendance
+              </Text>
             </View>
-          </Pressable>
-        )}
+          </View>
+          <View className="rounded-full bg-[#e0f7f1] p-3 shadow-sm">
+            <FontAwesome name="calendar-check-o" size={22} color="#1abc9c" />
+          </View>
+        </Pressable>
 
         {menuCards.map(renderMenuCard)}
       </ScrollView>

@@ -89,6 +89,9 @@ export const configFile = {
           update(id: string) {
             return `${backendBaseUrl}api/leaves/docId/${id}`;
           },
+          delete(id: string) {
+            return `${backendBaseUrl}api/leaves/${id}`;
+          },
         },
       },
       clients: {

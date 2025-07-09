@@ -288,7 +288,7 @@ const LocationWithDate = () => {
           <View
             key={rec.id}
             style={[styles.card, selectedRecordIndex === idx && styles.activeCard]}>
-            <Text style={styles.cardText}>📍 Company Name: {rec.client_no}</Text>
+            <Text style={styles.cardText}>📍 Company Name: {rec.client_name}</Text>
             <Text style={styles.cardText}>
               🧭 Lat: {rec.latitude}, Lon: {rec.longitude}
             </Text>

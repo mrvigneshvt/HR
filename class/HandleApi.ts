@@ -33,11 +33,14 @@ export class Api {
 
     // Attach token if provided
     if (options.token) {
-      config.headers!['Authorization'] = `Bearer ${options.token}`;
+      config.headers!['auth-token'] = options.token;
     }
 
     // Attach payload to request
-    if (options.type === 'GET' || options.type === 'DELETE') {
+    if (
+      (options.type === 'GET' && options.payload) ||
+      (options.type === 'DELETE' && options.payload)
+    ) {
       config.params = options.payload;
     } else {
       config.data = options.payload;

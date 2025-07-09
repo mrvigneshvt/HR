@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Keyboard,
   BackHandler,
+  ActivityIndicator,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
@@ -40,6 +41,12 @@ export default function LoginPage() {
     router.replace({ pathname: '/login' });
     return true;
   };
+
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM43899' });
+  //   }, 50);
+  // }, []);
 
   useEffect(() => {
     State.deleteToken();
@@ -168,7 +175,6 @@ export default function LoginPage() {
             />
           </View>
           <Text style={styles.title}>{!isOtp ? 'Employee Login' : `Verify OTP`}</Text>
-
           <TextInput
             style={styles.input}
             keyboardType={!isOtp ? 'default' : 'number-pad'}
@@ -189,7 +195,11 @@ export default function LoginPage() {
                 verifyOtp();
               }
             }}>
-            <Text style={styles.buttonText}>{!isOtp ? 'Log In' : 'Verify Otp'}</Text>
+            {apiLoading ? (
+              <ActivityIndicator color={'white'} />
+            ) : (
+              <Text style={styles.buttonText}>{!isOtp ? 'Log In' : 'Verify Otp'}</Text>
+            )}
           </Pressable>
         </Pressable>
       </Pressable>
