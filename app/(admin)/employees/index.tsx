@@ -42,10 +42,12 @@ import { scale } from 'react-native-size-matters';
 import Verified from 'components/Verified';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { State } from 'class/State';
+import PaginatedComponent from 'components/Pagination';
+import SearchOverlayComponent from 'components/SearchOverlay';
 const { width: screenWidth } = Dimensions.get('window');
 const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
 
-interface Employee {
+export interface Employee {
   employee_id: string;
   name: string;
   father_spouse_name: string;
@@ -296,22 +298,22 @@ const EmployeesScreen = () => {
     }
   };
 
-  useEffect(() => {
-    setFilteredList(
-      employeeList.filter((emp) => {
-        if (emp.name && emp.employee_id) {
-          return (
-            emp.name.toLowerCase().includes(search.toLowerCase()) ||
-            emp.employee_id.toLowerCase().includes(search.toLowerCase())
-          );
-        }
-        return false; // ignore this emp if any required field is missing
-      })
-    );
-  }, [search, employeeList]);
+  // useEffect(() => {
+  //   setFilteredList(
+  //     employeeList.filter((emp) => {
+  //       if (emp.name && emp.employee_id) {
+  //         return (
+  //           emp.name.toLowerCase().includes(search.toLowerCase()) ||
+  //           emp.employee_id.toLowerCase().includes(search.toLowerCase())
+  //         );
+  //       }
+  //       return false; // ignore this emp if any required field is missing
+  //     })
+  //   );
+  // }, [search, employeeList]);
 
   useEffect(() => {
-    console.log('Selected Emp Updated: ', selectedEmployee);
+    console.log('Selected Emp 4 Update: ', selectedEmployee);
   }, [selectedEmployee]);
 
   const validateForm = (): boolean => {
@@ -695,7 +697,7 @@ const EmployeesScreen = () => {
       }}>
       <View>
         <Text style={{ fontSize: 16, fontWeight: 'bold', color: configFile.colorGreen }}>
-          {item.name}
+          {item?.name || 'Not Assigned'}
         </Text>
         <Text style={{ color: 'gray' }}>ID: {item.employee_id}</Text>
         {role?.toLocaleLowerCase() == 'superadmin' && (
@@ -1414,18 +1416,28 @@ const EmployeesScreen = () => {
         }}
       />
 
-      <SearchBar value={search} onChangeText={setSearch} placeholder="Search employee..." />
+      {/* <SearchBar value={search} onChangeText={setSearch} placeholder="Search employee..." /> */}
+      {/* <SearchOverlayComponent limit={10} childCard={renderEmployeeCard} for="employee" /> */}
 
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={configFile.colorGreen} />
         </View>
       ) : (
-        <FlatList
-          data={filteredList}
-          keyExtractor={(item) => item.employee_id}
-          renderItem={renderEmployeeCard}
-          contentContainerStyle={{ paddingVertical: 8 }}
+        // <FlatList
+        //   data={filteredList}
+        //   keyExtractor={(item) => item.employee_id}
+        //   renderItem={renderEmployeeCard}
+        //   contentContainerStyle={{ paddingVertical: 8 }}
+        // />
+        <PaginatedComponent
+          key={'employees'}
+          url={configFile.api.superAdmin.app.employees}
+          limit={8}
+          renderItem={({ item }) => {
+            console.log(item, '//item');
+            return renderEmployeeCard({ item });
+          }}
         />
       )}
 

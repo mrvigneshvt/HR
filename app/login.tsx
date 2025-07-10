@@ -44,7 +44,7 @@ export default function LoginPage() {
 
   // useEffect(() => {
   //   setTimeout(() => {
-  //     NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM43899' });
+  //     NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM101' });
   //   }, 50);
   // }, []);
 

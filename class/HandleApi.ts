@@ -14,7 +14,7 @@ interface ApiResponse {
   data: { data: Record<string, any> };
 }
 
-interface ApiOptions {
+export interface ApiOptions {
   url: string;
   type: 'POST' | 'GET' | 'PUT' | 'DELETE';
   payload?: Record<string, any>;
@@ -23,6 +23,8 @@ interface ApiOptions {
 
 export class Api {
   public static async handleApi(options: ApiOptions): Promise<ApiResponse> {
+    const token = State.getToken();
+
     console.log('Handling API call..', options.url);
 
     const config: AxiosRequestConfig = {
@@ -32,8 +34,8 @@ export class Api {
     };
 
     // Attach token if provided
-    if (options.token) {
-      config.headers!['auth-token'] = options.token;
+    if (options.token || token) {
+      config.headers!['auth-token'] = options.token || token;
     }
 
     // Attach payload to request

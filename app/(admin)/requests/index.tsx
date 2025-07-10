@@ -892,6 +892,25 @@ const RequestsScreen = () => {
                     </Text>
                   </View>
                 </Pressable>
+                <Pressable onPress={() => setActiveTab('uniform')} style={{ flex: 1 }}>
+                  <View
+                    style={{
+                      borderRadius: 12,
+                      paddingVertical: 12,
+                      paddingHorizontal: 12,
+                      backgroundColor:
+                        activeTab === 'uniform' ? configFile.colorGreen : 'transparent',
+                    }}>
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        fontWeight: 'bold',
+                        color: activeTab === 'uniform' ? 'white' : 'black',
+                      }}>
+                      ID Card Request
+                    </Text>
+                  </View>
+                </Pressable>
               </View>
               <ScrollView className="flex-1">
                 {activeTab === 'uniform'
@@ -910,4 +929,4 @@ const RequestsScreen = () => {
   );
 };
 
-export default RequestsScreen;
+export { RequestsScreen };

@@ -61,6 +61,14 @@ export const configFile = {
       },
     },
     superAdmin: {
+      app: {
+        uniform: `${backendBaseUrl}api/uniforms/phone`,
+        leave: `${backendBaseUrl}api/leaves/phone`,
+        employees: `${backendBaseUrl}api/employees/phone`,
+        employeeSearch(query: string) {
+          return `${backendBaseUrl}api/employees/search/phone?search=${query}`;
+        },
+      },
       addClient() {
         return `${backendBaseUrl}api/clients`; //post method
       },

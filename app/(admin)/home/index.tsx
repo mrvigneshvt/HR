@@ -54,7 +54,7 @@ const HomeScreen = () => {
         icon: 'document-text',
         description: 'Manage uniform & leave requests',
         color: '#43cea2',
-        route: '/requests',
+        route: '/requestV2', //'/requests',
       },
       {
         key: 'clients',
