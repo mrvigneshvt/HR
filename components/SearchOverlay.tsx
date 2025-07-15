@@ -6,16 +6,20 @@ import {
   Keyboard,
   ActivityIndicator,
   TouchableWithoutFeedback,
+  Dimensions,
+  ScrollView,
 } from 'react-native';
 import { debounce } from 'lodash';
 import { Employee } from 'app/(admin)/employees';
 import PaginatedComponent from './Pagination';
 import { configFile } from 'config';
+// import { ScrollView } from 'react-native-reanimated/lib/typescript/Animated';
+const { height } = Dimensions.get('window');
 
 export interface SearchOverlayTypes {
   limit?: number;
   childCard: (data: Employee) => JSX.Element;
-  for: 'employee';
+  for: 'employee' | 'sqemployee';
 }
 
 const SearchOverlayComponent = ({ limit, childCard, for: type }: SearchOverlayTypes) => {
@@ -44,7 +48,7 @@ const SearchOverlayComponent = ({ limit, childCard, for: type }: SearchOverlayTy
     if (type === 'employee') {
       return configFile.api.superAdmin.app.employeeSearch(debouncedQuery);
     }
-    return '';
+    return configFile.api.superAdmin.app.sqEmployeeSearch(debouncedQuery);
   };
 
   return (
@@ -53,12 +57,12 @@ const SearchOverlayComponent = ({ limit, childCard, for: type }: SearchOverlayTy
         placeholder="Search here..."
         style={styles.input}
         value={searchQuery}
-        onChangeText={(text) => setSearchQuery(text)}
+        onChangeText={(text) => setSearchQuery(text.toLocaleUpperCase())}
       />
 
       {showOverlay && (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.overlay}>
+          <ScrollView style={styles.overlay}>
             {loading ? (
               <ActivityIndicator size="large" color="#000" />
             ) : (
@@ -69,7 +73,7 @@ const SearchOverlayComponent = ({ limit, childCard, for: type }: SearchOverlayTy
                 renderItem={({ item }) => childCard({ item })}
               />
             )}
-          </View>
+          </ScrollView>
         </TouchableWithoutFeedback>
       )}
     </View>
@@ -95,14 +99,13 @@ const styles = StyleSheet.create({
   },
   overlay: {
     position: 'absolute',
-    top: 50, // Below the TextInput (40 height + margin)
+    top: 40, // 40 input height + 10 margin
     left: 0,
     right: 0,
-    maxHeight: 300,
+    height: height - 50, // Fill from top of overlay to bottom of screen
     backgroundColor: '#ffffffee',
-    borderWidth: 1,
+    borderTopWidth: 1,
     borderColor: '#ccc',
-    borderRadius: 8,
     zIndex: 999,
     padding: 8,
   },

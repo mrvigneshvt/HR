@@ -5,6 +5,18 @@ const backendBaseUrl = `${backendConnection}://${backendDomain}:${backendPort}/`
 
 export const configFile = {
   colorGreen: '#238c58',
+  color: {
+    sdce: {
+      bg: '',
+      cards: '',
+      stack: '',
+    },
+    sq: {
+      bg: '',
+      cards: '',
+      stack: '',
+    },
+  },
   areYouInOFfice: true,
   backendConnection,
   backendDomain,
@@ -63,10 +75,18 @@ export const configFile = {
     superAdmin: {
       app: {
         uniform: `${backendBaseUrl}api/uniforms/phone`,
+        squniform: `${backendBaseUrl}api/uniforms/phone?prefix=SQ`,
+
         leave: `${backendBaseUrl}api/leaves/phone`,
+        sqleave: `${backendBaseUrl}api/leaves/phone?prefix=SQ`,
+
         employees: `${backendBaseUrl}api/employees/phone`,
+        sqEmployees: `${backendBaseUrl}api/employees/phone?prefix=SQ`,
         employeeSearch(query: string) {
           return `${backendBaseUrl}api/employees/search/phone?search=${query}`;
+        },
+        sqEmployeeSearch(query: string) {
+          return `${backendBaseUrl}api/employees/search/phone?prefix=SQ&search=${query}`;
         },
       },
       addClient() {

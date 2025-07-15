@@ -495,8 +495,9 @@ export class Api {
     }
   }
 
-  public static async handleEmpData(id: string) {
+  public static async handleEmpData(id: string, company?: 'sdce' | 'sq') {
     try {
+      console.log('HANDLE EMP DATA INCOMING::', id, company);
       const apiUrl = configFile.api.common.getEmpData(id);
       const api = await this.handleApi({ url: apiUrl, type: 'GET' });
       console.log(api.data, '///dataaaa');
@@ -514,10 +515,12 @@ export class Api {
               });
               return;
             }
+
+            State.storeCompany('sdce');
             // router.replace('/(admin)/home');
             router.replace({
               pathname: '/(admin)/home',
-              params: { role, empId: api.data.employee_id },
+              params: { role, empId: api.data.employee_id, company: company ? company : 'sdce' },
             });
             return;
           } else {

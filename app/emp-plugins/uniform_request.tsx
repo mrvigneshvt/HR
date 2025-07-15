@@ -13,53 +13,73 @@ import React, { useEffect, useMemo, useState } from 'react';
 import ProfileStack from 'Stacks/HeaderStack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { scale, verticalScale } from 'react-native-size-matters';
-import { configFile } from '../../config';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { useEmployeeStore } from 'Memory/Employee';
 import { format } from 'date-fns';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Api } from 'class/HandleApi';
 import PopupMessage from 'plugins/popupz';
 import { NavRouter } from 'class/Router';
 
+export interface UniformState {
+  empId: string;
+  name: string;
+  designation: string;
+  site: string;
+  shirtSize?: string;
+  pantSize?: string;
+  chudiSize?: string;
+  shoeSize?: string;
+  belt?: boolean;
+  lanyard?: boolean;
+  whistle?: boolean;
+  idCard?: boolean;
+  cap?: boolean;
+  flab?: boolean;
+}
+
 const Uniform = () => {
-  const { empId, role, others } = useLocalSearchParams<{
-    empId: string;
-    role: string;
-    others?: string;
-  }>();
+  const { empId: urlEmpId, role } = useLocalSearchParams<{ empId: string; role: string }>();
   const isEditable = true;
-  const employee = useEmployeeStore((state) => state.employee);
 
-  const defaultGender = (employee?.gender || '').toLowerCase() === 'male' ? 'male' : 'female';
-  const [manualGender, setManualGender] = useState<'male' | 'female'>(defaultGender);
-  const isMale = manualGender === 'male';
-
-  const accessories = useMemo(
-    () =>
-      isMale
-        ? ['belt', 'lanyard', 'whistle', 'idCard', 'cap', 'flab']
-        : ['belt', 'lanyard', 'whistle', 'idCard', 'cap'],
-    [isMale]
-  );
-
-  const [state, setState] = useState<any>({});
+  const [manualGender, setManualGender] = useState<'male' | 'female'>('male');
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupMessage, setPopupMessage] = useState('');
 
-  useEffect(() => {
-    const newState = {
-      empId,
-      role,
-      ...(isMale ? { shirtSize: '', pantSize: '' } : { chudiSize: '' }),
+  const accessories = useMemo(
+    () => [
+      'belt',
+      'lanyard',
+      'whistle',
+      'idCard',
+      'cap',
+      ...(manualGender === 'male' ? ['flab'] : []),
+    ],
+    [manualGender]
+  );
+
+  const initialState = useMemo(() => {
+    const base: UniformState = {
+      empId: '',
+      name: '',
+      designation: '',
+      site: '',
+      shirtSize: '',
+      pantSize: '',
+      chudiSize: '',
       shoeSize: '',
-      ...Object.fromEntries(accessories.map((key) => [key, false])),
     };
-    setState(newState);
-  }, [empId, role, isMale, accessories]);
+    accessories.forEach((item) => (base[item as keyof UniformState] = false));
+    return base;
+  }, [accessories]);
+
+  const [state, setState] = useState<UniformState>(initialState);
 
   useEffect(() => {
-    NavRouter.BackHandler({ empId, role });
+    setState(initialState);
+  }, [initialState]);
+
+  useEffect(() => {
+    NavRouter.BackHandler({ empId: urlEmpId, role });
   }, []);
 
   const toggleSwitch = (key: keyof typeof state) => {
@@ -73,9 +93,10 @@ const Uniform = () => {
   };
 
   const isFormChanged = () => {
-    const sizes = isMale
-      ? [state.shirtSize, state.pantSize, state.shoeSize]
-      : [state.chudiSize, state.shoeSize];
+    const sizes =
+      manualGender === 'male'
+        ? [state.shirtSize, state.pantSize, state.shoeSize]
+        : [state.chudiSize, state.shoeSize];
 
     const isAnySizeEntered = sizes.some((size) => !!size && parseInt(size) > 0);
     const isAnyAccessoryChecked = accessories.some((key) => state[key as keyof typeof state]);
@@ -83,6 +104,11 @@ const Uniform = () => {
   };
 
   const postUniformRequest = async () => {
+    if (!state.empId || !state.name || !state.designation || !state.site) {
+      Alert.alert('Validation Error', 'Please fill in Employee ID, Name, Designation, and Site.');
+      return;
+    }
+
     if (!isFormChanged()) {
       Alert.alert(
         'Error',
@@ -93,29 +119,31 @@ const Uniform = () => {
 
     try {
       const accessoriesSelected = accessories.filter((key) => state[key as keyof typeof state]);
+
       const payload = {
-        empId: String(empId),
-        name: employee?.name || '',
-        designation: employee?.designation || 'Not Assigned',
-        site: employee?.site || 'Not Assigned',
-        location: 'Not Assigned',
-        gender: isMale ? 'Male' : 'Female',
-        status: 'Active',
-        requestedDate: format(new Date(), 'yyyy/MM/dd'),
-        shirtSize: isMale ? parseInt(state.shirtSize || '0') : 0,
-        pantSize: isMale ? parseInt(state.pantSize || '0') : 0,
-        shoeSize: isMale ? parseInt(state.shoeSize || '0') : 0,
-        chuditharSize: !isMale ? parseInt(state.chudiSize || '0') : 0,
-        femaleShoeSize: !isMale ? parseInt(state.shoeSize || '0') : 0,
-        accessories: isMale ? accessoriesSelected : [],
-        femaleAccessories: !isMale ? accessoriesSelected : [],
+        empId: state.empId,
+        name: state.name,
+        designation: state.designation,
+        site: state.site,
+        location: 'chennai',
+        gender: manualGender === 'male' ? 'Male' : 'Female',
+        status: 'Pending',
+        requestedDate: format(new Date(), 'yyyy-MM-dd'),
+        shirtSize: manualGender === 'male' ? parseInt(state.shirtSize || '0') : 0,
+        pantSize: manualGender === 'male' ? parseInt(state.pantSize || '0') : 0,
+        shoeSize: manualGender === 'male' ? parseInt(state.shoeSize || '0') : 0,
+        chuditharSize: manualGender === 'female' ? parseInt(state.chudiSize || '0') : 0,
+        femaleShoeSize: manualGender === 'female' ? parseInt(state.shoeSize || '0') : 0,
+        accessories: manualGender === 'male' ? accessoriesSelected : [],
+        femaleAccessories: manualGender === 'female' ? accessoriesSelected : [],
       };
 
       const response = await Api.postUniReq(payload);
       if (response.status) {
         Alert.alert('Uniform request submitted successfully!');
         setTimeout(() => {
-          router.replace({ pathname: '/(tabs)/dashboard/', params: { empId, role } });
+          NavRouter.backOrigin({ role, empId: urlEmpId });
+          // router.replace({ pathname: '/(tabs)/dashboard/', params: { empId: urlEmpId, role } });
         }, 2000);
       } else {
         setPopupMessage(response?.message || 'Something went wrong');
@@ -138,15 +166,33 @@ const Uniform = () => {
           keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}>
           <ScrollView
             contentContainerStyle={{ flexGrow: 1, padding: scale(16), paddingBottom: 40 }}>
-            {['empId'].map((field) => (
-              <View key={field} style={{ marginBottom: verticalScale(12) }}>
-                <Text style={{ fontWeight: 'bold', marginBottom: 4, color: '#000' }}>
-                  {field.toUpperCase()}
-                </Text>
-                <TextInput style={styles.readOnly} value={state[field as keyof typeof state]} />
-              </View>
-            ))}
+            {/* Editable Inputs */}
+            <CustomInput
+              label="Employee ID"
+              value={state.empId}
+              onChangeText={(text) => setState((prev) => ({ ...prev, empId: text }))}
+              editable={true}
+            />
+            <CustomInput
+              label="Name"
+              value={state.name}
+              onChangeText={(text) => setState((prev) => ({ ...prev, name: text }))}
+              editable={true}
+            />
+            <CustomInput
+              label="Designation"
+              value={state.designation}
+              onChangeText={(text) => setState((prev) => ({ ...prev, designation: text }))}
+              editable={true}
+            />
+            <CustomInput
+              label="Site"
+              value={state.site}
+              onChangeText={(text) => setState((prev) => ({ ...prev, site: text }))}
+              editable={true}
+            />
 
+            {/* Gender Selector */}
             <View
               style={{
                 flexDirection: 'row',
@@ -154,10 +200,7 @@ const Uniform = () => {
                 alignItems: 'center',
                 marginBottom: verticalScale(16),
               }}>
-              {/* Gender Label on the left */}
-              <Text style={{ fontWeight: 'bold', marginBottom: 4, color: '#000' }}>Gender</Text>
-
-              {/* Icons container on the right */}
+              <Text style={{ fontWeight: 'bold', color: 'black' }}>Gender</Text>
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 <Pressable
                   onPress={() => setManualGender('male')}
@@ -170,7 +213,6 @@ const Uniform = () => {
                   }}>
                   <FontAwesome name="male" size={28} color="white" />
                 </Pressable>
-
                 <Pressable
                   onPress={() => setManualGender('female')}
                   style={{
@@ -185,7 +227,7 @@ const Uniform = () => {
               </View>
             </View>
 
-            {isMale ? (
+            {manualGender === 'male' ? (
               <>
                 <CustomInput
                   label="Shirt Size"
@@ -225,29 +267,27 @@ const Uniform = () => {
                   marginBottom: verticalScale(12),
                   alignItems: 'center',
                 }}>
-                <Text style={{ fontWeight: 'bold', color: '#000' }}>{key.toUpperCase()}</Text>
+                <Text style={{ fontWeight: 'bold', color: 'black' }}>{key.toUpperCase()}</Text>
                 <Switch
-                  value={state[key as keyof typeof state]}
-                  onValueChange={() => toggleSwitch(key as keyof typeof state)}
+                  value={state[key]}
+                  onValueChange={() => toggleSwitch(key)}
                   disabled={!isEditable}
                 />
               </View>
             ))}
 
-            {true && (
-              <Pressable
-                onPress={postUniformRequest}
-                className="flex-row items-center justify-center self-center rounded-xl p-4"
-                style={{ backgroundColor: configFile.colorGreen }}>
-                <Text className="font-semibold text-white">Request Uniform</Text>
-                <FontAwesome
-                  name={isMale ? 'male' : 'female'}
-                  size={24}
-                  color="white"
-                  style={{ marginLeft: 8 }}
-                />
-              </Pressable>
-            )}
+            <Pressable
+              onPress={postUniformRequest}
+              className="flex-row items-center justify-center self-center rounded-xl p-4"
+              style={{ backgroundColor: '#07af9b', marginTop: 20 }}>
+              <Text className="font-semibold text-white">Request Uniform</Text>
+              <FontAwesome
+                name={manualGender === 'male' ? 'male' : 'female'}
+                size={24}
+                color="white"
+                style={{ marginLeft: 8 }}
+              />
+            </Pressable>
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -270,14 +310,13 @@ const CustomInput = ({
   editable: boolean;
 }) => (
   <View style={{ marginBottom: verticalScale(12) }}>
-    <Text style={{ fontWeight: 'bold', marginBottom: 4, color: '#000' }}>{label}</Text>
+    <Text style={{ fontWeight: 'bold', marginBottom: 4, color: 'black' }}>{label}</Text>
     <TextInput
-      keyboardType="number-pad"
-      maxLength={2}
+      keyboardType="default"
       value={value}
       onChangeText={onChangeText}
       editable={editable}
-      placeholder="Enter size"
+      placeholder="Enter value"
       placeholderTextColor="#888"
       style={{
         borderColor: '#ccc',
@@ -290,16 +329,5 @@ const CustomInput = ({
     />
   </View>
 );
-
-const styles = {
-  readOnly: {
-    borderColor: '#ccc',
-    borderWidth: 1,
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: '#f2f2f2',
-    color: '#000',
-  },
-};
 
 export default Uniform;

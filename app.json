@@ -17,6 +17,13 @@
           "isAndroidBackgroundLocationEnabled": false,
           "isIosBackgroundLocationEnabled": false
         }
+      ],
+      [
+        "@rnmapbox/maps",
+        {
+          "withAndroidManifest": true,
+          "withGradleProperties": true
+        }
       ]
     ],
     "orientation": "portrait",

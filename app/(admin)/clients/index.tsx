@@ -35,6 +35,8 @@ import { Api } from 'class/HandleApi';
 import { NavRouter } from 'class/Router';
 import { State } from 'class/State';
 import { useIsFocused } from '@react-navigation/native';
+import { company } from 'Memory/Token';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const ClientsScreen = () => {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -49,6 +51,9 @@ const ClientsScreen = () => {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [loading, setLoading] = useState(false);
   const [fetchingMore, setFetchingMore] = useState(false);
+  const [Company, setCompany] = useState<company>('sdce');
+
+  const switchCompany = () => setCompany((prev) => (prev === 'sdce' ? 'sq' : 'sdce'));
 
   const [formData, setFormData] = useState<Partial<Client>>({
     clientName: '',
@@ -93,13 +98,16 @@ const ClientsScreen = () => {
     fetchClients(1);
     const token = State.getToken();
     setToken(token);
-  }, [isFocus]);
+  }, [isFocus, Company]);
 
   const fetchClients = async (pageNo: number) => {
     if (pageNo > totalPages) return;
     try {
       pageNo === 1 ? setLoading(true) : setFetchingMore(true);
-      const url = configFile.api.superAdmin.getAllClients(pageNo);
+      let url = configFile.api.superAdmin.getAllClients(pageNo);
+      if (Company == 'sq') {
+        url = url + '&prefix=SQ';
+      }
       const response: any = await Api.handleApi({ url, type: 'GET' });
       if (response.status === 200) {
         const clientsDataRaw = Array.isArray(response.data.clients) ? response.data.clients : [];
@@ -780,6 +788,17 @@ const ClientsScreen = () => {
             backgroundColor: configFile.colorGreen,
           },
           headerTintColor: 'white',
+          headerRight: () => (
+            <View className="mr-2 flex flex-row items-center justify-center">
+              <TouchableOpacity onPress={switchCompany}>
+                {Company === 'sdce' ? (
+                  <MaterialIcons name="security" size={24} color="white" />
+                ) : (
+                  <MaterialCommunityIcons name="broom" size={24} color="white" />
+                )}
+              </TouchableOpacity>
+            </View>
+          ),
         }}
       />
       <SearchBar value={search} onChangeText={setSearch} placeholder="Search client..." />

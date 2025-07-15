@@ -1,5 +1,5 @@
 import { useEmployeeStore } from 'Memory/Employee';
-import { tokenMemory } from 'Memory/Token';
+import { company, tokenMemory } from 'Memory/Token';
 
 export class State {
   public static storeEmpData(response) {
@@ -21,6 +21,25 @@ export class State {
       return true;
     }
     return false;
+  }
+  public static toggleCompany(data: company) {
+    if (data == 'sdce') {
+      this.storeCompany('sq');
+      return this.getCompany();
+    }
+    this.storeCompany('sdce');
+    return this.getCompany();
+  }
+  public static storeCompany(data: company) {
+    if (data) {
+      tokenMemory.getState().setCompany(data);
+      return true;
+    }
+    return false;
+  }
+
+  public static getCompany() {
+    return tokenMemory.getState().getCompany();
   }
 
   public static getToken() {

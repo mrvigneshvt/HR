@@ -20,6 +20,7 @@ import axios from 'axios';
 import { isReadOnlyRole } from 'utils/roleUtils';
 import { useIsFocused } from '@react-navigation/native';
 import { NavRouter } from 'class/Router';
+import TabSwitcher from 'components/TabSwitch';
 
 interface AttendanceData {
   id: number;
@@ -155,15 +156,6 @@ const AttendanceScreen = () => {
   }, [search, attendance]);
 
   useEffect(() => {
-    // const onBackPress = () => {
-    //   router.replace({
-    //     pathname: '/home',
-    //     params: { role, empId },
-    //   });
-    //   return true;
-    // };
-    // BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
     NavRouter.BackHandler({ empId, role });
   }, []);
 
@@ -234,6 +226,8 @@ const AttendanceScreen = () => {
           // ),
         }}
       />
+
+      {/* {<TabSwitcher tabs={['My Attendance', 'All Attendance']} activeTab='' />} */}
 
       <SearchBar
         value={search}

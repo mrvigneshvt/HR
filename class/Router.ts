@@ -7,6 +7,7 @@ interface NesParamsTypes {
   role: string;
   empId: string;
   name?: string;
+  company: 'sdce' | 'sq';
 }
 export class NavRouter {
   public static async reDirect(path: string, options: { role: string; empID: string }) {
@@ -31,7 +32,11 @@ export class NavRouter {
     return () => subscription.remove();
   }
 
-  public static async backOrigin(options: { role: string; empId: string }) {
+  public static async backOrigin(options: {
+    role: string;
+    empId: string;
+    company?: 'sdce' | 'sq';
+  }) {
     let role = options.role.toLowerCase();
     let pathname = role == 'employee' ? '/(tabs)/dashboard/' : '/(admin)/home';
     if (role == 'employee') {
@@ -47,7 +52,7 @@ export class NavRouter {
     console.log('backHandlerExe:::', options);
 
     const path = async () => {
-      await this.backOrigin({ role: options.role, empId: options.empId });
+      await this.backOrigin({ role: options.role, empId: options.empId, company: options.company });
       return true; // Make sure to return true to prevent default back behavior
     };
 
