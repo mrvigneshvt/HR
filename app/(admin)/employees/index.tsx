@@ -45,6 +45,8 @@ import { State } from 'class/State';
 import PaginatedComponent from 'components/Pagination';
 import SearchOverlayComponent from 'components/SearchOverlay';
 import { company } from 'Memory/Token';
+import EntityDropdown from 'components/DropDown';
+import { Colors } from 'class/Colors';
 const { width: screenWidth } = Dimensions.get('window');
 const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
 
@@ -249,6 +251,11 @@ const EmployeesScreen = () => {
     setCompany(Company == 'sdce' ? 'sq' : 'sdce');
   };
 
+  const setReporting = (value) => {
+    console.log('invoking setReporting: ', value);
+    setNewEmployee((pre) => ({ ...pre, reporting: value }));
+  };
+
   const fetchEmployees = async () => {
     try {
       setLoading(true);
@@ -314,6 +321,10 @@ const EmployeesScreen = () => {
   useEffect(() => {
     console.log('Selected Emp 4 Update: ', selectedEmployee);
   }, [selectedEmployee]);
+
+  useEffect(() => {
+    console.log('Selected new EMp: ', newEmployee);
+  }, [newEmployee]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -571,13 +582,8 @@ const EmployeesScreen = () => {
 
     try {
       setLoading(true);
-      // console.log(
-      //   `${BASE_URL}/employees/${selectedEmployee.employee_id}`,
-      //   '////////////////////base'
-      // );
 
       const url = `${BASE_URL}/employees/${selectedEmployee.employee_id}`;
-      //const data = await axios.delete(`${BASE_URL}/employees/${selectedEmployee.employee_id}`);
       const data = await Api.handleApi({ url, type: 'DELETE', token });
 
       switch (data.status) {
@@ -1074,7 +1080,7 @@ const EmployeesScreen = () => {
             />
             {errors.branch && <Text style={styles.errorText}>{errors.branch}</Text>}
             <Text className="text-black">Reporting Manager </Text>
-            <TextInput
+            {/* <TextInput
               placeholderTextColor="#b9b9b9"
               value={newEmployee.reporting}
               onChangeText={(text) => {
@@ -1083,7 +1089,32 @@ const EmployeesScreen = () => {
               }}
               placeholder="Enter reporting manager"
               style={[styles.input, errors.reporting && styles.inputError]}
+            /> */}
+            <EntityDropdown
+              type="employee"
+              selected={newEmployee.reporting} // 👈 syncs selected employee_id
+              setState={setReporting}
+              placeholder="Select reporting employee"
+              containerStyle={{ backgroundColor: '#fff' }}
+              inputStyle={{
+                backgroundColor: '#fff',
+                borderColor: '#ccc',
+                color: '#000',
+              }}
+              listStyle={{
+                backgroundColor: '#f9f9f9',
+                borderColor: '#ddd',
+                borderWidth: 1,
+              }}
+              itemStyle={{
+                backgroundColor: '#fff',
+                borderBottomColor: '#eee',
+              }}
+              itemTextStyle={{
+                color: '#000',
+              }}
             />
+
             {errors.reporting && <Text style={styles.errorText}>{errors.reporting}</Text>}
             {/* Document Information */}
             <Text style={styles.sectionTitle}>Document Information</Text>
@@ -1393,7 +1424,8 @@ const EmployeesScreen = () => {
   };
 
   useEffect(() => {
-    NavRouter.BackHandler({ role, empId, company });
+    const cleanup = NavRouter.BackHandler({ role, empId, company });
+    return cleanup;
   }, []);
 
   const RenderSwitchIcon = () => (
@@ -1407,7 +1439,7 @@ const EmployeesScreen = () => {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F9F9F9' }}>
+    <View style={{ flex: 1, backgroundColor: Colors.get(Company, 'bg') }}>
       <Stack.Screen
         options={{
           headerShown: true,
@@ -1445,13 +1477,14 @@ const EmployeesScreen = () => {
         }}
       />
 
-      <View className="mb-3">
-        <SearchOverlayComponent
-          limit={10}
-          childCard={renderEmployeeCard}
-          for={Company == 'sdce' ? 'employee' : 'sqemployee'}
-        />
-      </View>
+      <SearchOverlayComponent
+        limit={5}
+        childCard={renderEmployeeCard}
+        for={Company == 'sdce' ? 'employee' : 'sqemployee'}
+        containerStyle={{ marginBottom: 10 }}
+        overlayStyle={{ backgroundColor: Colors.get(Company, 'bg') }}
+        inputStyle={{ color: 'black' }}
+      />
       {/* <SearchBar value={search} onChangeText={setSearch} placeholder="Search employee..." /> */}
 
       {loading ? (
@@ -1474,9 +1507,9 @@ const EmployeesScreen = () => {
           }
           limit={8}
           renderItem={({ item }) => {
-            console.log(item, '//item');
             return renderEmployeeCard({ item });
           }}
+          containerStyle={{ backgroundColor: Colors.get(Company, 'bg') }}
         />
       )}
 

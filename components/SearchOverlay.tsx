@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   TextInput,
@@ -7,34 +7,52 @@ import {
   ActivityIndicator,
   TouchableWithoutFeedback,
   Dimensions,
+  StyleProp,
+  ViewStyle,
+  TextStyle,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
 } from 'react-native';
 import { debounce } from 'lodash';
 import { Employee } from 'app/(admin)/employees';
 import PaginatedComponent from './Pagination';
 import { configFile } from 'config';
-// import { ScrollView } from 'react-native-reanimated/lib/typescript/Animated';
+
 const { height } = Dimensions.get('window');
 
 export interface SearchOverlayTypes {
   limit?: number;
   childCard: (data: Employee) => JSX.Element;
   for: 'employee' | 'sqemployee';
+  containerStyle?: StyleProp<ViewStyle>;
+  inputStyle?: StyleProp<TextStyle>;
+  overlayStyle?: StyleProp<ViewStyle>;
 }
 
-const SearchOverlayComponent = ({ limit, childCard, for: type }: SearchOverlayTypes) => {
+const SearchOverlayComponent = ({
+  limit,
+  childCard,
+  for: type,
+  containerStyle,
+  inputStyle,
+  overlayStyle,
+}: SearchOverlayTypes) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [showOverlay, setShowOverlay] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSearch = debounce((text: string) => {
-    setDebouncedQuery(text);
-    setLoading(false);
-  }, 500);
+  const handleSearch = useCallback(
+    debounce((text: string) => {
+      setDebouncedQuery(text);
+      setLoading(false);
+    }, 500),
+    []
+  );
 
   useEffect(() => {
-    if (searchQuery.trim().length > 0) {
+    if (searchQuery.trim()) {
       setShowOverlay(true);
       setLoading(true);
       handleSearch(searchQuery);
@@ -45,38 +63,41 @@ const SearchOverlayComponent = ({ limit, childCard, for: type }: SearchOverlayTy
   }, [searchQuery]);
 
   const getUrl = (): string => {
-    if (type === 'employee') {
-      return configFile.api.superAdmin.app.employeeSearch(debouncedQuery);
-    }
-    return configFile.api.superAdmin.app.sqEmployeeSearch(debouncedQuery);
+    return type === 'employee'
+      ? configFile.api.superAdmin.app.employeeSearch(debouncedQuery)
+      : configFile.api.superAdmin.app.sqEmployeeSearch(debouncedQuery);
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      style={[styles.container, containerStyle]}>
       <TextInput
         placeholder="Search here..."
-        style={styles.input}
         value={searchQuery}
-        onChangeText={(text) => setSearchQuery(text.toLocaleUpperCase())}
+        onChangeText={(text) => setSearchQuery(text.toUpperCase())}
+        style={[styles.input, inputStyle]}
       />
 
       {showOverlay && (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView style={styles.overlay}>
+          <View style={[styles.overlay, overlayStyle]}>
             {loading ? (
-              <ActivityIndicator size="large" color="#000" />
+              <ActivityIndicator size="large" color="#000" style={{ marginTop: 20 }} />
             ) : (
               <PaginatedComponent
-                key={'search'}
+                key="search"
                 url={getUrl()}
                 limit={limit || 10}
                 renderItem={({ item }) => childCard({ item })}
+                containerStyle={{ flexGrow: 1 }}
+                flatListProps={{ contentContainerStyle: { paddingBottom: 100 } }}
               />
             )}
-          </ScrollView>
+          </View>
         </TouchableWithoutFeedback>
       )}
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -96,17 +117,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: 40,
     backgroundColor: '#fff',
+    fontSize: 14,
   },
   overlay: {
     position: 'absolute',
-    top: 40, // 40 input height + 10 margin
+    top: 50,
     left: 0,
     right: 0,
-    height: height - 50, // Fill from top of overlay to bottom of screen
+    height: height - 100,
     backgroundColor: '#ffffffee',
     borderTopWidth: 1,
     borderColor: '#ccc',
     zIndex: 999,
     padding: 8,
+    borderRadius: 12,
   },
 });

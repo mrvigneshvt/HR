@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Dimensions,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import MonthYearPickerHeader from 'components/monthCalendar';
@@ -114,6 +115,16 @@ const PaySlip = () => {
     }
   };
 
+  const handleOpenExternal = async () => {
+    const url = `${configFile.backendBaseUrl}payslip/${empId}/${dates.year}-${dates.month}`;
+    console.log(url);
+    if (await Linking.canOpenURL(url)) {
+      await Linking.openURL(url);
+    } else {
+      alert('Cannot open Url');
+    }
+  };
+
   return (
     <>
       {/* <ProfileStack Payslip={true} ShowDownload={!apiLoading && !notFound} /> */}
@@ -126,12 +137,14 @@ const PaySlip = () => {
           headerTintColor: 'white',
           headerRight: () => (
             <View className="flex flex-row gap-1">
-              <TouchableOpacity onPress={() => router.push('/emp-plugins/notification')}>
-                <Ionicons name="notifications" size={24} color="#3a7129" />
-              </TouchableOpacity>
-              <Pressable onPress={() => router.replace('/login')} style={{ paddingHorizontal: 10 }}>
+              {apiData && !notFound && (
+                <TouchableOpacity onPress={() => handleOpenExternal()}>
+                  <MaterialIcons name="file-download" size={24} color="white" />
+                </TouchableOpacity>
+              )}
+              {/* <Pressable onPress={() => router.replace('/login')} style={{ paddingHorizontal: 10 }}>
                 <MaterialIcons name="logout" size={24} color="white" />
-              </Pressable>
+              </Pressable> */}
             </View>
           ),
         }}

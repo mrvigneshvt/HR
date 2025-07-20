@@ -20,6 +20,7 @@ export interface Client {
   checkIn: string;
   lunch_time: string;
   check_out: string;
+  selfClient?: boolean;
 }
 
 export const clientService = {

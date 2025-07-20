@@ -44,17 +44,16 @@ export default function LoginPage() {
 
   // useEffect(() => {
   //   setTimeout(() => {
-  //     NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM101', company: 'sdce' });
+  //     NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM101' });
+  //     // router.replace('/admin-plugins');
   //   }, 50);
   // }, []);
 
   useEffect(() => {
     State.deleteToken();
-
-    // BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
     NavRouter.stayBack();
   }, []);
+
   // const setDashboard = DashMemory((state) => state.setDashboard);
 
   const router = useRouter();

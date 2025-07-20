@@ -1,27 +1,47 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, ActivityIndicator, View, Text } from 'react-native';
+import {
+  FlatList,
+  ActivityIndicator,
+  View,
+  Text,
+  ViewStyle,
+  FlatListProps,
+  StyleProp,
+} from 'react-native';
 import { Api, ApiOptions } from 'class/HandleApi';
 import { State } from 'class/State';
 
+type PaginatedComponentBaseProps = {
+  url: string;
+  limit?: number;
+  renderItem: ({ item }: { item: any }) => JSX.Element;
+  containerStyle?: StyleProp<ViewStyle>;
+  listFooterStyle?: StyleProp<ViewStyle>;
+  emptyComponentStyle?: StyleProp<ViewStyle>;
+  flatListProps?: Partial<FlatListProps<any>>;
+};
+
 type PaginatedComponentProps =
-  | {
-      url: string; // Full URL if search is already embedded
-      limit?: number;
+  | (PaginatedComponentBaseProps & {
       searchQuery?: undefined;
       searchQueryKey?: undefined;
-      renderItem: ({ item }: { item: any }) => JSX.Element;
-    }
-  | {
-      url: string;
-      limit?: number;
+    })
+  | (PaginatedComponentBaseProps & {
       searchQuery: string;
       searchQueryKey: string;
-      renderItem: ({ item }: { item: any }) => JSX.Element;
-    };
+    });
 
 const PaginatedComponent = (props: PaginatedComponentProps) => {
   const token = State.getToken();
-  const { url, limit = 10, renderItem } = props;
+  const {
+    url,
+    limit = 10,
+    renderItem,
+    containerStyle,
+    listFooterStyle,
+    emptyComponentStyle,
+    flatListProps = {},
+  } = props;
 
   const [data, setData] = useState<any[]>([]);
   const [page, setPage] = useState(1);
@@ -33,16 +53,13 @@ const PaginatedComponent = (props: PaginatedComponentProps) => {
 
     setLoading(true);
     try {
-      // Start building base URL
       let apiUrl = url;
 
-      // Append search param if needed
       if ('searchQuery' in props && props.searchQuery.trim()) {
         const searchParam = `${props.searchQueryKey}=${encodeURIComponent(props.searchQuery.trim())}`;
         apiUrl += apiUrl.includes('?') ? `&${searchParam}` : `?${searchParam}`;
       }
 
-      // Append pagination params
       const paginationParams = `limit=${limit}&page=${pageToFetch}`;
       apiUrl += apiUrl.includes('?') ? `&${paginationParams}` : `?${paginationParams}`;
 
@@ -57,12 +74,7 @@ const PaginatedComponent = (props: PaginatedComponentProps) => {
       const res = await Api.handleApi(config);
       const { data: newData, totalPages: total } = res.data;
 
-      if (pageToFetch === 1) {
-        setData(newData);
-      } else {
-        setData((prev) => [...prev, ...newData]);
-      }
-
+      setData((prev) => (pageToFetch === 1 ? newData : [...prev, ...newData]));
       setTotalPages(total);
       setPage(pageToFetch);
     } catch (err: any) {
@@ -86,21 +98,30 @@ const PaginatedComponent = (props: PaginatedComponentProps) => {
   };
 
   return (
-    <FlatList
-      data={data}
-      keyExtractor={(item, index) => item._id || index.toString()}
-      renderItem={renderItem}
-      onEndReached={loadMore}
-      onEndReachedThreshold={0.5}
-      ListFooterComponent={loading ? <ActivityIndicator style={{ marginVertical: 16 }} /> : null}
-      ListEmptyComponent={
-        !loading ? (
-          <View style={{ padding: 20, alignItems: 'center' }}>
-            <Text style={{ color: 'gray' }}>No results found.</Text>
-          </View>
-        ) : null
-      }
-    />
+    <View style={containerStyle}>
+      <FlatList
+        data={data}
+        keyExtractor={(item, index) => item._id || index.toString()}
+        renderItem={renderItem}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loading ? (
+            <View style={[{ marginVertical: 16, alignItems: 'center' }, listFooterStyle]}>
+              <ActivityIndicator />
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          !loading ? (
+            <View style={[{ padding: 20, alignItems: 'center' }, emptyComponentStyle]}>
+              <Text style={{ color: 'gray' }}>No results found.</Text>
+            </View>
+          ) : null
+        }
+        {...flatListProps}
+      />
+    </View>
   );
 };
 

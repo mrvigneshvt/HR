@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,13 @@ import {
   Dimensions,
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
-import Fontisto from '@expo/vector-icons/Fontisto';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import {
+  Ionicons,
+  FontAwesome,
+  MaterialCommunityIcons,
+  Fontisto,
+  MaterialIcons,
+} from '@expo/vector-icons';
 
 import { configFile } from '../../../config';
 import { Api } from 'class/HandleApi';
@@ -30,7 +34,7 @@ const menuCardsList = [
     icon: 'people',
     description: 'Manage employee records',
     color: '#6a11cb',
-    route: '/employees',
+    route: '/employeesV2',
   },
   {
     key: 'requests',
@@ -64,34 +68,43 @@ const menuCardsList = [
     color: '#f7971e',
     route: '/emp-plugins/pay_slip',
   },
+  // {
+  //   key: 'leave_request',
+  //   title: 'Leave Request',
+  //   icon: 'holiday-village',
+  //   isFontisto: true,
+  //   description: 'Apply for leave',
+  //   color: '#00b09b',
+  //   route: '/emp-plugins/leave_request',
+  // },
+  // {
+  //   key: 'uniform_request',
+  //   title: 'Uniform Request',
+  //   icon: 'shirt',
+  //   description: 'Raise Uniform Request for Employees',
+  //   color: '#b92b27',
+  //   route: '/emp-plugins/uniform_request',
+  // },
   {
-    key: 'leave_request',
-    title: 'Leave Request',
-    icon: 'holiday-village',
-    isFontisto: true,
-    description: 'Apply for leave',
-    color: '#00b09b',
-    route: '/emp-plugins/leave_request',
-  },
-  {
-    key: 'uniform_request',
-    title: 'Uniform Request',
-    icon: 'shirt',
-    description: 'Raise Uniform Request for Employees',
+    key: 'feedback_request',
+    title: 'Feedback',
+    icon: 'feedback',
+    description: 'Manage Feedbacks from Clients',
     color: '#b92b27',
-    route: '/emp-plugins/uniform_request',
+    route: '/emp-plugins/feedback_request',
+    isMaterial: true,
   },
 ];
 
 const HomeScreen = () => {
   const router = useRouter();
   const params = useLocalSearchParams<{ role: string; empId: string }>();
-  const [company, setCompany] = useState<'sdce' | 'sq'>(State.getCompany() || 'sdce');
+  const [company, setCompany] = useState<'sdce' | 'sq'>('sdce');
   const [empData, setEmpData] = useState<Record<string, any> | null>(null);
-  const [empId, setEmpId] = useState(() =>
-    params.empId.replace(/^SFM|^SQ/i, company === 'sdce' ? 'SFM' : 'SQ')
-  );
+
   const role = params.role;
+  const getPrefix = (comp: string) => (comp === 'sdce' ? 'SFM' : 'SQ');
+  const [empId, setEmpId] = useState(() => params.empId.replace(/^SFM|^SQ/i, getPrefix(company)));
 
   const fetchEmpData = useCallback(async (id: string) => {
     try {
@@ -107,25 +120,31 @@ const HomeScreen = () => {
 
   useEffect(() => {
     const activeCompany = State.getCompany() || company;
-    const adjustedEmpId = params.empId.replace(
-      /^sfm|^sq/i,
-      activeCompany === 'sdce' ? 'sfm' : 'sq'
-    );
+    const adjustedEmpId = params.empId.replace(/^sfm|^sq/i, getPrefix(activeCompany));
     State.storeCompany(activeCompany);
     setCompany(activeCompany);
     setEmpId(adjustedEmpId);
     fetchEmpData(adjustedEmpId);
+    // setTimeout(() => {
+    //   router.replace({
+    //     pathname: '/employeesV2',
+    //     params: {
+    //       role,
+    //       empId,
+    //       company,
+    //     },
+    //   });
+    // }, 50);
     NavRouter.BackHandler({ role, empId: adjustedEmpId, company: activeCompany });
   }, []);
 
   const switchCompany = () => {
-    // const newCompany: 'sdce' | 'sq' = company === 'sdce' ? 'sq' : 'sdce';
-    // const newEmpId = empId.replace(/^sfm|^sq/i, newCompany === 'sdce' ? 'sfm' : 'sq');
-    // State.storeCompany(newCompany);
+    const newCompany = company === 'sdce' ? 'sq' : 'sdce';
+    const newEmpId = empId.replace(/^sfm|^sq/i, getPrefix(newCompany));
+    State.storeCompany(newCompany);
     setCompany(newCompany);
     setEmpId(newEmpId);
     fetchEmpData(newEmpId);
-    // Replace route after switching
     router.replace({
       pathname: '/(admin)/home',
       params: { role, empId: newEmpId, company: newCompany },
@@ -147,6 +166,7 @@ const HomeScreen = () => {
     color,
     route,
     isFontisto,
+    isMaterial,
   }: (typeof menuCardsList)[number]) => (
     <Pressable
       key={key}
@@ -160,7 +180,9 @@ const HomeScreen = () => {
       ]}>
       <View style={styles.cardContent}>
         <View style={styles.cardIcon}>
-          {isFontisto ? (
+          {isMaterial ? (
+            <MaterialIcons name="feedback" size={24} color="red" />
+          ) : isFontisto ? (
             <Fontisto name={icon} size={scaleSize(20)} color={color} />
           ) : (
             <Ionicons name={icon} size={scaleSize(24)} color={color} />
@@ -186,7 +208,14 @@ const HomeScreen = () => {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: Colors.get(company, 'bg') }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: Colors.get(company, 'bg'),
+          // '#2A9D8F',
+        },
+      ]}>
       <Stack.Screen
         options={{
           headerShown: true,
@@ -216,7 +245,7 @@ const HomeScreen = () => {
       <ScrollView contentContainerStyle={styles.scroll}>
         {empData && (
           <DashTop
-            role={''}
+            role=""
             name={empData.name}
             empId={empId.toUpperCase()}
             img={empData.profile_image}
