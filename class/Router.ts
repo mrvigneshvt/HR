@@ -7,6 +7,8 @@ interface NesParamsTypes {
   role: string;
   empId: string;
   name?: string;
+  company: 'sdce' | 'sq';
+  route?: string;
 }
 export class NavRouter {
   public static async reDirect(path: string, options: { role: string; empID: string }) {
@@ -31,7 +33,11 @@ export class NavRouter {
     return () => subscription.remove();
   }
 
-  public static async backOrigin(options: { role: string; empId: string }) {
+  public static async backOrigin(options: {
+    role: string;
+    empId: string;
+    company?: 'sdce' | 'sq';
+  }) {
     let role = options.role.toLowerCase();
     let pathname = role == 'employee' ? '/(tabs)/dashboard/' : '/(admin)/home';
     if (role == 'employee') {
@@ -42,19 +48,38 @@ export class NavRouter {
     router.replace({ pathname, params: options });
     return;
   }
-
-  public static async BackHandler(options: NesParamsTypes) {
+  public static BackHandler(options: NesParamsTypes) {
     console.log('backHandlerExe:::', options);
 
-    const path = async () => {
-      await this.backOrigin({ role: options.role, empId: options.empId });
-      return true; // Make sure to return true to prevent default back behavior
+    const backPressHandler = () => {
+      try {
+        if (options.route) {
+          router.replace({
+            pathname: options.route,
+            params: {
+              empId: options.empId,
+              role: options.role,
+              company: options.company,
+            },
+          });
+        } else {
+          this.backOrigin?.({ role: options.role, empId: options.empId, company: options.company });
+        }
+      } catch (err) {
+        console.error('Error in backOrigin:', err);
+      }
+      return true;
     };
 
-    const subscription = BackHandler.addEventListener('hardwareBackPress', path);
+    const subscription = BackHandler.addEventListener('hardwareBackPress', backPressHandler);
 
-    // Return a cleanup function
-    return () => subscription.remove();
+    return () => {
+      if (subscription && typeof subscription.remove === 'function') {
+        subscription.remove();
+      } else {
+        console.warn('BackHandler cleanup: remove() not available');
+      }
+    };
   }
   public static automateRoute(empID: string) {}
 }

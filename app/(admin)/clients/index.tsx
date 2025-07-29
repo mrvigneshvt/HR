@@ -17,6 +17,7 @@ import { configFile } from '../../../config';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import SearchBar from 'components/search';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { clientService, Client } from '../../../services/clientService';
 import {
   validateClientForm,
@@ -35,8 +36,16 @@ import { Api } from 'class/HandleApi';
 import { NavRouter } from 'class/Router';
 import { State } from 'class/State';
 import { useIsFocused } from '@react-navigation/native';
+import { company } from 'Memory/Token';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Colors } from 'class/Colors';
+import Checkbox from 'components/Checkbox';
 
 const ClientsScreen = () => {
+  const params = useLocalSearchParams();
+  const role = params.role as string | undefined;
+  const empId = params.empId as string | undefined;
+  const company = params.company as string | undefined;
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -49,6 +58,9 @@ const ClientsScreen = () => {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [loading, setLoading] = useState(false);
   const [fetchingMore, setFetchingMore] = useState(false);
+  const [Company, setCompany] = useState<company>(company || 'sdce');
+
+  const switchCompany = () => setCompany((prev) => (prev === 'sdce' ? 'sq' : 'sdce'));
 
   const [formData, setFormData] = useState<Partial<Client>>({
     clientName: '',
@@ -66,6 +78,7 @@ const ClientsScreen = () => {
     checkIn: '',
     lunch_time: '',
     check_out: '',
+    selfClient: false,
   });
   const [assignWorkFormData, setAssignWorkFormData] = useState<AssignWorkFormData>({
     employeeId: '',
@@ -76,6 +89,7 @@ const ClientsScreen = () => {
 
   const isFocus = useIsFocused();
 
+  const [self, setSelf] = useState(false);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [assignWorkErrors, setAssignWorkErrors] = useState<ValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -83,27 +97,37 @@ const ClientsScreen = () => {
   const [isAssigningWork, setIsAssigningWork] = useState(false);
   const [showFromDatePicker, setShowFromDatePicker] = useState(false);
   const [showToDatePicker, setShowToDatePicker] = useState(false);
-  const params = useLocalSearchParams();
-  const role = params.role as string | undefined;
-  const empId = params.empId as string | undefined;
   const readOnly = isReadOnlyRole(role);
   console.log('ClientsScreen readOnly:', readOnly, 'role:', role);
   const [token, setToken] = useState<string>('');
   useEffect(() => {
     fetchClients(1);
     const token = State.getToken();
+
     setToken(token);
+  }, [isFocus, Company]);
+
+  useEffect(() => {
+    setCompany(company);
+    NavRouter.BackHandler({ role, empId, company: Company });
   }, [isFocus]);
 
-  const fetchClients = async (pageNo: number) => {
+  const fetchClients = async (pageNo: number, selfMode = self) => {
     if (pageNo > totalPages) return;
+
     try {
       pageNo === 1 ? setLoading(true) : setFetchingMore(true);
-      const url = configFile.api.superAdmin.getAllClients(pageNo);
+
+      let url = selfMode
+        ? configFile.api.superAdmin.getAllSelf(pageNo) // You must define this API path
+        : configFile.api.superAdmin.getAllClients(pageNo);
+
+      if (Company == 'sq' && !selfMode) url += '&prefix=SQ';
+
+      console.log(url, '///url');
       const response: any = await Api.handleApi({ url, type: 'GET' });
       if (response.status === 200) {
         const clientsDataRaw = Array.isArray(response.data.clients) ? response.data.clients : [];
-        // Map snake_case API data to camelCase Client interface
         const clientsData = clientsDataRaw.map((c: any) => ({
           id: c.id,
           clientName: c.client_name,
@@ -121,23 +145,25 @@ const ClientsScreen = () => {
           checkIn: c.check_in,
           lunch_time: c.lunch_time,
           check_out: c.check_out,
+          selfClient: c.self_client ?? false,
         }));
+
         const totalPagesData =
-          response.data.pagination && typeof response.data.pagination.totalPages === 'number'
+          response.data.pagination?.totalPages &&
+          typeof response.data.pagination.totalPages === 'number'
             ? response.data.pagination.totalPages
             : 1;
+
         if (pageNo === 1) {
           setAllClients(clientsData);
         } else {
           setAllClients((prev) => [...prev, ...clientsData]);
         }
+
         setTotalPages(totalPagesData);
         setPage(pageNo + 1);
-      } else if (response.status === 500) {
+      } else {
         Alert.alert('Error Fetching Clients');
-        setTimeout(() => {
-          NavRouter.backOrigin({ role: role || '', empId: empId || '' });
-        }, 2000);
       }
     } catch (error) {
       console.error('Error fetching clients:', error);
@@ -146,6 +172,10 @@ const ClientsScreen = () => {
       setFetchingMore(false);
     }
   };
+
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
 
   useEffect(() => {
     if (!search) {
@@ -162,15 +192,15 @@ const ClientsScreen = () => {
     }
   }, [search, allClients]);
 
-  const reloadClients = async () => {
+  const reloadClients = async (page = 1, selfMode = self) => {
     setPage(1);
     setTotalPages(1);
     setAllClients([]);
     setClients([]);
-    await fetchClients(1);
+    await fetchClients(page, selfMode);
   };
 
-  const handleInputChange = (field: keyof Client, value: string) => {
+  const handleInputChange = (field: keyof Client, value: string | true) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: '' }));
@@ -467,7 +497,10 @@ const ClientsScreen = () => {
   );
 
   const renderClientCard = (client: Client) => (
-    <View key={client.id} className="mb-4 overflow-hidden rounded-xl bg-white shadow-lg">
+    <View
+      key={client.id}
+      className="mb-4 overflow-hidden rounded-xl shadow-lg"
+      style={{ backgroundColor: Colors.get(Company, 'card') }}>
       <View className="p-4">
         <View className="flex-row items-center justify-between">
           <View>
@@ -481,11 +514,6 @@ const ClientsScreen = () => {
           </View>
           {!readOnly && (
             <View className="flex-row gap-2">
-              {/* <Pressable
-                onPress={() => handleAssignWorkClick(client)}
-                className="rounded-full bg-green-100 p-2">
-                <MaterialIcons name="work" size={20} color="#4CAF50" />
-              </Pressable> */}
               <Pressable
                 onPress={() => openEditClientModal(client)}
                 className="rounded-full bg-blue-100 p-2">
@@ -559,6 +587,19 @@ const ClientsScreen = () => {
             {renderFormField('Check-in Time', 'checkIn', 'HH:MM:SS')}
             {renderFormField('Lunch Time', 'lunch_time', 'HH:MM:SS')}
             {renderFormField('Check-out Time', 'check_out', 'HH:MM:SS')}
+
+            {/* {showAddModal &&
+              formData.latitude &&
+              formData.longitude &&
+              formData.checkIn &&
+              formData.check_out &&
+              formData.check_out && (
+                <Checkbox
+                  label="Self Client:"
+                  value={formData.selfClient}
+                  setValue={(value) => handleInputChange('selfClient', value)}
+                />
+              )} */}
 
             <View className="mb-10 mt-3 flex-row justify-between">
               <Pressable
@@ -705,7 +746,7 @@ const ClientsScreen = () => {
         onPress={() => setShowDeleteModal(false)}>
         <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
           <View className="rounded-t-3xl bg-white p-6">
-            <Text className="mb-4 text-xl font-bold">Delete Client</Text>
+            <Text className="mb-4 text-xl font-bold text-black">Delete Client</Text>
             <Text className="mb-4 text-gray-600">
               Are you sure you want to delete {selectedClient?.clientName}?
             </Text>
@@ -732,10 +773,6 @@ const ClientsScreen = () => {
       </TouchableOpacity>
     </Modal>
   );
-
-  useEffect(() => {
-    NavRouter.BackHandler({ role, empId });
-  }, []);
 
   const renderItem = ({ item }: { item: Client }) => renderClientCard(item);
 
@@ -769,44 +806,84 @@ const ClientsScreen = () => {
     setErrors({});
     setShowEditModal(true);
   };
-
   return (
-    <View className="flex-1 bg-gray-50">
+    <>
       <Stack.Screen
         options={{
           headerShown: true,
-          title: 'Clients',
+          title: !self ? 'Clients' : 'Attendance Clients',
           headerStyle: {
             backgroundColor: configFile.colorGreen,
           },
           headerTintColor: 'white',
+          headerRight: () => (
+            <View
+              style={{
+                marginRight: 8,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 13,
+              }}>
+              {/* <TouchableOpacity onPress={switchCompany}>
+                {Company === 'sdce' ? (
+                  <MaterialIcons name="security" size={24} color="white" />
+                ) : (
+                  <MaterialCommunityIcons name="broom" size={24} color="white" />
+                )}
+              </TouchableOpacity> */}
+              {/* <TouchableOpacity
+                onPress={() => {
+                  setSelf((prev) => {
+                    const next = !prev;
+                    reloadClients(1, next); // fetch clients with appropriate flag
+                    return next;
+                  });
+                }}>
+                {!self ? (
+                  <FontAwesome6 name="building-flag" size={24} color="white" />
+                ) : (
+                  <FontAwesome6 name="building-shield" size={24} color="white" />
+                )}
+              </TouchableOpacity> */}
+            </View>
+          ),
         }}
       />
-      <SearchBar value={search} onChangeText={setSearch} placeholder="Search client..." />
 
-      {loading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color={configFile.colorGreen} />
-        </View>
-      ) : (
-        <FlatList
-          data={clients}
-          keyExtractor={(item, i) => i.toString()}
-          renderItem={renderItem}
-          onEndReached={() => fetchClients(page)} // Trigger next page
-          onEndReachedThreshold={0.5} // Call before reaching the bottom
-          ListFooterComponent={
-            fetchingMore ? <ActivityIndicator size="small" color="#000" /> : null
-          }
-          contentContainerStyle={{ padding: 16 }}
-        />
-      )}
-      {!readOnly && renderFormModal(false)}
-      {!readOnly && renderFormModal(true)}
-      {!readOnly && renderDeleteModal()}
-      {!readOnly && renderAssignWorkModal()}
-      {/* Floating Add Button */}
-      {!readOnly && (
+      <View style={{ flex: 1, backgroundColor: Colors.get(Company, 'bg'), position: 'relative' }}>
+        <SearchBar value={search} onChangeText={setSearch} placeholder="Search client..." />
+
+        {loading ? (
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: Colors.get(Company, 'bg'),
+            }}>
+            <ActivityIndicator size="large" color={configFile.colorGreen} />
+          </View>
+        ) : (
+          <FlatList
+            data={clients}
+            keyExtractor={(item, i) => i.toString()}
+            renderItem={renderItem}
+            onEndReached={() => fetchClients(page, self)}
+            onEndReachedThreshold={0.5}
+            style={{ backgroundColor: Colors.get(Company, 'bg') }}
+            ListFooterComponent={
+              fetchingMore ? <ActivityIndicator size="small" color="#000" /> : null
+            }
+            contentContainerStyle={{ padding: 16 }}
+          />
+        )}
+
+        {!readOnly && renderFormModal(false)}
+        {!readOnly && renderFormModal(true)}
+        {!readOnly && renderDeleteModal()}
+        {!readOnly && renderAssignWorkModal()}
+
         <Pressable
           onPress={openAddClientModal}
           style={{
@@ -827,8 +904,8 @@ const ClientsScreen = () => {
           }}>
           <MaterialIcons name="add" size={32} color="white" />
         </Pressable>
-      )}
-    </View>
+      </View>
+    </>
   );
 };
 

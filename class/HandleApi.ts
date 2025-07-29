@@ -8,13 +8,14 @@ import * as SecureStore from 'expo-secure-store';
 import { useEmployeeStore } from 'Memory/Employee';
 import { tokenMemory } from 'Memory/Token';
 import { State } from './State';
+import { LocalStore } from './LocalStore';
 
 interface ApiResponse {
   status: number;
   data: { data: Record<string, any> };
 }
 
-interface ApiOptions {
+export interface ApiOptions {
   url: string;
   type: 'POST' | 'GET' | 'PUT' | 'DELETE';
   payload?: Record<string, any>;
@@ -22,7 +23,9 @@ interface ApiOptions {
 }
 
 export class Api {
-  public static async handleApi(options: ApiOptions): Promise<ApiResponse> {
+  public static async handleApi(options: ApiOptions): Promise<ApiResponse | void> {
+    const token = State.getToken();
+
     console.log('Handling API call..', options.url);
 
     const config: AxiosRequestConfig = {
@@ -32,12 +35,15 @@ export class Api {
     };
 
     // Attach token if provided
-    if (options.token) {
-      config.headers!['Authorization'] = `Bearer ${options.token}`;
+    if (options.token || token) {
+      config.headers!['auth-token'] = options.token || token;
     }
 
     // Attach payload to request
-    if (options.type === 'GET' || options.type === 'DELETE') {
+    if (
+      (options.type === 'GET' && options.payload) ||
+      (options.type === 'DELETE' && options.payload)
+    ) {
       config.params = options.payload;
     } else {
       config.data = options.payload;
@@ -45,10 +51,18 @@ export class Api {
 
     try {
       const response: AxiosResponse = await axios(config);
-      return {
+      const Response = {
         status: response.status,
         data: response.data,
       };
+
+      if (Response.status == 403) {
+        State.deleteToken();
+        router.replace('/login');
+        return;
+      }
+      console.log('Handling API Response: ', Response, '/////////', response);
+      return Response;
     } catch (error: any) {
       const response = error?.response;
       return {
@@ -57,99 +71,6 @@ export class Api {
       };
     }
   }
-  // public static async handleApi(options: {
-  //   url: string;
-  //   type: 'POST' | 'GET' | 'PUT' | 'DELETE';
-  //   payload?: Record<string, any>;
-  //   token?: string; //header
-  // }): Promise<{ status: number; data: { data: Record<string, any> } }> {
-  //   console.log('Handling API call..', options.url);
-  //   switch (options.type) {
-  //     case 'DELETE':
-  //       try {
-  //         const request = await axios.delete(options.url, options.payload);
-
-  //         const { data, status } = request;
-
-  //         return {
-  //           status,
-  //           data,
-  //         };
-  //       } catch (error: any) {
-  //         const response = error.response;
-
-  //         const { data, status } = response;
-
-  //         return {
-  //           status,
-  //           data,
-  //         };
-  //       }
-
-  //     case 'GET':
-  //       try {
-  //         const request = await axios.get(options.url);
-
-  //         const { data, status } = request;
-
-  //         return {
-  //           status,
-  //           data,
-  //         };
-  //       } catch (error: any) {
-  //         const response = error.response;
-
-  //         const { data, status } = response;
-
-  //         return {
-  //           status,
-  //           data,
-  //         };
-  //       }
-
-  //     case 'POST':
-  //       try {
-  //         const request = await axios.post(options.url, options.payload);
-
-  //         const { data, status } = request;
-
-  //         return {
-  //           status,
-  //           data,
-  //         };
-  //       } catch (error: any) {
-  //         const response = error.response;
-
-  //         const { data, status } = response;
-
-  //         return {
-  //           status,
-  //           data,
-  //         };
-  //       }
-
-  //     case 'PUT':
-  //       try {
-  //         const request = await axios.put(options.url, options.payload);
-
-  //         const { data, status } = request;
-
-  //         return {
-  //           status,
-  //           data,
-  //         };
-  //       } catch (error: any) {
-  //         const response = error.response;
-
-  //         const { data, status } = response;
-
-  //         return {
-  //           status,
-  //           data,
-  //         };
-  //       }
-  //   }
-  // }
 
   // //   {
   // // "empId":"SMF1",
@@ -433,6 +354,7 @@ export class Api {
           // tokenMemory.getState().setAuthToken(api.data.token);
           console.log(api.data, '////', api.data.token);
           State.storeToken(api.data.token);
+          await LocalStore.storeTokenLocal(api.data.token);
           options.setApiLoading(false);
           const role = api.data.authInfo.role;
           router.replace({
@@ -490,8 +412,9 @@ export class Api {
     }
   }
 
-  public static async handleEmpData(id: string) {
+  public static async handleEmpData(id: string, company?: 'sdce' | 'sq') {
     try {
+      console.log('HANDLE EMP DATA INCOMING::', id, company);
       const apiUrl = configFile.api.common.getEmpData(id);
       const api = await this.handleApi({ url: apiUrl, type: 'GET' });
       console.log(api.data, '///dataaaa');
@@ -509,10 +432,12 @@ export class Api {
               });
               return;
             }
+
+            State.storeCompany('sdce');
             // router.replace('/(admin)/home');
             router.replace({
               pathname: '/(admin)/home',
-              params: { role, empId: api.data.employee_id },
+              params: { role, empId: api.data.employee_id, company: company ? company : 'sdce' },
             });
             return;
           } else {

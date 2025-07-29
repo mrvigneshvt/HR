@@ -63,7 +63,7 @@ const LeaveReqCard = ({
           justifyContent: 'center',
           alignSelf: 'flex-start',
           borderRadius: moderateScale(24), // Rounded icon background
-          backgroundColor: 'black',
+          backgroundColor: 'dark-grey',
           padding: moderateScale(8), // Adjust padding using moderateScale
         }}>
         <Entypo name="calendar" size={moderateScale(24)} color={configFile.colorGreen} />

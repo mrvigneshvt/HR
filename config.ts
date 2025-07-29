@@ -1,3 +1,5 @@
+import { longFormatters } from 'date-fns';
+
 const backendConnection = 'https';
 const backendDomain = 'sdce.lyzooapp.co.in';
 const backendPort = '31313';
@@ -5,6 +7,18 @@ const backendBaseUrl = `${backendConnection}://${backendDomain}:${backendPort}/`
 
 export const configFile = {
   colorGreen: '#238c58',
+  color: {
+    sdce: {
+      bg: '2A9D8F',
+      cards: '',
+      stack: '',
+    },
+    sq: {
+      bg: 'FF7F51',
+      cards: '',
+      stack: '',
+    },
+  },
   areYouInOFfice: true,
   backendConnection,
   backendDomain,
@@ -17,6 +31,7 @@ export const configFile = {
     get baseUrl() {
       return backendBaseUrl;
     },
+    verifyToken: `${backendBaseUrl}api/verifyToken`,
     attendance: {
       checkIn() {
         return `${backendBaseUrl}api/attendance/checkIn`; //post
@@ -61,6 +76,34 @@ export const configFile = {
       },
     },
     superAdmin: {
+      app: {
+        aadhar: {
+          verify: `${backendBaseUrl}api/aadhaar/generate-otp`,
+          verifyOtp: `${backendBaseUrl}api/aadhaar/verify-otp`,
+        },
+        bank: {
+          verify: `${backendBaseUrl}api/bank/verify`,
+        },
+        uniform: `${backendBaseUrl}api/uniforms/phone`,
+        squniform: `${backendBaseUrl}api/uniforms/phone?prefix=SQ`,
+        feedback: {
+          get: `${backendBaseUrl}api/feedback/get`,
+          post: `${backendBaseUrl}api/feedback/assign`,
+          delete: `${backendBaseUrl}api/feedback/remove`,
+        },
+
+        leave: `${backendBaseUrl}api/leaves/phone`,
+        sqleave: `${backendBaseUrl}api/leaves/phone?prefix=SQ`,
+        updateEmp: `${backendBaseUrl}api/employees`,
+        employees: `${backendBaseUrl}api/employees/phone`,
+        sqEmployees: `${backendBaseUrl}api/employees/phone?prefix=SQ`,
+        employeeSearch(query: string) {
+          return `${backendBaseUrl}api/employees/search/phone?search=${query}`;
+        },
+        sqEmployeeSearch(query: string) {
+          return `${backendBaseUrl}api/employees/search/phone?prefix=SQ&search=${query}`;
+        },
+      },
       addClient() {
         return `${backendBaseUrl}api/clients`; //post method
       },
@@ -69,6 +112,12 @@ export const configFile = {
           ? `${backendBaseUrl}api/clients?page=1`
           : `${backendBaseUrl}api/clients?page=${pageNo}`;
       },
+      getAllSelf(pageNo?: number) {
+        return !pageNo
+          ? `${backendBaseUrl}api/clients?SC=1&page=1`
+          : `${backendBaseUrl}api/clients?SC=1&page=${pageNo}`;
+      },
+
       updateClients(id: string) {
         return `${backendBaseUrl}api/clients/by-client-no/${id}`; //put method
       },
@@ -85,9 +134,16 @@ export const configFile = {
             return `${backendBaseUrl}api/uniforms/docId/${id}`; //put
           },
         },
+        idcard: {
+          get: `${backendBaseUrl}api/idcard/get`,
+          update: `${backendBaseUrl}api/idcard/updateIdCard`,
+        },
         leaves: {
           update(id: string) {
             return `${backendBaseUrl}api/leaves/docId/${id}`;
+          },
+          delete(id: string) {
+            return `${backendBaseUrl}api/leaves/${id}`;
           },
         },
       },

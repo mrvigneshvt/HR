@@ -1,308 +1,456 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   StyleSheet,
-  Animated,
-  Easing,
+  TouchableOpacity,
   Alert,
-  Pressable,
+  ActivityIndicator,
+  Platform,
+  FlatList,
+  Animated,
+  Modal,
+  TextInput,
 } from 'react-native';
-import MapView, { UrlTile, Marker, Circle } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import axios from 'axios';
-import { useLocalSearchParams } from 'expo-router';
-import ProfileStack from 'Stacks/HeaderStack';
-import { FontAwesome5 } from '@expo/vector-icons';
-import { NavRouter } from 'class/Router';
-import { format } from 'date-fns';
-import { Api } from 'class/HandleApi';
 import { configFile } from 'config';
+import { router, useLocalSearchParams } from 'expo-router';
+import { format } from 'date-fns';
+import { Entypo, MaterialIcons } from '@expo/vector-icons';
+import { NavRouter } from 'class/Router';
 
-//... (imports remain unchanged)
+const AttendanceMapScreen = () => {
+  const { empId: employeeId, role, company } = useLocalSearchParams();
 
-const LocationWithDate = () => {
-  const { role, empId } = useLocalSearchParams();
-  const [assignedLocations, setAssignedLocations] = useState([]);
-  const [region, setRegion] = useState({
-    latitude: 0,
-    longitude: 0,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  });
-  const [statusText, setStatusText] = useState('Getting location...');
-  const [selectedRecordIndex, setSelectedRecordIndex] = useState(-1);
-  const [nearbyRecord, setNearbyRecord] = useState(null);
-  const [showO1, setShowO1] = useState(false);
-  const [isNear, setIsNear] = useState(false);
-  const [attendStatus, setAttendStatus] = useState<
-    'check_in' | 'lunch_in' | 'check_out' | 'completed' | ''
-  >('');
-  const [time] = useState(format(new Date(), 'HH:mm:ss'));
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const punchAnim = useRef(new Animated.Value(0)).current;
+  const [location, setLocation] = useState(null);
+  const [loadingLocation, setLoadingLocation] = useState(true);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
-  const fadeIn = () => {
-    fadeAnim.setValue(0);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 400,
-      easing: Easing.inOut(Easing.ease),
-      useNativeDriver: true,
-    }).start();
-  };
+  const [punching, setPunching] = useState(false);
+  const [askInsideModal, setAskInsideModal] = useState(false);
+  const [outModal, setOutModal] = useState(false);
+  const [outTitle, setOutTitle] = useState('');
+  const [outNotes, setOutNotes] = useState('');
 
-  const startPunchAnimation = () => {
-    punchAnim.setValue(0);
-    Animated.spring(punchAnim, {
-      toValue: 1,
-      friction: 4,
-      tension: 60,
-      useNativeDriver: true,
-    }).start();
-  };
+  const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [filterType, setFilterType] = useState('client');
 
-  const getDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371000;
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  };
-
-  const alreadyInit = (datas) => datas.find((d) => d.check_in_time || d.check_in_status) || null;
-
-  const getNextCondition = ({ check_in_time, lunch_in_time, check_out_time }) => {
-    if (!check_in_time) return 'check_in';
-    if (!lunch_in_time) return 'lunch_in';
-    if (!check_out_time) return 'check_out';
-    return 'completed';
-  };
-
-  const getCurrentLocationAndCheck = async () => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') return;
-
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest });
-      const { latitude, longitude } = loc.coords;
-      setRegion({ latitude, longitude, latitudeDelta: 0.01, longitudeDelta: 0.01 });
-      setStatusText('Fetching assigned work...');
-      fadeIn();
-
-      const today = new Date().toISOString().split('T')[0];
-      const { data } = await axios.get(
-        'https://sdce.lyzooapp.co.in:31313/api/attendance/assigned-work',
-        {
-          params: { employeeId: empId, fromDate: today, toDate: today },
-        }
-      );
-
-      const records = data.records;
-      if (!records || records.length < 1) {
-        Alert.alert('No Works Assigned!', 'Chill! You don’t have any work today. Chill and Rest !');
-        NavRouter.backOrigin({ role, empId });
-        return;
-      }
-
-      setAssignedLocations(records);
-      const existing = alreadyInit(records);
-
-      if (existing) {
-        const dist = getDistance(
-          latitude,
-          longitude,
-          parseFloat(existing.latitude),
-          parseFloat(existing.longitude)
-        );
-        setNearbyRecord(existing);
-        setSelectedRecordIndex(records.findIndex((r) => r.id === existing.id));
-        const action = getNextCondition(existing);
-        setAttendStatus(action);
-
-        if (dist <= 100) {
-          setIsNear(true);
-          setStatusText(`✅ Within location ${existing.id} - ${action}`);
-          fadeIn();
-          startPunchAnimation();
-        } else {
-          setIsNear(false);
-          setStatusText(`⚠️ Record exists but not near (${dist.toFixed(1)}m)`);
-          fadeIn();
-        }
-        return;
-      }
-
-      for (let i = 0; i < records.length; i++) {
-        const rec = records[i];
-        const dist = getDistance(
-          latitude,
-          longitude,
-          parseFloat(rec.latitude),
-          parseFloat(rec.longitude)
-        );
-        setSelectedRecordIndex(i);
-        setStatusText(`Comparing ${rec.client_no} - ${dist.toFixed(1)}m`);
-        fadeIn();
-        await new Promise((r) => setTimeout(r, 800));
-        if (dist <= 100) {
-          setNearbyRecord(rec);
-          const action = getNextCondition(rec);
-          setAttendStatus(action);
-          setIsNear(true);
-          setStatusText(`✅ Within location ${rec.id} - ${action}`);
-          fadeIn();
-          startPunchAnimation();
-          return;
-        }
-      }
-
-      setIsNear(false);
-      setStatusText('❌ No nearby location found');
-      fadeIn();
-    } catch (err) {
-      console.error(err);
-      setStatusText('❗ Error getting location or data');
-    }
-  };
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 2000,
+        useNativeDriver: true,
+      })
+    ).start();
+  }, [rotateAnim]);
 
   useEffect(() => {
-    getCurrentLocationAndCheck();
-    NavRouter.BackHandler({ role, empId });
+    NavRouter.BackHandler({ role, company, empId: employeeId });
+  }, [employeeId, company, role]);
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission required', 'Location permission is needed to punch in.');
+        return;
+      }
+      const loc = await Location.getCurrentPositionAsync({});
+      setLocation(loc.coords);
+      setLoadingLocation(false);
+    })();
   }, []);
 
-  useEffect(() => {
-    if (!isNear) {
-      const timer = setInterval(getCurrentLocationAndCheck, 10000);
-      return () => clearInterval(timer);
-    }
-  }, [isNear]);
-
-  const getPunchUrl = () => {
-    switch (attendStatus) {
-      case 'check_in':
-        return configFile.api.attendance.checkIn();
-      case 'lunch_in':
-        return configFile.api.attendance.lunchIn();
-      case 'check_out':
-        return configFile.api.attendance.checkOut();
-      default:
-        return null;
+  const doPunchIn = async (title, notes) => {
+    if (outModal && !title && !notes)
+      return Alert.alert(
+        'Missing Title & Notes',
+        'Title and Notes are Mandatory Fields that Help the Department to understand Where you Are !'
+      );
+    setPunching(true);
+    try {
+      const now = new Date();
+      const punch_time = now.toTimeString().split(' ')[0];
+      const payload = {
+        employeeId,
+        punch_time,
+        latitude: location.latitude,
+        longitude: location.longitude,
+        ...(title ? { title, notes } : {}),
+      };
+      const { data, status } = await axios.post(
+        `${configFile.backendBaseUrl}api/attendance/punchIn`,
+        payload
+      );
+      if (status === 201) {
+        const msg =
+          data.type === 'client' && data.client
+            ? `Attendance punched for ${data.client.client_no} / ${data.client.company_name}`
+            : 'Attendance punched as Others';
+        Alert.alert('Punch Successful', msg);
+        router.replace({
+          pathname: '/(admin)/home/',
+          params: { role, company, empId: employeeId },
+        });
+      } else {
+        Alert.alert('Unexpected response', JSON.stringify(data));
+      }
+    } catch (err) {
+      if (err.response) {
+        const { status: code, data } = err.response;
+        if (code === 400 && data.errors)
+          Alert.alert('Validation Error', JSON.stringify(data.errors));
+        else if (code === 404) Alert.alert('Error', data.message || 'Employee not found');
+        else Alert.alert('Server Error', data.message || 'Internal error');
+      } else {
+        Alert.alert('Network Error', err.message);
+      }
+    } finally {
+      setPunching(false);
+      setAskInsideModal(false);
+      setOutModal(false);
+      setOutTitle('');
+      setOutNotes('');
     }
   };
 
-  const handlePunch = async () => {
-    if (attendStatus === 'completed') {
-      Alert.alert('Chill', 'You already did all the attendance. Take some rest!');
-      return;
-    }
+  const handleLogoutPunch = () => {
+    if (punching || !mapLoaded) return;
+    doPunchIn('Logout', 'End of Day');
+  };
 
-    const url = getPunchUrl();
-    if (!url || !nearbyRecord) return;
-
-    const key = `${attendStatus}_time`;
-    const payload = {
-      [key]: time,
-      latitude: region.latitude,
-      longitude: region.longitude,
-      attendanceId: nearbyRecord.id,
-    };
-
-    const request = await Api.handleApi({ url, type: 'POST', payload });
-    console.log(request, '/////Responseeeeeeeeeeeeeeee', payload, '////Payload////', url);
-    if ([200, 400, 404, 500].includes(request.status)) {
-      Alert.alert(request.status === 200 ? 'Success' : 'Failed', request.data.message);
-      NavRouter.backOrigin({ role, empId });
+  const fetchHistory = async (pageNum = 1, type = filterType) => {
+    setLoadingHistory(true);
+    try {
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const nextDay = format(new Date(Date.now() + 86400000), 'yyyy-MM-dd');
+      const res = await axios.get(`${configFile.backendBaseUrl}api/attendance/punchDetails`, {
+        params: {
+          employeeId,
+          startDate: today,
+          endDate: nextDay,
+          page: pageNum,
+          limit: 10,
+          type,
+        },
+      });
+      const { data: items, summary } = res.data;
+      setTotalPages(summary.totalPages);
+      setPage(summary.currentPage);
+      setHistory(pageNum === 1 ? items : [...history, ...items]);
+    } catch (err) {
+      Alert.alert('Error fetching history', err.message);
+    } finally {
+      setLoadingHistory(false);
     }
   };
+
+  const onEndReached = () => {
+    if (page < totalPages && !loadingHistory) fetchHistory(page + 1);
+  };
+
+  if (loadingLocation) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={configFile.colorGreen} />
+        <Text style={styles.loadingText}>Fetching your location...</Text>
+      </View>
+    );
+  }
+
+  const region = {
+    latitude: location.latitude,
+    longitude: location.longitude,
+    latitudeDelta: 0.005,
+    longitudeDelta: 0.005,
+  };
+  const rotate = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   return (
-    <View style={{ flex: 1 }}>
-      <ProfileStack Attendance={true} />
-      <View style={{ height: 300 }}>
-        <MapView style={{ flex: 1 }} region={region} showsUserLocation={true}>
-          <UrlTile urlTemplate="https://c.tile.openstreetmap.org/{z}/{x}/{y}.png" maximumZ={19} />
-          {assignedLocations.map((rec) => (
-            <React.Fragment key={rec.id}>
-              <Marker
-                coordinate={{
-                  latitude: parseFloat(rec.latitude),
-                  longitude: parseFloat(rec.longitude),
-                }}
-                title={`Assigned: ${rec.client_no}`}
-                pinColor={isNear ? 'green' : 'red'}
-              />
-              <Circle
-                center={{
-                  latitude: parseFloat(rec.latitude),
-                  longitude: parseFloat(rec.longitude),
-                }}
-                radius={50}
-                strokeColor="rgba(0,0,255,0.5)"
-                fillColor="rgba(0,0,255,0.2)"
-              />
-            </React.Fragment>
-          ))}
-        </MapView>
-      </View>
+    <View style={styles.container}>
+      <MapView
+        style={styles.map}
+        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : null}
+        initialRegion={region}
+        onMapReady={() => setMapLoaded(true)}>
+        <Marker coordinate={location} />
+      </MapView>
 
-      <Animated.View style={{ opacity: fadeAnim, alignItems: 'center', paddingVertical: 10 }}>
-        <Text style={{ fontSize: 16, fontWeight: '500', color: '#333' }}>
-          {isNear
-            ? `✅ You are near ${nearbyRecord.client_no}/${nearbyRecord.id} - ${getNextCondition(nearbyRecord)}`
-            : `Searching For Nearby Client ${time}`}
-        </Text>
-      </Animated.View>
-
-      {isNear && (
-        <Animated.View
-          style={{
-            alignSelf: 'center',
-            marginVertical: 10,
-            transform: [
-              { scale: punchAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] }) },
-            ],
-          }}>
-          <Pressable
-            onPress={handlePunch}
-            style={{
-              backgroundColor: '#f7f7f7',
-              borderRadius: 100,
-              padding: 20,
-              elevation: 5,
-              shadowColor: '#000',
-              shadowOpacity: 0.3,
-              shadowRadius: 10,
-              shadowOffset: { width: 0, height: 4 },
-            }}>
-            <FontAwesome5 name="fingerprint" size={40} color="#3b82f6" />
-          </Pressable>
-        </Animated.View>
+      {!mapLoaded && (
+        <View style={styles.mapLoader}>
+          <ActivityIndicator size="large" color={configFile.colorGreen} />
+        </View>
       )}
 
-      <ScrollView style={{ padding: 10 }}>
-        {(showO1 && nearbyRecord ? [nearbyRecord] : assignedLocations).map((rec, idx) => (
-          <View
-            key={rec.id}
-            style={[styles.card, selectedRecordIndex === idx && styles.activeCard]}>
-            <Text style={styles.cardText}>📍 Company Name: {rec.client_no}</Text>
-            <Text style={styles.cardText}>
-              🧭 Lat: {rec.latitude}, Lon: {rec.longitude}
+      {/* Logout Button */}
+      <TouchableOpacity
+        style={styles.logoutButton}
+        onPress={handleLogoutPunch}
+        disabled={punching || !mapLoaded}>
+        <MaterialIcons name="logout" size={26} color="#fff" />
+        <Text className="text-xl font-bold">End Of Day</Text>
+      </TouchableOpacity>
+
+      {/* History button */}
+      <TouchableOpacity
+        style={styles.historyButton}
+        onPress={() => {
+          setShowHistory(true);
+          fetchHistory(1);
+        }}>
+        <Animated.View style={{ transform: [{ rotate }] }}>
+          <MaterialIcons name="history" size={28} color={configFile.colorGreen} />
+        </Animated.View>
+      </TouchableOpacity>
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={[styles.button, (punching || !mapLoaded) && styles.buttonDisabled]}
+          onPress={() => setAskInsideModal(true)}
+          disabled={punching || !mapLoaded}>
+          {punching ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Punch In</Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <Modal transparent visible={askInsideModal} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <View className="flex-row justify-between">
+              <Text style={styles.modalTitle}>Are you inside client location?</Text>
+              <TouchableOpacity onPress={() => setAskInsideModal(!askInsideModal)}>
+                <Entypo name="cross" size={24} color="black" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalActions}>
+              <TouchableOpacity style={styles.modalButton} onPress={() => doPunchIn()}>
+                <Text style={styles.modalButtonText}>Yes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalButton}
+                onPress={() => {
+                  setAskInsideModal(false);
+                  setOutModal(true);
+                }}>
+                <Text style={styles.modalButtonText}>No</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal transparent visible={outModal} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <View className="flex-row justify-between">
+              <Text style={styles.modalTitle}>Please enter title and notes</Text>
+              <TouchableOpacity onPress={() => setOutModal(!outModal)}>
+                <Entypo name="cross" size={24} color="black" />
+              </TouchableOpacity>
+            </View>
+            <TextInput
+              placeholder="Title"
+              placeholderTextColor={'gray'}
+              value={outTitle}
+              onChangeText={setOutTitle}
+              style={styles.input}
+            />
+            <TextInput
+              placeholder="Notes"
+              placeholderTextColor={'gray'}
+              value={outNotes}
+              onChangeText={setOutNotes}
+              style={[styles.input, { height: 80 }]}
+              multiline
+            />
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => doPunchIn(outTitle, outNotes)}>
+              <Text style={styles.modalButtonText} className="text-white">
+                Submit
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {showHistory && (
+        <View style={styles.historyContainer}>
+          <View className="mb-2 flex flex-row justify-center ">
+            <Text
+              className="rounded-lg bg-gray-200 p-1 text-2xl font-semibold text-black"
+              style={{ color: configFile.colorGreen }}>
+              Today Attendance
             </Text>
           </View>
-        ))}
-      </ScrollView>
+          <View style={styles.tabContainer}>
+            {['client', 'others'].map((t) => (
+              <TouchableOpacity
+                key={t}
+                style={[styles.tab, filterType === t && styles.activeTab]}
+                onPress={() => {
+                  setFilterType(t);
+                  fetchHistory(1, t);
+                }}>
+                <Text style={[styles.tabText, filterType === t && styles.activeTabText]}>
+                  {t.charAt(0).toUpperCase() + t.slice(1)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          {loadingHistory && page === 1 ? (
+            <ActivityIndicator size="large" color={configFile.colorGreen} />
+          ) : (
+            <FlatList
+              data={history}
+              keyExtractor={(item) => item.id.toString()}
+              onEndReached={onEndReached}
+              onEndReachedThreshold={0.5}
+              renderItem={({ item }) => (
+                <View
+                  style={[
+                    styles.recordItem,
+                    item.type === 'client' ? styles.clientCard : styles.othersCard,
+                  ]}>
+                  <Text style={styles.recordText}>Date: {item.attendance_date}</Text>
+                  <Text style={styles.recordText}>Time: {item.check_in_time}</Text>
+                  {item.type === 'client' ? (
+                    <Text style={styles.recordText}>
+                      Client: {item.client_no} ({item.company_name})
+                    </Text>
+                  ) : (
+                    <Text style={styles.recordText}>Others Location</Text>
+                  )}
+                </View>
+              )}
+              ListEmptyComponent={<Text style={styles.noData}>No records found.</Text>}
+            />
+          )}
+          <TouchableOpacity style={styles.closeHistory} onPress={() => setShowHistory(false)}>
+            <Text style={styles.closeText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  card: { padding: 12, marginVertical: 6, borderRadius: 10, backgroundColor: '#eee', elevation: 2 },
-  activeCard: { backgroundColor: '#d1f7c4', borderWidth: 1, borderColor: '#3bba00' },
-  cardText: { fontSize: 15, color: '#333' },
+  container: { flex: 1 },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loadingText: { marginTop: 8, fontSize: 16, color: '#555' },
+  map: { flex: 1 },
+  mapLoader: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  historyButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    padding: 8,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 24,
+  },
+  logoutButton: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    padding: 10,
+    backgroundColor: '#fa1937',
+    borderRadius: 24,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    zIndex: 10,
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 2,
+  },
+  footer: { padding: 16, backgroundColor: '#fff' },
+  button: {
+    backgroundColor: configFile.colorGreen,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonDisabled: { backgroundColor: '#999' },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  modalOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBox: { width: '80%', backgroundColor: '#fff', padding: 16, borderRadius: 8 },
+  modalTitle: { fontSize: 16, fontWeight: '600', marginBottom: 12, color: 'black' },
+  modalActions: { flexDirection: 'row', justifyContent: 'space-between' },
+  modalButton: {
+    padding: 20,
+    backgroundColor: configFile.colorGreen,
+    borderRadius: 6,
+    flex: 1,
+    marginHorizontal: 4,
+    alignItems: 'center',
+  },
+  modalButtonText: { color: '#fff', fontWeight: '600' },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    padding: 8,
+    marginBottom: 12,
+    color: 'black',
+  },
+  historyContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '50%',
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 16,
+  },
+  tabContainer: { flexDirection: 'row', marginBottom: 12 },
+  tab: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+    borderBottomWidth: 2,
+    borderColor: 'transparent',
+  },
+  activeTab: { borderColor: configFile.colorGreen },
+  tabText: { color: '#555', fontSize: 14 },
+  activeTabText: { color: configFile.colorGreen, fontWeight: '600' },
+  recordItem: { padding: 12, borderRadius: 8, marginBottom: 8 },
+  clientCard: { backgroundColor: '#e0f7e9' },
+  othersCard: { backgroundColor: '#f0f0f0' },
+  recordText: { fontSize: 14, color: '#333' },
+  noData: { textAlign: 'center', color: '#888', marginTop: 16 },
+  closeHistory: { marginTop: 12, alignSelf: 'center' },
+  closeText: { color: configFile.colorGreen, fontSize: 14, fontWeight: '600' },
 });
 
-export default LocationWithDate;
+export default AttendanceMapScreen;

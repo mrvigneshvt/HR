@@ -262,11 +262,17 @@ const RequestsScreen = () => {
         await requestsService.deleteUniformRequest(selectedRequest._id);
       } else {
         const id = selectedRequest._id || selectedRequest.id;
+        console.log('invoking id:', id);
         if (!id) {
           Alert.alert('Error', 'Invalid request ID');
           return;
         }
-        await requestsService.deleteLeaveRequest(id);
+        // await requestsService.deleteLeaveRequest(id);
+        const url = configFile.api.superAdmin.request.leaves.delete(id);
+        const api = await Api.handleApi({ url, type: 'DELETE', token });
+        console.log(api);
+        Alert.alert(api.status == 200 ? 'Success' : 'Failed', api.data.message);
+        return;
       }
       Alert.alert(
         'Success',
@@ -279,6 +285,7 @@ const RequestsScreen = () => {
       Alert.alert('Error', 'Failed to delete request. Please try again.');
     } finally {
       setLoading(false);
+      return;
     }
   };
 
@@ -424,7 +431,7 @@ const RequestsScreen = () => {
         onPress={() => setShowAcceptModal(false)}>
         <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
           <View className="rounded-t-3xl bg-white p-6">
-            <Text className="mb-4 text-xl font-bold">Accept Request</Text>
+            <Text className="mb-4 text-xl font-bold text-black">Accept Request</Text>
             <Text className="mb-4 text-gray-600">
               Are you sure you want to Accept this request?
             </Text>
@@ -469,7 +476,7 @@ const RequestsScreen = () => {
         onPress={() => setShowRejectModal(false)}>
         <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
           <View className="rounded-t-3xl bg-white p-6">
-            <Text className="mb-4 text-xl font-bold">Reject Request</Text>
+            <Text className="mb-4 text-xl font-bold text-black">Reject Request</Text>
             <Text className="mb-4 text-gray-600">
               Are you sure you want to Reject this request?
             </Text>
@@ -550,7 +557,7 @@ const RequestsScreen = () => {
         onPress={() => setShowDeleteModal(false)}>
         <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
           <View className="rounded-t-3xl bg-white p-6">
-            <Text className="mb-4 text-xl font-bold">Delete Request</Text>
+            <Text className="mb-4 text-xl font-bold text-black">Delete Request</Text>
             <Text className="mb-4 text-gray-600">
               Are you sure you want to delete this request?
             </Text>
@@ -885,6 +892,25 @@ const RequestsScreen = () => {
                     </Text>
                   </View>
                 </Pressable>
+                <Pressable onPress={() => setActiveTab('uniform')} style={{ flex: 1 }}>
+                  <View
+                    style={{
+                      borderRadius: 12,
+                      paddingVertical: 12,
+                      paddingHorizontal: 12,
+                      backgroundColor:
+                        activeTab === 'uniform' ? configFile.colorGreen : 'transparent',
+                    }}>
+                    <Text
+                      style={{
+                        fontSize: 18,
+                        fontWeight: 'bold',
+                        color: activeTab === 'uniform' ? 'white' : 'black',
+                      }}>
+                      ID Card Request
+                    </Text>
+                  </View>
+                </Pressable>
               </View>
               <ScrollView className="flex-1">
                 {activeTab === 'uniform'
@@ -903,4 +929,4 @@ const RequestsScreen = () => {
   );
 };
 
-export default RequestsScreen;
+export { RequestsScreen };

@@ -8,10 +8,12 @@ import { useEmployeeStore } from 'Memory/Employee';
 type popUpType = 'Internal Server Error' | 'Employee Not Found';
 
 const FetchNParse = () => {
-  const empRole: any = useLocalSearchParams();
+  const params = useLocalSearchParams();
+  console.log(params, '/////////////////params', params.empRole);
+  const { empId, role, company }: any = useLocalSearchParams();
   const [popMsg, setPopMsg] = useState<string>('Internal Server Error');
-
-  const { empId, role } = empRole;
+  console.log(params.empRole);
+  // const { empId, role } = empRole;
 
   const storeZustand = async () => {
     const api: any = await Api.getEmpData(empId);
@@ -28,7 +30,8 @@ const FetchNParse = () => {
         params: { role, empId },
       });
     } else {
-      Api.handleEmpData(empId); // Fetch data n Navigate if needed
+      console.log('goes under handle EMp data');
+      Api.handleEmpData(empId, company ? company : undefined); // Fetch data n Navigate if needed
     }
   }, [role, empId]);
 
@@ -39,7 +42,7 @@ const FetchNParse = () => {
   return (
     <View className="flex-1 items-center justify-center bg-white">
       <LoadingScreen />
-      <Text>{`Welcome ${empRole['role']}`}</Text>
+      {/* <Text>{`Welcome ${role}`}</Text> */}
       {/* <PopupMessage text={popMsg} duration={3000} /> */}
     </View>
   );

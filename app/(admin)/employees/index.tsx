@@ -16,7 +16,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 
 import { configFile } from '../../../config';
@@ -42,10 +42,15 @@ import { scale } from 'react-native-size-matters';
 import Verified from 'components/Verified';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { State } from 'class/State';
+import PaginatedComponent from 'components/Pagination';
+import SearchOverlayComponent from 'components/SearchOverlay';
+import { company } from 'Memory/Token';
+import EntityDropdown from 'components/DropDown';
+import { Colors } from 'class/Colors';
 const { width: screenWidth } = Dimensions.get('window');
 const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
 
-interface Employee {
+export interface Employee {
   employee_id: string;
   name: string;
   father_spouse_name: string;
@@ -199,18 +204,11 @@ const EmployeesScreen = () => {
   const isFocus = useIsFocused();
 
   const role = params.role as string | undefined;
+  console.log(role, 'role');
   const empId = params.empId as string | undefined;
+  const company = params.company as 'sdce' | 'sq';
   const readOnly = isReadOnlyRole(role);
   console.log('EmployeesScreen readOnly:', readOnly, 'role:', role);
-
-  // Add this function to log API details
-  // const logApiDetails = (method: string, url: string, data?: any) => {
-  //   console.log(`API Call Details:
-  //     Method: ${method}
-  //     URL: ${url}
-  //     Data: ${JSON.stringify(data, null, 2)}
-  //   `);
-  // };
 
   const [token, setToken] = useState<string>('');
   const [showCalendar, setShowCalendar] = useState<boolean>(false);
@@ -224,6 +222,7 @@ const EmployeesScreen = () => {
   const [newEmployee, setNewEmployee] = useState<Employee>(initialEmployeeState);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [Company, setCompany] = useState<company>('sdce');
 
   const [statusOpen, setStatusOpen] = useState(false);
   const [statusDrop, setStatusDrop] = useState([
@@ -247,6 +246,15 @@ const EmployeesScreen = () => {
     }
     fetchEmployees();
   }, [isFocus]);
+
+  const switchCompany = () => {
+    setCompany(Company == 'sdce' ? 'sq' : 'sdce');
+  };
+
+  const setReporting = (value) => {
+    console.log('invoking setReporting: ', value);
+    setNewEmployee((pre) => ({ ...pre, reporting: value }));
+  };
 
   const fetchEmployees = async () => {
     try {
@@ -296,23 +304,27 @@ const EmployeesScreen = () => {
     }
   };
 
-  useEffect(() => {
-    setFilteredList(
-      employeeList.filter((emp) => {
-        if (emp.name && emp.employee_id) {
-          return (
-            emp.name.toLowerCase().includes(search.toLowerCase()) ||
-            emp.employee_id.toLowerCase().includes(search.toLowerCase())
-          );
-        }
-        return false; // ignore this emp if any required field is missing
-      })
-    );
-  }, [search, employeeList]);
+  // useEffect(() => {
+  //   setFilteredList(
+  //     employeeList.filter((emp) => {
+  //       if (emp.name && emp.employee_id) {
+  //         return (
+  //           emp.name.toLowerCase().includes(search.toLowerCase()) ||
+  //           emp.employee_id.toLowerCase().includes(search.toLowerCase())
+  //         );
+  //       }
+  //       return false; // ignore this emp if any required field is missing
+  //     })
+  //   );
+  // }, [search, employeeList]);
 
   useEffect(() => {
-    console.log('Selected Emp Updated: ', selectedEmployee);
+    console.log('Selected Emp 4 Update: ', selectedEmployee);
   }, [selectedEmployee]);
+
+  useEffect(() => {
+    console.log('Selected new EMp: ', newEmployee);
+  }, [newEmployee]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -570,13 +582,8 @@ const EmployeesScreen = () => {
 
     try {
       setLoading(true);
-      // console.log(
-      //   `${BASE_URL}/employees/${selectedEmployee.employee_id}`,
-      //   '////////////////////base'
-      // );
 
       const url = `${BASE_URL}/employees/${selectedEmployee.employee_id}`;
-      //const data = await axios.delete(`${BASE_URL}/employees/${selectedEmployee.employee_id}`);
       const data = await Api.handleApi({ url, type: 'DELETE', token });
 
       switch (data.status) {
@@ -633,9 +640,11 @@ const EmployeesScreen = () => {
 
       updateFields = {
         ...updateFields,
+        dob: updateFields.dob.split('T')[0] || updateFields.dob,
+        updated_at: updateFields.updated_at.split('T')[0] || updateFields.updated_at,
       };
 
-      console.log(updateFields, '///', BASE_URL, '///', selectedEmployee.employee_id);
+      console.log(updateFields, '///');
 
       // const response = await axios.put(
       //   `${BASE_URL}/employees/${selectedEmployee.employee_id}`,
@@ -693,7 +702,7 @@ const EmployeesScreen = () => {
       }}>
       <View>
         <Text style={{ fontSize: 16, fontWeight: 'bold', color: configFile.colorGreen }}>
-          {item.name}
+          {item?.name || 'Not Assigned'}
         </Text>
         <Text style={{ color: 'gray' }}>ID: {item.employee_id}</Text>
         {role?.toLocaleLowerCase() == 'superadmin' && (
@@ -1071,7 +1080,7 @@ const EmployeesScreen = () => {
             />
             {errors.branch && <Text style={styles.errorText}>{errors.branch}</Text>}
             <Text className="text-black">Reporting Manager </Text>
-            <TextInput
+            {/* <TextInput
               placeholderTextColor="#b9b9b9"
               value={newEmployee.reporting}
               onChangeText={(text) => {
@@ -1080,7 +1089,32 @@ const EmployeesScreen = () => {
               }}
               placeholder="Enter reporting manager"
               style={[styles.input, errors.reporting && styles.inputError]}
+            /> */}
+            <EntityDropdown
+              type="employee"
+              selected={newEmployee.reporting} // 👈 syncs selected employee_id
+              setState={setReporting}
+              placeholder="Select reporting employee"
+              containerStyle={{ backgroundColor: '#fff' }}
+              inputStyle={{
+                backgroundColor: '#fff',
+                borderColor: '#ccc',
+                color: '#000',
+              }}
+              listStyle={{
+                backgroundColor: '#f9f9f9',
+                borderColor: '#ddd',
+                borderWidth: 1,
+              }}
+              itemStyle={{
+                backgroundColor: '#fff',
+                borderBottomColor: '#eee',
+              }}
+              itemTextStyle={{
+                color: '#000',
+              }}
             />
+
             {errors.reporting && <Text style={styles.errorText}>{errors.reporting}</Text>}
             {/* Document Information */}
             <Text style={styles.sectionTitle}>Document Information</Text>
@@ -1390,11 +1424,22 @@ const EmployeesScreen = () => {
   };
 
   useEffect(() => {
-    NavRouter.BackHandler({ role, empId });
+    const cleanup = NavRouter.BackHandler({ role, empId, company });
+    return cleanup;
   }, []);
 
+  const RenderSwitchIcon = () => (
+    <TouchableOpacity onPress={switchCompany}>
+      {Company === 'sdce' ? (
+        <MaterialIcons name="security" size={24} color="white" />
+      ) : (
+        <MaterialCommunityIcons name="broom" size={24} color="white" />
+      )}
+    </TouchableOpacity>
+  );
+
   return (
-    <View style={{ flex: 1, backgroundColor: '#F9F9F9' }}>
+    <View style={{ flex: 1, backgroundColor: Colors.get(Company, 'bg') }}>
       <Stack.Screen
         options={{
           headerShown: true,
@@ -1403,27 +1448,68 @@ const EmployeesScreen = () => {
             backgroundColor: configFile.colorGreen,
           },
           headerTintColor: 'white',
-          // headerRight: () =>
-          //   !readOnly && (
-          //     <Pressable onPress={() => setShowAddModal(true)} style={{ marginRight: 16 }}>
-          //       <MaterialIcons name="add" size={24} color="white" />
-          //     </Pressable>
-          //   ),
+          headerRight: () =>
+            !readOnly && (
+              <View className="flex flex-row items-center justify-center gap-3">
+                {(role?.toLowerCase() === 'superadmin' ||
+                  role?.toLowerCase() === 'admin' ||
+                  role?.toLowerCase() === 'executive') && (
+                  <>
+                    <RenderSwitchIcon />
+                    <Pressable
+                      onPress={() => setShowAddModal(true)}
+                      style={{
+                        marginRight: 16,
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: 'white',
+                      }}
+                      className="rounded-lg p-1">
+                      <Text style={{ color: configFile.colorGreen }}>Add</Text>
+                      <MaterialIcons name="add" size={24} color={configFile.colorGreen} />
+                    </Pressable>
+                  </>
+                )}
+              </View>
+            ),
         }}
       />
 
-      <SearchBar value={search} onChangeText={setSearch} placeholder="Search employee..." />
+      <SearchOverlayComponent
+        limit={5}
+        childCard={renderEmployeeCard}
+        for={Company == 'sdce' ? 'employee' : 'sqemployee'}
+        containerStyle={{ marginBottom: 10 }}
+        overlayStyle={{ backgroundColor: Colors.get(Company, 'bg') }}
+        inputStyle={{ color: 'black' }}
+      />
+      {/* <SearchBar value={search} onChangeText={setSearch} placeholder="Search employee..." /> */}
 
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={configFile.colorGreen} />
         </View>
       ) : (
-        <FlatList
-          data={filteredList}
-          keyExtractor={(item) => item.employee_id}
-          renderItem={renderEmployeeCard}
-          contentContainerStyle={{ paddingVertical: 8 }}
+        // <FlatList
+        //   data={filteredList}
+        //   keyExtractor={(item) => item.employee_id}
+        //   renderItem={renderEmployeeCard}
+        //   contentContainerStyle={{ paddingVertical: 8 }}
+        // />
+        <PaginatedComponent
+          key={'employees'}
+          url={
+            Company == 'sdce'
+              ? configFile.api.superAdmin.app.employees
+              : configFile.api.superAdmin.app.sqEmployees
+          }
+          limit={8}
+          renderItem={({ item }) => {
+            return renderEmployeeCard({ item });
+          }}
+          containerStyle={{ backgroundColor: Colors.get(Company, 'bg') }}
         />
       )}
 
@@ -2186,7 +2272,7 @@ const EmployeesScreen = () => {
                   style={styles.input}
                 />
 
-                <Text className="text-black">ESI Card</Text>
+                {/* <Text className="text-black">ESI Card</Text>
                 <TextInput
                   value={selectedEmployee?.esi_card}
                   editable={false}
@@ -2196,7 +2282,7 @@ const EmployeesScreen = () => {
                   placeholder="Enter ESI card URL"
                   style={styles.input}
                   className="text-black"
-                />
+                /> */}
 
                 <Text className="text-black">PAN Number</Text>
                 <TextInput
@@ -2210,7 +2296,7 @@ const EmployeesScreen = () => {
                   className="text-black"
                 />
 
-                <Text className="text-black">PAN Card</Text>
+                {/* <Text className="text-black">PAN Card</Text>
                 <TextInput
                   value={selectedEmployee?.pan_card}
                   onChangeText={(text) =>
@@ -2219,7 +2305,7 @@ const EmployeesScreen = () => {
                   placeholder="Enter PAN card URL"
                   style={styles.input}
                   className="text-black"
-                />
+                /> */}
 
                 <Text className="text-black">Driving License</Text>
                 <TextInput
@@ -2347,7 +2433,7 @@ const EmployeesScreen = () => {
           </TouchableOpacity>
         </Modal>
       )}
-      {!readOnly && (
+      {/* {!readOnly && (
         <Pressable
           onPress={() => setShowAddModal(true)}
           style={{
@@ -2368,7 +2454,7 @@ const EmployeesScreen = () => {
           }}>
           <MaterialIcons name="add" size={32} color="white" />
         </Pressable>
-      )}
+      )} */}
 
       {/* ID Card Modal */}
       {/* {selectedEmployee && (

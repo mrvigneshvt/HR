@@ -5,93 +5,76 @@ import {
   TextInput,
   ScrollView,
   Pressable,
-  Switch,
   Platform,
   KeyboardAvoidingView,
+  Image,
+  Linking,
 } from 'react-native';
-import { format, parseISO } from 'date-fns';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEmployeeStore } from 'Memory/Employee';
 import { scale, verticalScale, moderateScale } from 'react-native-size-matters';
 import ImageCom from 'components/ImageCom';
 import LoadingScreen from 'components/LoadingScreen';
 import { configFile } from '../../../config';
+import { EsiCard } from 'components/EsiCard';
+import { NavRouter } from 'class/Router';
+import { useLocalSearchParams } from 'expo-router';
+import { company } from '../../../Memory/Token';
 
 export default function ProfileScreen() {
+  const { company, role, empId } = useLocalSearchParams() as {
+    company: company;
+    role: string;
+    empId: string;
+  };
   const employees = useEmployeeStore((state) => state.employee);
-
-  const [form, setForm] = useState<any>({
-    aadhaar_number: '',
-    account_number: '',
-    address_country: '',
-    address_district: '',
-    address_house: '',
-    address_landmark: '',
-    address_po: '',
-    address_state: '',
-    address_street: '',
-    address_zip: '',
-    age: '',
-    bank_address: '',
-    bank_branch: '',
-    bank_centre: '',
-    bank_city: '',
-    bank_code: '',
-    bank_contact: '',
-    bank_district: '',
-    bank_name: '',
-    bank_state: '',
-    branch: '',
-    communication_address: '',
-    contact_email: '',
-    contact_mobile_no: '',
-    date_of_joining: '',
-    department: '',
-    designation: '',
-    dob: '',
-    driving_license: '',
-    driving_license_card: '',
-    emergency_contact_name: '',
-    emergency_contact_phone: '',
-    employee_id: '',
-    esi_card: '',
-    esi_number: '',
-    father_spouse_name: '',
-    gender: '',
-    guardian_name: '',
-    marital_status: '',
-    micr_code: '',
-    name: '',
-    pan_card: '',
-    pan_number: '',
-    profile_image: '',
-    reference_id: '',
-    reporting: '',
-    role: '',
-    uan_number: '',
-    voter_id: '',
-    voter_id_card: '',
-  });
-
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [form, setForm] = useState<any>({});
+  const [showEsiCard, setShowEsiCard] = useState(false);
 
   useEffect(() => {
     if (employees) {
       setForm({
-        ...form,
         ...employees,
-        dob: employees.dob ? parseISO(employees.dob) : new Date(),
+        dob: employees.dob || '',
         age: employees.age || '',
         profileImage: employees.profile_image,
       });
     }
+    NavRouter.BackHandler({ role: employees?.role, empId, company });
   }, [employees]);
-
-  if (!employees) return <LoadingScreen />;
 
   const handleChange = (key: string, value: any) => {
     setForm((prev: any) => ({ ...prev, [key]: value }));
+  };
+
+  if (!employees) return <LoadingScreen />;
+
+  const fields = [
+    { label: 'ID', key: 'employee_id', editable: false },
+    { label: 'Name', key: 'name' },
+    { label: 'Father / Spouse Name', key: 'father_spouse_name' },
+    { label: 'Contact Email', key: 'contact_email', keyboardType: 'email-address' },
+    { label: 'Mobile Number', key: 'contact_mobile_no', keyboardType: 'phone-pad' },
+    { label: 'Gender', key: 'gender' },
+    { label: 'Marital Status', key: 'marital_status' },
+    { label: 'PAN Card', key: 'pan_card' },
+    { label: 'UAN Number', key: 'uan_number' },
+    { label: 'Aadhaar Number', key: 'aadhaar_number' },
+    { label: 'Communication Address', key: 'communication_address', multiline: true },
+  ];
+
+  const esiCardUrl: string = form.esi_card || '';
+  const isValidUrl = esiCardUrl.startsWith('http');
+  const isImage = /\.(jpg|jpeg|png|webp)$/i.test(esiCardUrl);
+  const isPdfOrOther = /\.(pdf|doc|docx|ppt|pptx)$/i.test(esiCardUrl);
+
+  const handleOpenExternal = async () => {
+    if (await Linking.canOpenURL(esiCardUrl)) {
+      await Linking.openURL(esiCardUrl);
+    } else {
+      alert('Cannot open file');
+    }
   };
 
   return (
@@ -100,8 +83,9 @@ export default function ProfileScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ padding: 20 }}>
+          {/* Profile Image */}
           <View className="mb-4 items-center">
-            <ImageCom img={employees.profile_image || null} ProfileScreen={true} />
+            <ImageCom img={form.profileImage || null} ProfileScreen={true} />
           </View>
 
           <Text
@@ -115,30 +99,15 @@ export default function ProfileScreen() {
             Profile Details
           </Text>
 
-          {[
-            { label: 'ID', key: 'employee_id', editable: false },
-            { label: 'Name', key: 'name' },
-            { label: 'Father / Spouse Name', key: 'father_spouse_name' },
-            { label: 'Contact Email', key: 'contact_email', keyboardType: 'email-address' },
-            { label: 'Mobile Number', key: 'contact_mobile_no', keyboardType: 'phone-pad' },
-            { label: 'Gender', key: 'gender' },
-            { label: 'Marital Status', key: 'marital_status' },
-            { label: 'PAN Card', key: 'pan_card' },
-            { label: 'UAN Number', key: 'uan_number' },
-            { label: 'Aadhaar Number', key: 'aadhaar_number' },
-            {
-              label: 'Communication Address',
-              key: 'communication_address',
-              multiline: true,
-            },
-          ].map((field, index) => (
+          {/* Render Input Fields */}
+          {fields.map((field, index) => (
             <TextInput
               key={index}
+              placeholderTextColor={'grey'}
               className="mb-3 rounded px-3 py-2 text-black"
               placeholder={field.label}
               value={form[field.key] || ''}
-              onChangeText={(text) => handleChange(field.key, text)}
-              editable={field.editable !== false}
+              editable={false}
               multiline={field.multiline}
               keyboardType={field.keyboardType}
               style={{
@@ -149,8 +118,8 @@ export default function ProfileScreen() {
             />
           ))}
 
-          {/* DOB Picker */}
-          <Pressable
+          {/* DOB */}
+          <View
             style={{
               borderWidth: 1,
               borderColor: configFile.colorGreen,
@@ -159,23 +128,66 @@ export default function ProfileScreen() {
               paddingHorizontal: scale(12),
               marginBottom: verticalScale(12),
               backgroundColor: '#fff',
-            }}
-            onPress={() => setShowDatePicker(true)}>
+            }}>
             <Text style={{ color: '#444' }}>
-              DOB: {form.dob ? format(new Date(form.dob), 'dd-MM-yyyy') : 'Select DOB'}
+              DOB: {form.dob ? format(new Date(form.dob), 'dd-MM-yyyy') : 'Not Available'}
             </Text>
-          </Pressable>
+          </View>
 
-          {showDatePicker && (
-            <DateTimePicker
-              value={form.dob ? new Date(form.dob) : new Date()}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={(event, selectedDate) => {
-                setShowDatePicker(false);
-                if (selectedDate) handleChange('dob', selectedDate);
-              }}
-            />
+          {/* ESI Card Section */}
+          {isValidUrl && (
+            <Pressable
+              onPress={() => setShowEsiCard((prev) => !prev)}
+              style={{
+                borderWidth: 1,
+                borderColor: configFile.colorGreen,
+                borderRadius: 6,
+                padding: 12,
+                backgroundColor: '#f0f0f0',
+                marginBottom: 10,
+              }}>
+              <Text style={{ color: configFile.colorGreen, textAlign: 'center' }}>
+                {showEsiCard ? 'Hide ESI Card' : 'Show ESI Card'}
+              </Text>
+            </Pressable>
+          )}
+
+          {showEsiCard && isValidUrl && (
+            <>
+              {/* {isImage ? (
+                <Image
+                  source={{ uri: esiCardUrl }}
+                  style={{
+                    width: '100%',
+                    height: 180,
+                    resizeMode: 'contain',
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: '#ccc',
+                  }}
+                />
+              ) : isPdfOrOther ? (
+                <Pressable
+                  onPress={handleOpenExternal}
+                  style={{
+                    marginTop: 10,
+                    backgroundColor: configFile.colorGreen,
+                    padding: 14,
+                    borderRadius: 8,
+                    alignItems: 'center',
+                  }}>
+                  <Text style={{ color: 'white', fontWeight: 'bold' }}>Open ESI Document</Text>
+                </Pressable>
+              ) : (
+                <Text style={{ color: 'red', marginTop: 10 }}>Unsupported ESI Card format</Text>
+              )} */}
+              <EsiCard
+                esiCardUrl={esiCardUrl}
+                isImage={isImage}
+                isValidUrl={isValidUrl}
+                isPdfOrOther={isPdfOrOther}
+              />
+            </>
           )}
         </ScrollView>
       </KeyboardAvoidingView>

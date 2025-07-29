@@ -215,8 +215,8 @@ const LeaveRequest = () => {
             <TextInput value={empId || ''} editable={false} style={inputStyle} />
 
             {/* Role */}
-            <Text className="font-semibold  text-black">Role:</Text>
-            <TextInput value={role || ''} editable={false} style={inputStyle} />
+            {/* <Text className="font-semibold  text-black">Designation:</Text>
+            <TextInput value={role || ''} editable={false} style={inputStyle} /> */}
 
             {/* Reason */}
             <Text className="font-semibold  text-black">Leave Reason:</Text>
