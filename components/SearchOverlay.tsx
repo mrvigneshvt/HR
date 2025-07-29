@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,
   TextInput,
@@ -12,7 +12,6 @@ import {
   TextStyle,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
 } from 'react-native';
 import { debounce } from 'lodash';
 import { Employee } from 'app/(admin)/employees';
@@ -42,6 +41,7 @@ const SearchOverlayComponent = ({
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [showOverlay, setShowOverlay] = useState(false);
   const [loading, setLoading] = useState(false);
+  const inputRef = useRef<TextInput>(null);
 
   const handleSearch = useCallback(
     debounce((text: string) => {
@@ -52,7 +52,7 @@ const SearchOverlayComponent = ({
   );
 
   useEffect(() => {
-    if (searchQuery.trim()) {
+    if (searchQuery.trim().length > 0) {
       setShowOverlay(true);
       setLoading(true);
       handleSearch(searchQuery);
@@ -68,19 +68,29 @@ const SearchOverlayComponent = ({
       : configFile.api.superAdmin.app.sqEmployeeSearch(debouncedQuery);
   };
 
-  return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      style={[styles.container, containerStyle]}>
-      <TextInput
-        placeholder="Search here..."
-        value={searchQuery}
-        onChangeText={(text) => setSearchQuery(text.toUpperCase())}
-        style={[styles.input, inputStyle]}
-      />
+  const handleDismiss = () => {
+    Keyboard.dismiss();
+    inputRef.current?.blur();
+    if (searchQuery.length < 1) setShowOverlay(false);
+  };
 
-      {showOverlay && (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+  return (
+    <TouchableWithoutFeedback onPress={handleDismiss}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={[
+          styles.container,
+          searchQuery.length >= 1 && styles.fullHeight && { minHeight: '100%' },
+        ]}>
+        <TextInput
+          ref={inputRef}
+          placeholder="Search here..."
+          value={searchQuery}
+          onChangeText={(text) => setSearchQuery(text.toUpperCase())}
+          style={[styles.input, inputStyle]}
+        />
+
+        {showOverlay && (
           <View style={[styles.overlay, overlayStyle]}>
             {loading ? (
               <ActivityIndicator size="large" color="#000" style={{ marginTop: 20 }} />
@@ -95,9 +105,9 @@ const SearchOverlayComponent = ({
               />
             )}
           </View>
-        </TouchableWithoutFeedback>
-      )}
-    </KeyboardAvoidingView>
+        )}
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -110,21 +120,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginTop: 20,
   },
+  fullHeight: {
+    flex: 1,
+  },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: configFile.colorGreen,
     borderRadius: 8,
     paddingHorizontal: 12,
     height: 40,
     backgroundColor: '#fff',
     fontSize: 14,
+    marginBottom: 8,
   },
   overlay: {
     position: 'absolute',
     top: 50,
     left: 0,
     right: 0,
-    height: height - 100,
+    bottom: 0,
     backgroundColor: '#ffffffee',
     borderTopWidth: 1,
     borderColor: '#ccc',

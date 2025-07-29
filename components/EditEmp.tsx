@@ -22,13 +22,15 @@ import { configFile } from 'config';
 import { Api } from 'class/HandleApi';
 import EntityDropdown from './DropDown';
 import { EsiCard } from './EsiCard';
+import EmployeeVerification from './EmployeeVerification';
 
 interface EditEmpProps {
   employeeData: Record<string, any>;
   showEditModal: boolean;
   setShowEditModal: (val: boolean) => void;
-  onSaveSuccess?: () => void;
+  onSaveSuccess: () => void;
   setSelectedEmployee: (val: any) => void;
+  setReload: () => void;
 }
 
 const roles = ['Employee', 'Executive', 'Manager', 'Admin', 'SuperAdmin'];
@@ -40,10 +42,12 @@ const EditEmp: React.FC<EditEmpProps> = ({
   setShowEditModal,
   setSelectedEmployee,
   onSaveSuccess,
+  setReload,
 }) => {
   const [form, setForm] = useState<Record<string, any>>({});
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showEsiCard, setShowEsiCard] = useState(false);
+  const [showVerModal, setShowVerModal] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -65,9 +69,9 @@ const EditEmp: React.FC<EditEmpProps> = ({
       const api = await Api.handleApi({ url, type: 'PUT', payload });
 
       if (api.status < 210) {
-        Alert.alert('Updated!', api.data.message || 'Employee updated successfully!');
-        setShowEditModal(false);
         onSaveSuccess?.();
+        Alert.alert('Updated!', api.data.message || 'Employee updated successfully!');
+        setShowEditModal(false); // ✅ Triggers refresh via parent
         setSelectedEmployee(null);
       } else {
         Alert.alert('Failed!', api.data.message || 'Something went wrong while updating.');
@@ -283,6 +287,15 @@ const EditEmp: React.FC<EditEmpProps> = ({
               </ScrollView>
             )}
           </View>
+          {showVerModal && (
+            <EmployeeVerification
+              visible={showVerModal}
+              employee={form}
+              onVerified={() => {
+                console.log('Verified');
+              }}
+            />
+          )}
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </Modal>

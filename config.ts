@@ -31,6 +31,7 @@ export const configFile = {
     get baseUrl() {
       return backendBaseUrl;
     },
+    verifyToken: `${backendBaseUrl}api/verifyToken`,
     attendance: {
       checkIn() {
         return `${backendBaseUrl}api/attendance/checkIn`; //post
@@ -132,6 +133,10 @@ export const configFile = {
           update(id: string) {
             return `${backendBaseUrl}api/uniforms/docId/${id}`; //put
           },
+        },
+        idcard: {
+          get: `${backendBaseUrl}api/idcard/get`,
+          update: `${backendBaseUrl}api/idcard/updateIdCard`,
         },
         leaves: {
           update(id: string) {

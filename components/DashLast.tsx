@@ -12,15 +12,15 @@ type Props = {
   cardSize: number;
   empId: string;
   isMale: boolean;
+  esiCard: string | undefined;
 };
 
-const names = ['Pay slip', 'Uniform Request', 'Leave Request']; // Change this to test odd/even
+const names = ['Pay slip', 'Leave Request']; // Change this to test odd/even
 const icon3 = <MaterialCommunityIcons name="cash-check" size={54} color="white" />;
-const icon4 = <Ionicons name="shirt" size={54} color="white" />;
 const icon5 = <Fontisto name="holiday-village" size={54} color="white" />;
-const icons = [icon3, icon4, icon5];
+const icons = [icon3, icon5];
 
-const DashLast = ({ role, cardSize, empId, isMale }: Props) => {
+const DashLast = ({ role, cardSize, empId, isMale, esiCard }: Props) => {
   const isOdd = names.length % 2 !== 0;
   return (
     <View

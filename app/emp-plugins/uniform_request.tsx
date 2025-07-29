@@ -166,33 +166,6 @@ const Uniform = () => {
           keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}>
           <ScrollView
             contentContainerStyle={{ flexGrow: 1, padding: scale(16), paddingBottom: 40 }}>
-            {/* Editable Inputs */}
-            <CustomInput
-              label="Employee ID"
-              value={state.empId}
-              onChangeText={(text) => setState((prev) => ({ ...prev, empId: text }))}
-              editable={true}
-            />
-            <CustomInput
-              label="Name"
-              value={state.name}
-              onChangeText={(text) => setState((prev) => ({ ...prev, name: text }))}
-              editable={true}
-            />
-            <CustomInput
-              label="Designation"
-              value={state.designation}
-              onChangeText={(text) => setState((prev) => ({ ...prev, designation: text }))}
-              editable={true}
-            />
-            <CustomInput
-              label="Site"
-              value={state.site}
-              onChangeText={(text) => setState((prev) => ({ ...prev, site: text }))}
-              editable={true}
-            />
-
-            {/* Gender Selector */}
             <View
               style={{
                 flexDirection: 'row',
@@ -226,6 +199,34 @@ const Uniform = () => {
                 </Pressable>
               </View>
             </View>
+
+            {/* Editable Inputs */}
+            <CustomInput
+              label="Employee ID"
+              value={state.empId}
+              onChangeText={(text) => setState((prev) => ({ ...prev, empId: text }))}
+              editable={true}
+            />
+            <CustomInput
+              label="Name"
+              value={state.name}
+              onChangeText={(text) => setState((prev) => ({ ...prev, name: text }))}
+              editable={true}
+            />
+            <CustomInput
+              label="Designation"
+              value={state.designation}
+              onChangeText={(text) => setState((prev) => ({ ...prev, designation: text }))}
+              editable={true}
+            />
+            <CustomInput
+              label="Site"
+              value={state.site}
+              onChangeText={(text) => setState((prev) => ({ ...prev, site: text }))}
+              editable={true}
+            />
+
+            {/* Gender Selector */}
 
             {manualGender === 'male' ? (
               <>

@@ -4,6 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import EntityDropdown from './DropDown';
 
 export type StatusTypes = 'present' | 'absent' | 'late' | '';
+export type TypeFilter = 'client' | 'others';
 
 interface FilterProps {
   showFilterModal: boolean;
@@ -13,6 +14,7 @@ interface FilterProps {
       startDate?: string;
       endDate?: string;
       status?: StatusTypes;
+      type?: TypeFilter;
       employeeId: string;
     }>
   >;
@@ -29,6 +31,7 @@ const AttendFilterModal: React.FC<FilterProps> = ({
   setFilters,
   empId,
 }) => {
+  const [type, setType] = useState<TypeFilter>('client');
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [status, setStatus] = useState<StatusTypes | null>(null);
@@ -53,6 +56,7 @@ const AttendFilterModal: React.FC<FilterProps> = ({
       ...(appliedStartDate && { startDate: formatDate(appliedStartDate) }),
       ...(appliedEndDate && { endDate: formatDate(appliedEndDate) }),
       ...(status && { status }),
+      ...(type && { type }),
     });
 
     setShowFilterModal(false);
@@ -90,6 +94,17 @@ const AttendFilterModal: React.FC<FilterProps> = ({
               onPress={() => setStatus(s)}>
               <View style={[styles.dot, styles[`dot_${s}`]]} />
               <Text style={styles.statusLabel}>{s}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.typeSelector}>
+          {(['client', 'others'] as TypeFilter[]).map((t) => (
+            <TouchableOpacity
+              key={t}
+              onPress={() => setType(t)}
+              style={[styles.typeOption, type === t && styles.selectedType]}>
+              <Text style={styles.typeText}>{t === 'client' ? 'Client' : 'Others'}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -212,6 +227,26 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
     fontWeight: '500',
     color: '#333',
+  },
+  typeSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    marginBottom: 12,
+  },
+  typeOption: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: '#eee',
+    borderRadius: 8,
+  },
+  selectedType: {
+    backgroundColor: '#007bff',
+  },
+  typeText: {
+    fontSize: 16,
+    color: 'white',
+    fontWeight: '500',
+    textTransform: 'capitalize',
   },
   applyButton: {
     marginTop: 20,

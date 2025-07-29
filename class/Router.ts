@@ -8,6 +8,7 @@ interface NesParamsTypes {
   empId: string;
   name?: string;
   company: 'sdce' | 'sq';
+  route?: string;
 }
 export class NavRouter {
   public static async reDirect(path: string, options: { role: string; empID: string }) {
@@ -52,7 +53,18 @@ export class NavRouter {
 
     const backPressHandler = () => {
       try {
-        this.backOrigin?.({ role: options.role, empId: options.empId });
+        if (options.route) {
+          router.replace({
+            pathname: options.route,
+            params: {
+              empId: options.empId,
+              role: options.role,
+              company: options.company,
+            },
+          });
+        } else {
+          this.backOrigin?.({ role: options.role, empId: options.empId, company: options.company });
+        }
       } catch (err) {
         console.error('Error in backOrigin:', err);
       }
@@ -69,19 +81,5 @@ export class NavRouter {
       }
     };
   }
-
-  // public static async BackHandler(options: NesParamsTypes) {
-  //   console.log('backHandlerExe:::', options);
-
-  //   const path = async () => {
-  //     await this.backOrigin({ role: options.role, empId: options.empId, company: options.company });
-  //     return true; // Make sure to return true to prevent default back behavior
-  //   };
-
-  //   const subscription = BackHandler.addEventListener('hardwareBackPress', path);
-
-  //   // Return a cleanup function
-  //   return () => subscription.remove();
-  // }
   public static automateRoute(empID: string) {}
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,7 @@ import { isReadOnlyRole } from 'utils/roleUtils';
 import { NavRouter } from 'class/Router';
 import { Colors } from 'class/Colors';
 
-import AttendFilterModal, { StatusTypes } from 'components/AttendFilterModal';
+import AttendFilterModal, { StatusTypes, TypeFilter } from 'components/AttendFilterModal';
 import RecordModal from 'components/AttenModal';
 import AttendCard from 'components/AttendCard';
 import FilterIcon from 'components/FilterIcon';
@@ -30,8 +30,8 @@ const AttendanceScreen = () => {
   const [myOnly, setMyOnly] = useState(true);
 
   const [loading, setLoading] = useState(true);
-  const [attendance, setAttendance] = useState([]);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [attendance, setAttendance] = useState<any[]>([]);
+  const [selectedItem, setSelectedItem] = useState<any>(null);
   const [showRecordModal, setShowRecordModal] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
 
@@ -39,30 +39,38 @@ const AttendanceScreen = () => {
     startDate?: string;
     endDate?: string;
     status?: StatusTypes;
+    type?: 'others' | 'client';
     employeeId: string;
   }>({
     employeeId: empId?.toString() || '',
+    type: 'client',
   });
+
+  useEffect(() => {
+    console.log(showFilterModal, '////?SHOW FILTER MODAL');
+    console.log(filters, '//filters');
+  }, [showFilterModal]);
 
   const fetchAttendance = useCallback(async () => {
     if (!filters.employeeId) return;
 
+    setLoading(true);
     try {
-      setLoading(true);
       const url = myOnly
         ? `${BASE_URL}/attendance/getEmpHistory`
         : `${BASE_URL}/attendance/getTeamHistory`;
 
       const params = {
         employeeId: filters.employeeId,
-        startDate: filters.startDate || undefined,
-        endDate: filters.endDate || undefined,
-        status: filters.status || undefined,
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        status: filters.status,
+        type: filters.type,
         page: 1,
         limit: 20,
       };
 
-      console.log('Invoking:: ', url, ' / ', params);
+      console.log(url, '//', params);
 
       const { data } = await axios.get(url, { params });
       setAttendance(data?.data || []);
@@ -76,10 +84,12 @@ const AttendanceScreen = () => {
   useEffect(() => {
     const cleanup = NavRouter.BackHandler({ role, empId });
     return cleanup;
-  }, []);
+  }, [role, empId]);
 
   useEffect(() => {
-    if (isFocused) fetchAttendance();
+    if (isFocused) {
+      fetchAttendance();
+    }
   }, [isFocused, fetchAttendance]);
 
   const renderItem = useCallback(
@@ -93,6 +103,10 @@ const AttendanceScreen = () => {
     ),
     [showRecordModal]
   );
+
+  const handleDelete = useCallback(() => {
+    fetchAttendance();
+  }, [fetchAttendance]);
 
   return (
     <View style={[styles.container, { backgroundColor: Colors.get('sdce', 'bg') }]}>
@@ -115,19 +129,21 @@ const AttendanceScreen = () => {
           ),
         }}
       />
-
-      {/* <TouchableOpacity onPress={() => setShowFilterModal(true)} style={styles.filterTrigger}>
-        <Text style={styles.filterText}>Open Filter</Text>
-      </TouchableOpacity> */}
-
-      <FilterIcon filters={filters} onPress={() => setShowFilterModal(!showFilterModal)} />
-
-      <AttendFilterModal
-        showFilterModal={showFilterModal}
-        setShowFilterModal={setShowFilterModal}
-        setFilters={setFilters}
-        empId={filters.employeeId}
+      <FilterIcon
+        filters={filters}
+        onPress={() => {
+          setShowFilterModal(!showFilterModal);
+        }}
       />
+      {showFilterModal && (
+        <AttendFilterModal
+          showFilterModal={showFilterModal}
+          setShowFilterModal={setShowFilterModal}
+          setFilters={setFilters}
+          empId={filters.employeeId}
+          Type={filters.type}
+        />
+      )}
 
       {loading ? (
         <View style={styles.centerContainer}>
@@ -142,7 +158,7 @@ const AttendanceScreen = () => {
           onRefresh={fetchAttendance}
           refreshing={loading}
           ListEmptyComponent={
-            <View style={{ padding: 24, alignItems: 'center' }}>
+            <View style={styles.centerContainer}>
               <Text style={{ color: '#888' }}>No attendance records found</Text>
             </View>
           }
@@ -164,14 +180,6 @@ const AttendanceScreen = () => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  filterTrigger: {
-    margin: 12,
-    backgroundColor: configFile.colorGreen,
-    padding: 12,
-    borderRadius: 6,
-    alignItems: 'center',
-  },
-  filterText: { color: 'white', fontWeight: 'bold' },
 });
 
 export default AttendanceScreen;

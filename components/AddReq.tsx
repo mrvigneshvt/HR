@@ -1,26 +1,53 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Modal, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Fontisto } from '@expo/vector-icons';
+import AntDesign from '@expo/vector-icons/AntDesign';
 import { router } from 'expo-router';
+import { NavRouter } from 'class/Router';
+import { company } from 'Memory/Token';
 
 interface IconModalProps {
   showModal: boolean;
   setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
   empId: string;
   role: string;
+  company: company;
 }
 
-const IconModal: React.FC<IconModalProps> = ({ showModal, setShowModal, role, empId }) => {
-  const redirect = (from: 'uniform' | 'leave') => {
+const IconModal: React.FC<IconModalProps> = ({ showModal, setShowModal, role, empId, company }) => {
+  const redirect = (from: 'uniform' | 'leave' | 'id') => {
+    const path =
+      from === 'uniform'
+        ? '/emp-plugins/uniform_request'
+        : from === 'leave'
+          ? '/emp-plugins/leave_request'
+          : '/emp-plugins/id_card_request';
+
     router.replace({
-      pathname: from !== 'leave' ? '/emp-plugins/uniform_request' : '/emp-plugins/leave_request',
-      params: {
-        role,
-        empId,
-      },
+      pathname: path,
+      params: { role, empId, company },
     });
   };
+
+  useEffect(() => {
+    NavRouter.backOrigin({ role, empId });
+  }, []);
+
+  const IconButton = ({
+    onPress,
+    children,
+    bgColor,
+  }: {
+    onPress: () => void;
+    children: React.ReactNode;
+    bgColor: string;
+  }) => (
+    <TouchableOpacity style={[styles.iconBox, { backgroundColor: bgColor }]} onPress={onPress}>
+      {children}
+    </TouchableOpacity>
+  );
+
   return (
     <Modal
       visible={showModal}
@@ -30,17 +57,15 @@ const IconModal: React.FC<IconModalProps> = ({ showModal, setShowModal, role, em
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.iconRow}>
-            <TouchableOpacity
-              style={[styles.iconBox, styles.blueBox]}
-              onPress={() => redirect('uniform')}>
+            <IconButton onPress={() => redirect('uniform')} bgColor="#d0ebff">
               <Ionicons name="shirt" size={30} color="#333" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.iconBox, styles.greenBox]}
-              onPress={() => redirect('leave')}>
+            </IconButton>
+            <IconButton onPress={() => redirect('leave')} bgColor="#d3f9d8">
               <Fontisto name="holiday-village" size={30} color="#333" />
-            </TouchableOpacity>
+            </IconButton>
+            <IconButton onPress={() => redirect('id')} bgColor="#fcefc7">
+              <AntDesign name="idcard" size={26} color="#333" />
+            </IconButton>
           </View>
 
           <TouchableOpacity style={styles.cancelButton} onPress={() => setShowModal(false)}>
@@ -62,7 +87,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   container: {
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 20,
     width: '80%',
@@ -79,12 +104,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  blueBox: {
-    backgroundColor: '#d0ebff', // light blue
-  },
-  greenBox: {
-    backgroundColor: '#d3f9d8', // light green
   },
   cancelButton: {
     backgroundColor: '#ddd',

@@ -42,6 +42,10 @@ import { Colors } from 'class/Colors';
 import Checkbox from 'components/Checkbox';
 
 const ClientsScreen = () => {
+  const params = useLocalSearchParams();
+  const role = params.role as string | undefined;
+  const empId = params.empId as string | undefined;
+  const company = params.company as string | undefined;
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -54,7 +58,7 @@ const ClientsScreen = () => {
   const [totalPages, setTotalPages] = useState<number>(1);
   const [loading, setLoading] = useState(false);
   const [fetchingMore, setFetchingMore] = useState(false);
-  const [Company, setCompany] = useState<company>('sdce');
+  const [Company, setCompany] = useState<company>(company || 'sdce');
 
   const switchCompany = () => setCompany((prev) => (prev === 'sdce' ? 'sq' : 'sdce'));
 
@@ -93,17 +97,20 @@ const ClientsScreen = () => {
   const [isAssigningWork, setIsAssigningWork] = useState(false);
   const [showFromDatePicker, setShowFromDatePicker] = useState(false);
   const [showToDatePicker, setShowToDatePicker] = useState(false);
-  const params = useLocalSearchParams();
-  const role = params.role as string | undefined;
-  const empId = params.empId as string | undefined;
   const readOnly = isReadOnlyRole(role);
   console.log('ClientsScreen readOnly:', readOnly, 'role:', role);
   const [token, setToken] = useState<string>('');
   useEffect(() => {
     fetchClients(1);
     const token = State.getToken();
+
     setToken(token);
   }, [isFocus, Company]);
+
+  useEffect(() => {
+    setCompany(company);
+    NavRouter.BackHandler({ role, empId, company: Company });
+  }, [isFocus]);
 
   const fetchClients = async (pageNo: number, selfMode = self) => {
     if (pageNo > totalPages) return;
@@ -507,11 +514,6 @@ const ClientsScreen = () => {
           </View>
           {!readOnly && (
             <View className="flex-row gap-2">
-              {/* <Pressable
-                onPress={() => handleAssignWorkClick(client)}
-                className="rounded-full bg-green-100 p-2">
-                <MaterialIcons name="work" size={20} color="#4CAF50" />
-              </Pressable> */}
               <Pressable
                 onPress={() => openEditClientModal(client)}
                 className="rounded-full bg-blue-100 p-2">
@@ -586,7 +588,7 @@ const ClientsScreen = () => {
             {renderFormField('Lunch Time', 'lunch_time', 'HH:MM:SS')}
             {renderFormField('Check-out Time', 'check_out', 'HH:MM:SS')}
 
-            {showAddModal &&
+            {/* {showAddModal &&
               formData.latitude &&
               formData.longitude &&
               formData.checkIn &&
@@ -597,7 +599,7 @@ const ClientsScreen = () => {
                   value={formData.selfClient}
                   setValue={(value) => handleInputChange('selfClient', value)}
                 />
-              )}
+              )} */}
 
             <View className="mb-10 mt-3 flex-row justify-between">
               <Pressable
@@ -772,10 +774,6 @@ const ClientsScreen = () => {
     </Modal>
   );
 
-  useEffect(() => {
-    NavRouter.BackHandler({ role, empId });
-  }, []);
-
   const renderItem = ({ item }: { item: Client }) => renderClientCard(item);
 
   // Handler to open add client modal
@@ -827,14 +825,14 @@ const ClientsScreen = () => {
                 justifyContent: 'center',
                 gap: 13,
               }}>
-              <TouchableOpacity onPress={switchCompany}>
+              {/* <TouchableOpacity onPress={switchCompany}>
                 {Company === 'sdce' ? (
                   <MaterialIcons name="security" size={24} color="white" />
                 ) : (
                   <MaterialCommunityIcons name="broom" size={24} color="white" />
                 )}
-              </TouchableOpacity>
-              <TouchableOpacity
+              </TouchableOpacity> */}
+              {/* <TouchableOpacity
                 onPress={() => {
                   setSelf((prev) => {
                     const next = !prev;
@@ -847,7 +845,7 @@ const ClientsScreen = () => {
                 ) : (
                   <FontAwesome6 name="building-shield" size={24} color="white" />
                 )}
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
           ),
         }}

@@ -18,10 +18,17 @@ import ImageCom from 'components/ImageCom';
 import LoadingScreen from 'components/LoadingScreen';
 import { configFile } from '../../../config';
 import { EsiCard } from 'components/EsiCard';
+import { NavRouter } from 'class/Router';
+import { useLocalSearchParams } from 'expo-router';
+import { company } from '../../../Memory/Token';
 
 export default function ProfileScreen() {
+  const { company, role, empId } = useLocalSearchParams() as {
+    company: company;
+    role: string;
+    empId: string;
+  };
   const employees = useEmployeeStore((state) => state.employee);
-
   const [form, setForm] = useState<any>({});
   const [showEsiCard, setShowEsiCard] = useState(false);
 
@@ -34,6 +41,7 @@ export default function ProfileScreen() {
         profileImage: employees.profile_image,
       });
     }
+    NavRouter.BackHandler({ role: employees?.role, empId, company });
   }, [employees]);
 
   const handleChange = (key: string, value: any) => {

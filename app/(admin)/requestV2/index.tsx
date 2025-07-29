@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,13 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
-import {
-  Entypo,
-  FontAwesome,
-  FontAwesome6,
-  MaterialCommunityIcons,
-  MaterialIcons,
-} from '@expo/vector-icons';
+import { Entypo, FontAwesome, FontAwesome6 } from '@expo/vector-icons';
 import { configFile } from 'config';
 import { Api } from 'class/HandleApi';
 import { company } from 'Memory/Token';
@@ -23,35 +17,76 @@ import PaginatedComponent from 'components/Pagination';
 import TabSwitcher from 'components/TabSwitch';
 import { Colors } from 'class/Colors';
 import IconModal from 'components/AddReq';
+import CompanySwitch from 'components/CompanySwitch';
+import { useIsFocused } from '@react-navigation/native';
 
 const IndexScreen = () => {
-  const { empId, role } = useLocalSearchParams<{ role: string; empId: string }>();
-  const [activeTab, setActiveTab] = useState<'uniform' | 'leave'>('uniform');
+  const { empId, role, company } = useLocalSearchParams<{
+    role: string;
+    empId: string;
+    company: company;
+  }>();
+
+  const isFocussed = useIsFocused();
+
+  const [activeTab, setActiveTab] = useState<'uniform' | 'leave' | 'id'>('uniform');
   const [expandedCardId, setExpandedCardId] = useState<string | number | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showModal, setShowModal] = useState<'accept' | 'reject' | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [reload, setReload] = useState(0);
-  const [Company, setCompany] = useState<company>('sdce');
+  const [Company, setCompany] = useState<company>(company || 'sdce');
+
   const switchCompany = () => setCompany((prev) => (prev === 'sdce' ? 'sq' : 'sdce'));
+
+  const apiURL = (tab: 'uniform' | 'leave' | 'id card') => {
+    console.log('incoming TAB::: ', tab);
+    const prefix = Company === 'sdce' ? '' : 'sq';
+    const endpoints = {
+      uniform: configFile.api.superAdmin.app[`${prefix}uniform`],
+      leave: configFile.api.superAdmin.app[`${prefix}leave`],
+      id: configFile.api.superAdmin.request.idcard.get,
+    };
+    if (tab === 'id card') return endpoints.id;
+    console.log(endpoints, '///TOTAL');
+    console.log(endpoints[tab], '////ID');
+    return endpoints[tab];
+  };
+
+  useEffect(() => {
+    setCompany(company);
+  }, [isFocussed]);
 
   const handleToggle = async (action: 'Approved' | 'Rejected') => {
     if (!selectedRequest) return;
+
     setLoading(true);
     try {
+      let url: string;
       const isUniform = !!selectedRequest.gender;
-      const url = isUniform
-        ? configFile.api.superAdmin.request.uniform.update(selectedRequest._id)
-        : configFile.api.superAdmin.request.leaves.update(selectedRequest._id);
+
+      if (activeTab === 'uniform') {
+        url = configFile.api.superAdmin.request.uniform.update(selectedRequest._id);
+      } else if (activeTab === 'leave') {
+        url = configFile.api.superAdmin.request.leaves.update(selectedRequest._id);
+      } else {
+        url = configFile.api.superAdmin.request.idcard.update;
+      }
 
       const api = await Api.handleApi({
         url,
         type: 'PUT',
-        payload: { ...selectedRequest, status: action },
+        payload:
+          activeTab === 'id'
+            ? { id: selectedRequest.id, status: action }
+            : { ...selectedRequest, status: action },
       });
-      Alert.alert(api.status === 200 ? 'Success' : 'Failed', api.data.message);
-      if (api.status === 200) {
+
+      const isSuccess = api.status === 200;
+      Alert.alert(isSuccess ? 'Success' : 'Failed', api.data.message);
+
+      if (isSuccess) {
         setSelectedRequest(null);
         setShowModal(null);
         setReload((prev) => prev + 1);
@@ -122,8 +157,9 @@ const IndexScreen = () => {
     }
   };
 
-  const formatDate = (dateStr?: string) =>
+  const formatDate = (dateStr?: string, sike?: boolean) =>
     dateStr ? new Date(dateStr).toLocaleDateString('en-IN') : null;
+
   const renderLine = (label: string, value?: string | number) =>
     value ? (
       <Text className="mb-1 text-sm text-gray-700">
@@ -145,9 +181,8 @@ const IndexScreen = () => {
       ) : (
         ''
       );
-    const statusColor = getStatusColor(req.status);
 
-    // Find ID badge if any accessory starts with "id"
+    const statusColor = getStatusColor(req.status);
     const hasIdBadge = (req.accessories || []).some((acc: string) =>
       acc.toLowerCase().startsWith('id')
     );
@@ -159,13 +194,14 @@ const IndexScreen = () => {
           className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3">
           <View className="flex-1">
             <Text className="flex-row items-center text-lg font-bold text-gray-800">
-              {req.name || req.employeeName} {genderIcon}{' '}
+              {req.name || req.employeeName || req.employee_name} {genderIcon}
               {hasIdBadge && renderIdCard({ size: 18, color: '#2563eb' })}
             </Text>
-            {renderLine('ID', req.empId || req.employeeId)}
-            {type == 'uniform'
-              ? renderLine('Requested on', req.requestedDate.split('T')[0] || req.requestedDate)
-              : renderLine('Requested on', req.createdAt.split('T')[0] || req.createdAt)}
+            {renderLine('ID', req.empId || req.employeeId || req.employee_id)}
+            {renderLine(
+              'Requested on',
+              req.requested_at ? req.requested_at : formatDate(req.requestedDate || req.createdAt)
+            )}
           </View>
           <View className="flex-row items-center space-x-2">
             <View className="h-2 w-2 rounded-full" style={{ backgroundColor: statusColor }} />
@@ -177,7 +213,9 @@ const IndexScreen = () => {
           <View className="bg-white px-4 py-3">
             <View className="flex-row flex-wrap justify-between gap-2">
               <View className="w-full md:w-[48%]">
-                {renderLine('Designation', req.designation)}
+                {req.departmant
+                  ? renderLine('Department', req.department)
+                  : renderLine('Designation', req.designation)}
                 {renderLine('Site', req.site)}
                 {renderLine('Location', req.location)}
                 {renderLine('Gender', req.gender)}
@@ -195,14 +233,14 @@ const IndexScreen = () => {
                       {renderLine('Pant Size', req.pantSize)}
                     </>
                   )
-                ) : (
+                ) : type === 'leave' ? (
                   <>
                     {renderLine('Leave Type', req.leaveType)}
                     {renderLine('Duration', req.numberOfDays + ' days')}
                     {renderLine('Start Date', formatDate(req.startDate))}
                     {renderLine('End Date', formatDate(req.endDate))}
                   </>
-                )}
+                ) : null}
                 {renderLine('Shoe Size', req.shoeSize || req.femaleShoeSize)}
                 {renderLine('Accessories', (req.accessories || req.femaleAccessories)?.join(', '))}
               </View>
@@ -246,13 +284,6 @@ const IndexScreen = () => {
     );
   };
 
-  const apiURL = (tab: 'uniform' | 'leave') => {
-    const key = tab === 'uniform' ? 'uniform' : 'leave';
-    return Company === 'sdce'
-      ? configFile.api.superAdmin.app[key]
-      : configFile.api.superAdmin.app[`sq${key}`];
-  };
-
   return (
     <>
       <Stack.Screen
@@ -263,17 +294,11 @@ const IndexScreen = () => {
           headerTintColor: 'white',
           headerRight: () => (
             <View className="mr-2 flex flex-row items-center justify-center gap-2">
-              <TouchableOpacity onPress={switchCompany}>
-                {Company === 'sdce' ? (
-                  <MaterialIcons name="security" size={24} color="white" />
-                ) : (
-                  <MaterialCommunityIcons name="broom" size={24} color="white" />
-                )}
-              </TouchableOpacity>
+              {/* <CompanySwitch setCompany={setCompany} company={Company} /> */}
               <TouchableOpacity
                 onPress={() => setShowAddModal(!showAddModal)}
-                className="rounded-full bg-white p-0.5">
-                <FontAwesome6 name="add" size={20} color={configFile.colorGreen} />
+                className="flex-row rounded-full p-0.5">
+                <FontAwesome6 name="add" size={20} color={'white'} />
               </TouchableOpacity>
             </View>
           ),
@@ -282,14 +307,11 @@ const IndexScreen = () => {
 
       <View
         className="rounded-t-1xl flex-1 bg-white p-6"
-        style={{
-          backgroundColor: Colors.get(Company, 'bg'),
-          // '#FF7F51',
-        }}>
+        style={{ backgroundColor: Colors.get(Company, 'bg') }}>
         <TabSwitcher
-          tabs={['Uniform', 'Leave']}
+          tabs={['Uniform', 'Leave', 'Id Card']}
           activeTab={activeTab}
-          onTabChange={(tab) => setActiveTab(tab.toLowerCase() as 'uniform' | 'leave')}
+          onTabChange={(tab) => setActiveTab(tab.toLowerCase() as 'uniform' | 'leave' | 'id')}
         />
 
         <PaginatedComponent
@@ -297,12 +319,12 @@ const IndexScreen = () => {
           url={apiURL(activeTab)}
           limit={10}
           renderItem={({ item, index }) => {
-            const action = (item.empId || item.employeeId) !== empId;
+            const showActions = (item.empId || item.employeeId) !== empId;
             const cardId = item._id ?? index;
             return renderRequestCard({
               req: item,
               type: activeTab,
-              showActions: action,
+              showActions,
               idx: cardId,
               isExpanded: expandedCardId === cardId,
               onToggleExpand: () => setExpandedCardId((prev) => (prev === cardId ? null : cardId)),
@@ -310,15 +332,15 @@ const IndexScreen = () => {
           }}
         />
       </View>
+
       {renderConfirmModal()}
-      {
-        <IconModal
-          setShowModal={setShowAddModal}
-          showModal={showAddModal}
-          empId={empId}
-          role={role}
-        />
-      }
+
+      <IconModal
+        setShowModal={setShowAddModal}
+        showModal={showAddModal}
+        empId={empId}
+        role={role}
+      />
     </>
   );
 };

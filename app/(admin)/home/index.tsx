@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, memo } from 'react';
 import {
   View,
   Text,
@@ -17,12 +17,14 @@ import {
   MaterialIcons,
 } from '@expo/vector-icons';
 
-import { configFile } from '../../../config';
+import DashTop from 'components/DashTop';
+import CompanySwitch from 'components/CompanySwitch';
 import { Api } from 'class/HandleApi';
 import { State } from 'class/State';
 import { NavRouter } from 'class/Router';
-import DashTop from 'components/DashTop';
 import { Colors } from 'class/Colors';
+import { configFile } from '../../../config';
+import { LocalStore } from 'class/LocalStore';
 
 const { width } = Dimensions.get('window');
 const scaleSize = (size: number) => (width / 360) * size;
@@ -68,23 +70,6 @@ const menuCardsList = [
     color: '#f7971e',
     route: '/emp-plugins/pay_slip',
   },
-  // {
-  //   key: 'leave_request',
-  //   title: 'Leave Request',
-  //   icon: 'holiday-village',
-  //   isFontisto: true,
-  //   description: 'Apply for leave',
-  //   color: '#00b09b',
-  //   route: '/emp-plugins/leave_request',
-  // },
-  // {
-  //   key: 'uniform_request',
-  //   title: 'Uniform Request',
-  //   icon: 'shirt',
-  //   description: 'Raise Uniform Request for Employees',
-  //   color: '#b92b27',
-  //   route: '/emp-plugins/uniform_request',
-  // },
   {
     key: 'feedback_request',
     title: 'Feedback',
@@ -92,19 +77,63 @@ const menuCardsList = [
     description: 'Manage Feedbacks from Clients',
     color: '#b92b27',
     route: '/emp-plugins/feedback_request',
-    isMaterial: true,
+    type: 'material',
   },
 ];
 
+// 🎨 Icon component logic
+const getIcon = (icon: string, type?: string, color?: string, size = 24) => {
+  switch (type) {
+    case 'material':
+      return <MaterialIcons name={icon} size={size} color={color} />;
+    case 'fontisto':
+      return <Fontisto name={icon} size={size} color={color} />;
+    default:
+      return <Ionicons name={icon} size={size} color={color} />;
+  }
+};
+
+// 📦 Menu card component
+const MenuCard = memo(({ item, onPress, bgColor }: any) => (
+  <TouchableOpacity
+    onPress={() => onPress(item.route)}
+    style={[
+      styles.card,
+      {
+        borderLeftColor: item.color,
+        backgroundColor: bgColor,
+      },
+    ]}>
+    <View style={styles.cardContent}>
+      <View style={styles.cardIcon}>{getIcon(item.icon, item.type, item.color)}</View>
+      <View style={styles.cardTextContainer}>
+        <Text style={styles.cardTitle}>{item.title}</Text>
+        <Text style={styles.cardDescription}>{item.description}</Text>
+      </View>
+      <Ionicons name="chevron-forward-circle-outline" size={scaleSize(22)} color={item.color} />
+    </View>
+  </TouchableOpacity>
+));
+
+// 🏠 Main HomeScreen
 const HomeScreen = () => {
   const router = useRouter();
-  const params = useLocalSearchParams<{ role: string; empId: string }>();
-  const [company, setCompany] = useState<'sdce' | 'sq'>('sdce');
-  const [empData, setEmpData] = useState<Record<string, any> | null>(null);
+  const {
+    role,
+    empId: paramEmpId,
+    company: paramCompany,
+  } = useLocalSearchParams<{
+    role: string;
+    empId: string;
+    company: 'sdce' | 'sq';
+  }>();
 
-  const role = params.role;
-  const getPrefix = (comp: string) => (comp === 'sdce' ? 'SFM' : 'SQ');
-  const [empId, setEmpId] = useState(() => params.empId.replace(/^SFM|^SQ/i, getPrefix(company)));
+  const [company, setCompany] = useState<'sdce' | 'sq'>(paramCompany || 'sdce');
+
+  // const getPrefix = useCallback((comp: string) => (comp === 'sdce' ? 'SFM' : 'SQ'), []);
+  const [empId, setEmpId] = useState(paramEmpId);
+
+  const [empData, setEmpData] = useState<Record<string, any> | null>(null);
 
   const fetchEmpData = useCallback(async (id: string) => {
     try {
@@ -119,122 +148,57 @@ const HomeScreen = () => {
   }, []);
 
   useEffect(() => {
-    const activeCompany = State.getCompany() || company;
-    const adjustedEmpId = params.empId.replace(/^sfm|^sq/i, getPrefix(activeCompany));
+    const activeCompany = empId?.toLowerCase().startsWith('sfm') ? 'sdce' : 'sq';
     State.storeCompany(activeCompany);
     setCompany(activeCompany);
-    setEmpId(adjustedEmpId);
-    fetchEmpData(adjustedEmpId);
-    // setTimeout(() => {
-    //   router.replace({
-    //     pathname: '/employeesV2',
-    //     params: {
-    //       role,
-    //       empId,
-    //       company,
-    //     },
-    //   });
-    // }, 50);
-    NavRouter.BackHandler({ role, empId: adjustedEmpId, company: activeCompany });
+    fetchEmpData(empId);
+    NavRouter.BackHandler({ role, empId, company: activeCompany });
   }, []);
 
-  const switchCompany = () => {
-    const newCompany = company === 'sdce' ? 'sq' : 'sdce';
-    const newEmpId = empId.replace(/^sfm|^sq/i, getPrefix(newCompany));
-    State.storeCompany(newCompany);
-    setCompany(newCompany);
-    setEmpId(newEmpId);
-    fetchEmpData(newEmpId);
-    router.replace({
-      pathname: '/(admin)/home',
-      params: { role, empId: newEmpId, company: newCompany },
-    });
-  };
+  useEffect(() => {
+    if (paramCompany) setCompany(paramCompany);
+  }, [paramCompany]);
 
   const navigateTo = useCallback(
     (pathname: string) => {
-      router.push({ pathname, params: { role, empId, company } });
+      router.replace({ pathname, params: { role, empId, company } });
     },
-    [empId, role, company]
-  );
-
-  const renderMenuCard = ({
-    key,
-    icon,
-    title,
-    description,
-    color,
-    route,
-    isFontisto,
-    isMaterial,
-  }: (typeof menuCardsList)[number]) => (
-    <Pressable
-      key={key}
-      onPress={() => navigateTo(route)}
-      style={[
-        styles.card,
-        {
-          borderLeftColor: color,
-          backgroundColor: Colors.get(company, 'card'),
-        },
-      ]}>
-      <View style={styles.cardContent}>
-        <View style={styles.cardIcon}>
-          {isMaterial ? (
-            <MaterialIcons name="feedback" size={24} color="red" />
-          ) : isFontisto ? (
-            <Fontisto name={icon} size={scaleSize(20)} color={color} />
-          ) : (
-            <Ionicons name={icon} size={scaleSize(24)} color={color} />
-          )}
-        </View>
-        <View style={styles.cardTextContainer}>
-          <Text style={styles.cardTitle}>{title}</Text>
-          <Text style={styles.cardDescription}>{description}</Text>
-        </View>
-        <Ionicons name="chevron-forward-circle-outline" size={scaleSize(22)} color={color} />
-      </View>
-    </Pressable>
-  );
-
-  const RenderSwitchIcon = () => (
-    <TouchableOpacity onPress={switchCompany}>
-      {company === 'sdce' ? (
-        <MaterialIcons name="security" size={24} color="black" />
-      ) : (
-        <MaterialCommunityIcons name="broom" size={24} color="black" />
-      )}
-    </TouchableOpacity>
+    [role, empId, company]
   );
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: Colors.get(company, 'bg'),
-          // '#2A9D8F',
-        },
-      ]}>
+    <View style={[styles.container, { backgroundColor: Colors.get(company, 'bg') }]}>
       <Stack.Screen
         options={{
           headerShown: true,
           title: 'Dashboard',
-          headerStyle: {
-            backgroundColor: configFile.colorGreen,
-            elevation: 10,
-          },
+          headerStyle: { backgroundColor: configFile.colorGreen, elevation: 10 },
           headerTintColor: 'white',
-          headerTitleStyle: {
-            fontSize: 22,
-            fontWeight: 'bold',
-          },
+          headerTitleStyle: { fontSize: 22, fontWeight: 'bold' },
+          headerLeft: () => (
+            <View className="mx-2">
+              <CompanySwitch setCompany={setCompany} company={company} />
+            </View>
+          ),
           headerRight: () => (
             <View style={styles.headerIcons}>
               <TouchableOpacity onPress={() => router.push('/emp-plugins/notification')}>
                 <Ionicons name="notifications" size={24} color="#fff" />
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => router.replace('/login')}>
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({
+                    pathname: '/(admin)/dailyReport',
+                    params: { role, empId, company },
+                  })
+                }>
+                <FontAwesome name="paper-plane" size={24} color="white" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  State.deleteToken();
+                  router.replace('/login');
+                }}>
                 <MaterialIcons name="logout" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
@@ -244,34 +208,41 @@ const HomeScreen = () => {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {empData && (
-          <DashTop
-            role=""
-            name={empData.name}
-            empId={empId.toUpperCase()}
-            img={empData.profile_image}
+          <TouchableOpacity onPress={() => router.push('/(tabs)/profile')}>
+            <DashTop
+              role=""
+              name={empData.name}
+              empId={empId.toUpperCase()}
+              img={empData.profile_image}
+            />
+          </TouchableOpacity>
+        )}
+
+        <Pressable
+          onPress={() => navigateTo('/(tabs)/dashboard/attendance')}
+          style={styles.quickAction}>
+          <View>
+            <Text style={styles.quickTextSmall}>Quick Action</Text>
+            <View style={styles.quickTextRow}>
+              <Text style={styles.quickTextMain}>Mark</Text>
+              <Text style={[styles.quickTextMain, { color: configFile.colorGreen }]}>
+                Attendance
+              </Text>
+            </View>
+          </View>
+          <View style={styles.quickIcon}>
+            <FontAwesome name="calendar-check-o" size={22} color="#1abc9c" />
+          </View>
+        </Pressable>
+
+        {menuCardsList.map((item) => (
+          <MenuCard
+            key={item.key}
+            item={item}
+            onPress={navigateTo}
+            bgColor={Colors.get(company, 'card')}
           />
-        )}
-
-        {company === 'sdce' && (
-          <Pressable
-            onPress={() => navigateTo('/(tabs)/dashboard/attendance')}
-            style={styles.quickAction}>
-            <View>
-              <Text style={styles.quickTextSmall}>Quick Action</Text>
-              <View style={styles.quickTextRow}>
-                <Text style={styles.quickTextMain}>Mark</Text>
-                <Text style={[styles.quickTextMain, { color: configFile.colorGreen }]}>
-                  Attendance
-                </Text>
-              </View>
-            </View>
-            <View style={styles.quickIcon}>
-              <FontAwesome name="calendar-check-o" size={22} color="#1abc9c" />
-            </View>
-          </Pressable>
-        )}
-
-        {menuCardsList.map(renderMenuCard)}
+        ))}
       </ScrollView>
     </View>
   );
@@ -279,7 +250,7 @@ const HomeScreen = () => {
 
 export default HomeScreen;
 
-// Styles stay the same as before
+// 🎨 Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -317,19 +288,9 @@ const styles = StyleSheet.create({
     borderRadius: scaleSize(12),
     marginRight: scaleSize(12),
   },
-  cardTextContainer: {
-    flex: 1,
-  },
-  cardTitle: {
-    fontSize: scaleSize(16),
-    fontWeight: 'bold',
-    color: '#1f2937',
-  },
-  cardDescription: {
-    marginTop: scaleSize(4),
-    fontSize: scaleSize(13),
-    color: '#4b5563',
-  },
+  cardTextContainer: { flex: 1 },
+  cardTitle: { fontSize: scaleSize(16), fontWeight: 'bold', color: '#1f2937' },
+  cardDescription: { marginTop: scaleSize(4), fontSize: scaleSize(13), color: '#4b5563' },
   quickAction: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -348,18 +309,7 @@ const styles = StyleSheet.create({
     color: '#6b7280',
     marginBottom: scaleSize(4),
   },
-  quickTextRow: {
-    flexDirection: 'row',
-    gap: scaleSize(4),
-  },
-  quickTextMain: {
-    fontSize: scaleSize(18),
-    fontWeight: 'bold',
-    color: '#1f2937',
-  },
-  quickIcon: {
-    padding: scaleSize(10),
-    backgroundColor: '#e0f7f1',
-    borderRadius: 999,
-  },
+  quickTextRow: { flexDirection: 'row', gap: scaleSize(4) },
+  quickTextMain: { fontSize: scaleSize(18), fontWeight: 'bold', color: '#1f2937' },
+  quickIcon: { padding: scaleSize(10), backgroundColor: '#e0f7f1', borderRadius: 999 },
 });

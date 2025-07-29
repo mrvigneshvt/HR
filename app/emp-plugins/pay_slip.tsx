@@ -1,99 +1,85 @@
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View,
   Text,
-  Pressable,
   ScrollView,
   Alert,
-  BackHandler,
   ActivityIndicator,
   Dimensions,
   TouchableOpacity,
   Linking,
+  Modal,
+  StyleSheet,
 } from 'react-native';
-import React, { useEffect, useRef, useState } from 'react';
-import MonthYearPickerHeader from 'components/monthCalendar';
-import Pay___Slip from 'components/SalarySlip';
-import ProfileStack from 'Stacks/HeaderStack';
-import * as MediaLib from 'expo-media-library';
-import { captureRef } from 'react-native-view-shot';
-import * as Print from 'expo-print';
-import { customPlugins } from 'plugins/plug';
-import * as Sharing from 'expo-sharing';
 import { useLocalSearchParams, router, Stack } from 'expo-router';
+import MonthYearPickerHeader from 'components/monthCalendar';
+import PaySlipComponent from 'components/SalarySlip';
+import EntityDropdown from 'components/DropDown';
+import { captureRef } from 'react-native-view-shot';
+import * as MediaLib from 'expo-media-library';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
+import { MaterialIcons, AntDesign } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { Api } from 'class/HandleApi';
-import { Image } from 'expo-image';
-import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
-import { configFile } from 'config';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { MaterialIcons } from '@expo/vector-icons';
 import { NavRouter } from 'class/Router';
+import { configFile } from 'config';
+import { moderateScale, scale, verticalScale } from 'react-native-size-matters';
+import { Image } from 'expo-image';
+import { customPlugins } from 'plugins/plug';
 
 const PaySlip = () => {
-  const { role, empId } = useLocalSearchParams() as { role: string; empId: string };
-
-  const [dates, setDates] = useState<{ year: string; month: string }>(() => {
-    const [month, year] = format(new Date(), 'MM-yyyy').split('-');
-    return { year, month };
-  });
-
-  const [apiData, setApiData] = useState<Record<string, any> | null>(null);
+  const { role, empId: initialEmpId, company } = useLocalSearchParams();
+  const [empId, setEmpId] = useState(initialEmpId);
+  const [showModal, setShowModal] = useState(false);
+  const [apiData, setApiData] = useState<any>(null);
   const [notFound, setNotFound] = useState(false);
   const [apiLoading, setApiLoading] = useState(true);
   const captureRefView = useRef(null);
 
-  // const onBackPress = () => {
-  //   const pathname = role.toLowerCase() === 'employee' ? '/(tabs)/dashboard/' : '/(admin)/home/';
-  //   router.replace({ pathname, params: { role, empId } });
-  //   return true;
-  // };
+  const [dates, setDates] = useState(() => {
+    const [month, year] = format(new Date(), 'MM-yyyy').split('-');
+    return { year, month };
+  });
 
   useEffect(() => {
-    // BackHandler.addEventListener('hardwareBackPress', onBackPress);
-    // return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
-    NavRouter.BackHandler({ empId, role });
-  }, [role]);
+    NavRouter.BackHandler({ empId: initialEmpId, role, company });
+  }, [initialEmpId, role, company]);
 
-  useEffect(() => {
-    const fetchPayslip = async () => {
-      setApiLoading(true);
-      setNotFound(false);
+  const fetchPayslip = useCallback(async () => {
+    setApiLoading(true);
+    setNotFound(false);
 
-      const res = await Api.fetchPaySlip({ empId, month: dates.month, year: dates.year });
-      console.log(res, 'res');
+    const res = await Api.fetchPaySlip({ empId, ...dates });
 
-      switch (res) {
-        case 'error':
-          Alert.alert('Error Fetching Api');
-          setTimeout(() => onBackPress(), 2000);
-          return;
-        case 'invalid-format':
-          Alert.alert('Invalid Format');
-          return;
-        case 'mapping':
-          Alert.alert('Api Sents Different Response\n\nERR: UnMapped Response');
-          return;
-        case 'not-found':
-          setNotFound(true);
-          setApiLoading(false);
-          return;
-        default:
-          setApiData(res);
-          setApiLoading(false);
-      }
-    };
+    if (res === 'error') {
+      Alert.alert('Error Fetching API');
+      return setTimeout(() => router.back(), 2000);
+    }
 
-    fetchPayslip();
+    if (['invalid-format', 'mapping'].includes(res)) {
+      return Alert.alert('Invalid API Response');
+    }
+
+    if (res === 'not-found') {
+      setNotFound(true);
+      setApiData(null);
+    } else {
+      setApiData(res);
+    }
+
+    setApiLoading(false);
   }, [dates, empId]);
 
-  const downloadPayslip = async () => {
-    try {
-      const permission = await MediaLib.requestPermissionsAsync();
-      if (!permission.granted) {
-        alert('Permission to Access Media is Required');
-        return;
-      }
+  useEffect(() => {
+    fetchPayslip();
+  }, [fetchPayslip]);
 
+  const downloadPayslip = async () => {
+    const { granted } = await MediaLib.requestPermissionsAsync();
+    if (!granted) return alert('Permission to access media is required');
+
+    try {
       const uri = await captureRef(captureRefView, {
         format: 'png',
         quality: 1,
@@ -101,120 +87,148 @@ const PaySlip = () => {
       });
 
       const html = customPlugins.createPdfFormat(uri);
-      const pathToPdf = await Print.printToFileAsync({
+      const { uri: pdfUri } = await Print.printToFileAsync({
         html,
         width: 595,
         height: 842,
-        base64: false,
       });
 
-      await Sharing.shareAsync(pathToPdf.uri);
-      alert('Saved to Your Files !!');
+      await Sharing.shareAsync(pdfUri);
+      alert('Saved to your files!');
     } catch (error) {
-      console.log('error in downloadslip::', error);
+      console.error('Error downloading payslip:', error);
     }
   };
 
   const handleOpenExternal = async () => {
     const url = `${configFile.backendBaseUrl}payslip/${empId}/${dates.year}-${dates.month}`;
-    console.log(url);
-    if (await Linking.canOpenURL(url)) {
-      await Linking.openURL(url);
-    } else {
-      alert('Cannot open Url');
-    }
+    Linking.canOpenURL(url) ? await Linking.openURL(url) : alert('Cannot open URL');
   };
 
   return (
     <>
-      {/* <ProfileStack Payslip={true} ShowDownload={!apiLoading && !notFound} /> */}
-      {/* <Stack.Screen options={{ headerShown: false }} /> */}
       <Stack.Screen
         options={{
           headerShown: true,
-          title: 'Home',
+          title: 'Payslip',
           headerStyle: { backgroundColor: configFile.colorGreen },
           headerTintColor: 'white',
           headerRight: () => (
-            <View className="flex flex-row gap-1">
-              {apiData && !notFound && (
-                <TouchableOpacity onPress={() => handleOpenExternal()}>
+            <View style={styles.headerIcons}>
+              {apiData && !notFound && !apiLoading && (
+                <TouchableOpacity onPress={handleOpenExternal}>
                   <MaterialIcons name="file-download" size={24} color="white" />
                 </TouchableOpacity>
               )}
-              {/* <Pressable onPress={() => router.replace('/login')} style={{ paddingHorizontal: 10 }}>
-                <MaterialIcons name="logout" size={24} color="white" />
-              </Pressable> */}
+              <TouchableOpacity onPress={() => setShowModal(true)}>
+                <AntDesign name="idcard" size={24} color="white" />
+              </TouchableOpacity>
             </View>
           ),
         }}
       />
-      <ScrollView className="flex-1">
-        <MonthYearPickerHeader onChange={setDates} />
 
-        {notFound && !apiLoading ? (
-          <View
-            style={{
-              flex: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-              paddingHorizontal: scale(20),
-              backgroundColor: '#fff',
-              height: Dimensions.get('window').height - 100,
-            }}>
-            <Image
-              source={require('../../assets/no-data.svg')}
-              style={{
-                width: scale(220),
-                height: verticalScale(220),
-                marginBottom: verticalScale(20),
-                resizeMode: 'contain',
-              }}
-            />
-            <Text
-              style={{
-                fontSize: moderateScale(18),
-                fontWeight: '600',
-                textAlign: 'center',
-                marginBottom: verticalScale(20),
-                color: '#333',
-              }}>
-              Data Not Found
-            </Text>
-          </View>
-        ) : apiLoading ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator size="large" color={configFile.colorGreen} />
+      <ScrollView style={{ flex: 1 }}>
+        <MonthYearPickerHeader onChange={setDates} employeeName={empId} />
+
+        {apiLoading ? (
+          <ActivityIndicator style={{ marginTop: 50 }} size="large" color={configFile.colorGreen} />
+        ) : notFound ? (
+          <View style={styles.noDataContainer}>
+            <Image source={require('../../assets/no-data.svg')} style={styles.noDataImage} />
+            <Text style={styles.noDataText}>Data Not Found</Text>
           </View>
         ) : (
           <>
-            <ScrollView style={{ flex: 1 }}>
-              <Pay___Slip
-                month={parseInt(dates.month)}
-                year={parseInt(dates.year)}
-                dataRes={apiData}
-              />
-            </ScrollView>
-
-            <View
-              style={{ position: 'absolute', top: 10000, left: 0 }}
-              collapsable={false}
-              ref={captureRefView}>
-              <Pay___Slip
+            <PaySlipComponent
+              month={parseInt(dates.month)}
+              year={parseInt(dates.year)}
+              dataRes={apiData}
+            />
+            <View style={styles.hiddenView} collapsable={false} ref={captureRefView}>
+              <PaySlipComponent
                 month={parseInt(dates.month)}
                 year={parseInt(dates.year)}
                 dataRes={apiData}
               />
             </View>
-
-            {/* <Pressable onPress={downloadPayslip} style={{ padding: 16 }}>
-              <Text style={{ textAlign: 'center', color: '#007AFF' }}>Download Payslip</Text>
-            </Pressable> */}
           </>
         )}
       </ScrollView>
+
+      <Modal
+        visible={showModal}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setShowModal(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Select Employee</Text>
+            <EntityDropdown
+              type="employee"
+              selected={empId}
+              setState={(value) => {
+                setEmpId(value);
+                setShowModal(false);
+              }}
+            />
+            <TouchableOpacity onPress={() => setShowModal(false)} style={styles.modalCloseBtn}>
+              <Text style={{ color: configFile.colorGreen }}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 };
 
 export default PaySlip;
+
+const styles = StyleSheet.create({
+  headerIcons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  noDataContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: scale(20),
+    height: Dimensions.get('window').height - 100,
+  },
+  noDataImage: {
+    width: scale(220),
+    height: verticalScale(220),
+    marginBottom: verticalScale(20),
+  },
+  noDataText: {
+    fontSize: moderateScale(18),
+    fontWeight: '600',
+    color: '#333',
+  },
+  hiddenView: {
+    position: 'absolute',
+    top: 10000,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBox: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: 'black',
+  },
+  modalCloseBtn: {
+    marginTop: 20,
+    alignSelf: 'flex-end',
+  },
+});

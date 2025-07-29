@@ -8,6 +8,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useEmployeeStore } from 'Memory/Employee';
 import { tokenMemory } from 'Memory/Token';
 import { State } from './State';
+import { LocalStore } from './LocalStore';
 
 interface ApiResponse {
   status: number;
@@ -22,7 +23,7 @@ export interface ApiOptions {
 }
 
 export class Api {
-  public static async handleApi(options: ApiOptions): Promise<ApiResponse> {
+  public static async handleApi(options: ApiOptions): Promise<ApiResponse | void> {
     const token = State.getToken();
 
     console.log('Handling API call..', options.url);
@@ -50,10 +51,18 @@ export class Api {
 
     try {
       const response: AxiosResponse = await axios(config);
-      return {
+      const Response = {
         status: response.status,
         data: response.data,
       };
+
+      if (Response.status == 403) {
+        State.deleteToken();
+        router.replace('/login');
+        return;
+      }
+      console.log('Handling API Response: ', Response, '/////////', response);
+      return Response;
     } catch (error: any) {
       const response = error?.response;
       return {
@@ -62,99 +71,6 @@ export class Api {
       };
     }
   }
-  // public static async handleApi(options: {
-  //   url: string;
-  //   type: 'POST' | 'GET' | 'PUT' | 'DELETE';
-  //   payload?: Record<string, any>;
-  //   token?: string; //header
-  // }): Promise<{ status: number; data: { data: Record<string, any> } }> {
-  //   console.log('Handling API call..', options.url);
-  //   switch (options.type) {
-  //     case 'DELETE':
-  //       try {
-  //         const request = await axios.delete(options.url, options.payload);
-
-  //         const { data, status } = request;
-
-  //         return {
-  //           status,
-  //           data,
-  //         };
-  //       } catch (error: any) {
-  //         const response = error.response;
-
-  //         const { data, status } = response;
-
-  //         return {
-  //           status,
-  //           data,
-  //         };
-  //       }
-
-  //     case 'GET':
-  //       try {
-  //         const request = await axios.get(options.url);
-
-  //         const { data, status } = request;
-
-  //         return {
-  //           status,
-  //           data,
-  //         };
-  //       } catch (error: any) {
-  //         const response = error.response;
-
-  //         const { data, status } = response;
-
-  //         return {
-  //           status,
-  //           data,
-  //         };
-  //       }
-
-  //     case 'POST':
-  //       try {
-  //         const request = await axios.post(options.url, options.payload);
-
-  //         const { data, status } = request;
-
-  //         return {
-  //           status,
-  //           data,
-  //         };
-  //       } catch (error: any) {
-  //         const response = error.response;
-
-  //         const { data, status } = response;
-
-  //         return {
-  //           status,
-  //           data,
-  //         };
-  //       }
-
-  //     case 'PUT':
-  //       try {
-  //         const request = await axios.put(options.url, options.payload);
-
-  //         const { data, status } = request;
-
-  //         return {
-  //           status,
-  //           data,
-  //         };
-  //       } catch (error: any) {
-  //         const response = error.response;
-
-  //         const { data, status } = response;
-
-  //         return {
-  //           status,
-  //           data,
-  //         };
-  //       }
-  //   }
-  // }
 
   // //   {
   // // "empId":"SMF1",
@@ -438,6 +354,7 @@ export class Api {
           // tokenMemory.getState().setAuthToken(api.data.token);
           console.log(api.data, '////', api.data.token);
           State.storeToken(api.data.token);
+          await LocalStore.storeTokenLocal(api.data.token);
           options.setApiLoading(false);
           const role = api.data.authInfo.role;
           router.replace({

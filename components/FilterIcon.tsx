@@ -1,35 +1,45 @@
+// components/FilterIcon.tsx
+
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 
-type StatusTypes = 'present' | 'absent' | 'late';
+export type StatusTypes = 'present' | 'absent' | 'late';
+export type TypeFilter = 'client' | 'others';
 
-interface FilterProps {
+export interface FilterProps {
   onPress: () => void;
   filters: {
     startDate?: string;
     endDate?: string;
     status?: StatusTypes;
     employeeId?: string;
+    type?: TypeFilter;
   };
 }
 
 const getStatusColor = (status?: StatusTypes) => {
   switch (status) {
     case 'present':
-      return '#4CAF50'; // green
+      return '#4CAF50';
     case 'late':
-      return '#FFC107'; // yellow
+      return '#FFC107';
     case 'absent':
-      return '#F44336'; // red
+      return '#F44336';
     default:
       return '#ccc';
   }
 };
 
+const getTypeLabel = (t: TypeFilter) => (t === 'client' ? 'Client' : 'Other');
+
 const FilterIcon: React.FC<FilterProps> = ({ onPress, filters }) => {
   const hasActiveFilters =
-    filters.startDate || filters.endDate || filters.status || filters.employeeId;
+    !!filters.startDate ||
+    !!filters.endDate ||
+    !!filters.status ||
+    !!filters.employeeId ||
+    !!filters.type;
 
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
@@ -57,6 +67,11 @@ const FilterIcon: React.FC<FilterProps> = ({ onPress, filters }) => {
                 <Text style={{ color: getStatusColor(filters.status) }}>● </Text>
                 {filters.status.charAt(0).toUpperCase() + filters.status.slice(1)}
               </Text>
+            </View>
+          )}
+          {filters.type && (
+            <View style={styles.chip}>
+              <Text style={styles.chipText}>{getTypeLabel(filters.type)}</Text>
             </View>
           )}
         </View>

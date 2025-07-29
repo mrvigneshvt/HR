@@ -24,8 +24,10 @@ import LoadingScreen from 'components/LoadingScreen';
 import { Flow } from 'class/HandleRoleFlow';
 import { Api } from 'class/HandleApi';
 import * as SecureStore from 'expo-secure-store';
+import { company } from '../Memory/Token';
 import { State } from 'class/State';
 import { NavRouter } from 'class/Router';
+import { LocalStore } from 'class/LocalStore';
 // import * as SecureStore from 'expo-secure-store';
 const logo = require('../assets/logo.jpg');
 
@@ -37,24 +39,38 @@ export type PopUpTypes =
   | 'Too Late Try Again From First !';
 
 export default function LoginPage() {
+  const [company, setCompany] = useState('sdce');
   const onBackPress = () => {
     router.replace({ pathname: '/login' });
     return true;
   };
 
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM101' });
-  //     // router.replace('/admin-plugins');
-  //   }, 50);
-  // }, []);
+  const verifyToken = async () => {
+    const localToken = await LocalStore.getTokenLocal();
+    if (localToken) {
+      const res = await Api.handleApi({
+        url: configFile.api.verifyToken,
+        type: 'GET',
+        token: localToken,
+      });
+      if (res.status == 200) {
+        const { employee_id, role } = res.data.data;
+        NavRouter.backOrigin({ role, empId: employee_id, company: 'sdce' });
+        return;
+      }
+      State.deleteToken();
+    }
+  };
 
   useEffect(() => {
-    State.deleteToken();
+    verifyToken();
     NavRouter.stayBack();
-  }, []);
 
-  // const setDashboard = DashMemory((state) => state.setDashboard);
+    // setTimeout(() => {
+    //   NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM101' });
+    //   // router.replace('/admin-plugins');
+    // }, 50);
+  }, []);
 
   const router = useRouter();
   const [empId, setEmpId] = useState('');
@@ -117,48 +133,6 @@ export default function LoginPage() {
       console.log('error in loginPage:', error);
     }
   };
-
-  // const checkToken = async () => {
-  //   const token = await SecureStore.getItemAsync('STOKEN');
-  //   console.log(token, 'tokennnnnn');
-  //   if (!token) {
-  //     return;
-  //   }
-  //   let isVerified = await Api.verifyToken(token);
-  //   console.log(isVerified);
-
-  //   if (!isVerified) {
-  //     //await SecureStore.deleteItemAsync('STOKEN');
-  //     return;
-  //   }
-
-  //   console.log('IsVerifiedddd', isVerified);
-  //   router.replace({
-  //     pathname: '/ApiContex/fetchNparse',
-  //     params: {
-  //       data: JSON.stringify(isVerified.data),
-  //     },
-  //   });
-  // };
-
-  // useEffect(() => {
-  //   checkToken();
-  // }, []);
-  //////////////////////////////////////////////////////////
-
-  //   useEffect(() => {
-  //     setTimeout(() => {
-  //       router.replace({
-  //         pathname: '/(admin)/home',
-  //         // pathname: '/(admin)/home',
-  //         params: {
-  //           role: 'superadmin',
-  //           empId: 'SFM43899',
-  //         },
-  //       });
-  //     }, 50);
-  //   }, []);
-  ////////////////////////////////////////////////////////////
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />

@@ -1,3 +1,4 @@
+import { State } from 'class/State';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -50,35 +51,51 @@ const EntityDropdown = ({
     `https://sdce.lyzooapp.co.in:31313/api/employees/dropdownPhone?dropdownName=${type}`;
 
   // Fetch data
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const response = await fetch(getApiUrl(type));
+  //       const json = await response.json();
+
+  //       const formatted = json.data.map((entry: any) => ({
+  //         label:
+  //           type === 'client'
+  //             ? entry.client_name || 'Unnamed Client'
+  //             : entry.name || 'Unnamed Employee',
+  //         value:
+  //           type === 'client'
+  //             ? entry.client_no?.toString() || 'N/A'
+  //             : entry.employee_id?.toString() || 'N/A',
+  //         full: entry,
+  //       }));
+
+  //       setAllItems(formatted);
+  //       setFiltered(formatted);
+  //     } catch (error) {
+  //       console.error('❌ Error fetching data:', error);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchData();
+  // }, [type]);
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(getApiUrl(type));
-        const json = await response.json();
+    const initData = async () => {
+      let cached = State.getDropdownData(type);
 
-        const formatted = json.data.map((entry: any) => ({
-          label:
-            type === 'client'
-              ? entry.client_name || 'Unnamed Client'
-              : entry.name || 'Unnamed Employee',
-          value:
-            type === 'client'
-              ? entry.client_no?.toString() || 'N/A'
-              : entry.employee_id?.toString() || 'N/A',
-          full: entry,
-        }));
-
-        setAllItems(formatted);
-        setFiltered(formatted);
-      } catch (error) {
-        console.error('❌ Error fetching data:', error);
-      } finally {
-        setLoading(false);
+      if (!cached || cached.length === 0) {
+        cached = await State.reloadDropdown(type);
       }
+
+      setAllItems(cached);
+      setFiltered(cached);
+      setLoading(false);
     };
 
-    fetchData();
+    initData();
   }, [type]);
 
   // Handle query filtering

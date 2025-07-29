@@ -10,7 +10,7 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useIsFocused } from '@react-navigation/native';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -22,11 +22,16 @@ import PaginatedComponent from 'components/Pagination';
 import AddEmp from 'components/AddEmp';
 import EditEmp from 'components/EditEmp';
 import DelEmp from 'components/DelEmp';
+import { Employee } from '../employees';
+import { NavRouter } from 'class/Router';
+import CompanySwitch from 'components/CompanySwitch';
 
 const Index = () => {
   const params = useLocalSearchParams();
   const isFocused = useIsFocused();
   const role = (params.role as string)?.toLowerCase() || '';
+  const empId = (params.role as string)?.toLowerCase() || '';
+
   const company = (params.company as 'sdce' | 'sq') || 'sdce';
 
   const [showModal, setShowModal] = useState(false);
@@ -47,6 +52,7 @@ const Index = () => {
   const [newDept, setNewDept] = useState('');
 
   const isReadOnly = !['superadmin', 'admin', 'executive'].includes(role);
+  NavRouter.BackHandler({ role, empId, company });
 
   const handleApiCall = useCallback(() => {
     return Company === 'sdce'
@@ -55,26 +61,52 @@ const Index = () => {
   }, [Company]);
 
   useEffect(() => {
+    setCompany(company);
+  }, [isFocused]);
+
+  useEffect(() => {
     const url = handleApiCall();
     setGetUrl(url);
   }, [Company, refresh]);
 
   useEffect(() => {
-    console.log('trigg', selectedEmployee);
+    setRefresh((prev) => prev + 1);
+  }, [getUrl]);
+
+  useEffect(() => {
+    console.log('selected:', selectedEmployee);
   }, [selectedEmployee]);
 
-  const RenderSwitchIcon = () => (
-    <TouchableOpacity onPress={() => setCompany((prev) => (prev === 'sdce' ? 'sq' : 'sdce'))}>
-      {Company === 'sdce' ? (
-        <MaterialIcons name="security" size={24} color="white" />
-      ) : (
-        <MaterialCommunityIcons name="broom" size={24} color="white" />
-      )}
-    </TouchableOpacity>
-  );
+  const triggerReload = () => {
+    console.log('triggering reloadddddddddddddddddddddddddddddd');
+    setRefresh((prev) => prev + 1);
+  };
+  const handleEdit = (item: Employee) => {
+    const data = encodeURIComponent(JSON.stringify(item));
+    console.log(data);
+    router.push({
+      pathname: '/(admin)/employeesV2/update',
+      params: {
+        data: encodeURIComponent(JSON.stringify(item)),
+        role,
+        empId, // ✅ direct use
+        company,
+      },
+    });
+  };
+
+  const pushOut = () => {
+    console.log('push out occurs');
+    return router.replace({ pathname: '/(admin)/home', params: { empId, role, company: Company } });
+  };
 
   const renderEmployeeCard = ({ item }: { item: any }) => (
-    <View key={item.employee_id} style={styles.card}>
+    <TouchableOpacity
+      onPress={() => {
+        handleEdit(item);
+      }}
+      key={item.employee_id}
+      style={styles.card}>
       <View>
         <Text style={styles.name}>{item?.name || 'Not Assigned'}</Text>
         <Text style={styles.sub}>ID: {item.employee_id}</Text>
@@ -84,23 +116,25 @@ const Index = () => {
 
       {!isReadOnly && (
         <View style={styles.iconGroup}>
-          <Pressable
+          {/* <Pressable
             onPress={() => {
               setSelectedEmployee(item);
               setShowEditModal(true);
             }}>
             <MaterialIcons name="edit" size={20} color="#4A90E2" />
-          </Pressable>
-          <Pressable
-            onPress={() => {
-              setSelectedEmployee(item);
-              setShowDeleteModal(true);
-            }}>
-            <MaterialIcons name="delete" size={20} color="#FF6B6B" />
-          </Pressable>
+          </Pressable> */}
+          {
+            <Pressable
+              onPress={() => {
+                setSelectedEmployee(item);
+                setShowDeleteModal(true);
+              }}>
+              <MaterialIcons name="delete" size={20} color="#FF6B6B" />
+            </Pressable>
+          }
         </View>
       )}
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -115,7 +149,7 @@ const Index = () => {
             <View style={styles.headerRight}>
               {!isReadOnly && (
                 <>
-                  <RenderSwitchIcon />
+                  {/* <RenderSwitchIcon /> */}
                   <TouchableOpacity onPress={() => setShowAddModal(true)} style={styles.addButton}>
                     <Text style={{ color: configFile.colorGreen }}>Add</Text>
                     <MaterialIcons name="add" size={24} color={configFile.colorGreen} />
@@ -157,25 +191,39 @@ const Index = () => {
         <AddEmp
           showAddModal={showAddModal}
           setShowAddModal={setShowAddModal}
-          onSave={() => setRefresh((prev) => prev + 1)}
+          onSave={() => {
+            // setRefresh((prev) => prev + 1);
+            pushOut();
+          }}
         />
       )}
       {showEditModal && (
         <EditEmp
           employeeData={selectedEmployee}
-          setShowEditModal={setShowEditModal}
+          setShowEditModal={(val) => {
+            setShowEditModal(val);
+            if (!val) {
+              // modal just closed, now refresh list
+              triggerReload();
+            }
+          }}
           setSelectedEmployee={setSelectedEmployee}
           showEditModal={showEditModal}
-          onSaveSuccess={() => setRefresh((prev) => prev + 1)}
+          setReload={() => {}} // not needed anymore
+          onSaveSuccess={() => {}}
         />
       )}
+
       {showDeleteModal && (
         <DelEmp
           showDeleteModal={showDeleteModal}
           setShowDeleteModal={setShowDeleteModal}
           selectedEmployee={selectedEmployee}
           setSelectedEmployee={setSelectedEmployee}
-          onSave={() => setRefresh((prev) => prev + 1)}
+          onSave={() => {
+            // setRefresh((prev) => prev + 1);
+            pushOut();
+          }}
         />
       )}
     </>
