@@ -55,7 +55,8 @@ export class State {
   }
 
   public static async reloadDropdown(type: 'client' | 'employee') {
-    const url = `https://sdce.lyzooapp.co.in:31313/api/employees/dropdownPhone?dropdownName=${type}`;
+    const url = configFile.api.superAdmin.getUrl(type);
+    //`https://sdce.lyzooapp.co.in:31313/api/employees/dropdownPhone?dropdownName=${type}`;   //toChange
     try {
       const res = await fetch(url);
       const json = await res.json();

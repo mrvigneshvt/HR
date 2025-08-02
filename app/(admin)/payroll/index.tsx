@@ -177,8 +177,8 @@ const PayrollScreen = () => {
     setDetailLoading(true);
     setPayslipDetail(null);
     try {
-      const response = await fetch(
-        `https://sdce.lyzooapp.co.in:31313/api/payroll/employees/${employeeId}?month=${selectedDate}`
+      const response = await fetch( configFile.api.superAdmin.getUrlForPayroll(employeeId,selectedDate)
+      //  `https://sdce.lyzooapp.co.in:31313/api/payroll/employees/${employeeId}?month=${selectedDate}`  //toChange
       );
       const result = await response.json();
       if (result.success) {

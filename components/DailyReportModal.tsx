@@ -33,7 +33,8 @@ const DailyReportModal: React.FC<Props> = ({ showModal, setShowModal, empId, onS
 
     try {
       const response = await Api.handleApi({
-        url: 'https://sdce.lyzooapp.co.in:31313/api/reports',
+        url: configFile.api.superAdmin.report,
+        //'https://sdce.lyzooapp.co.in:31313/api/reports',   //toChange
         type: 'POST',
         token: 'your_token_here', // replace with dynamic token ideally
         payload: {

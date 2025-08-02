@@ -1,4 +1,5 @@
 import { State } from 'class/State';
+import { configFile } from 'config';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -47,8 +48,8 @@ const EntityDropdown = ({
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
-  const getApiUrl = (type: string) =>
-    `https://sdce.lyzooapp.co.in:31313/api/employees/dropdownPhone?dropdownName=${type}`;
+  const getApiUrl = (type: string) => configFile.api.superAdmin.getUrl(type);
+  //  `https://sdce.lyzooapp.co.in:31313/api/employees/dropdownPhone?dropdownName=${type}`; //toChange
 
   // Fetch data
   // useEffect(() => {
