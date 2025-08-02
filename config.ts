@@ -76,6 +76,18 @@ export const configFile = {
       },
     },
     superAdmin: {
+      admin: `${backendBaseUrl}api`,
+      report: `${backendBaseUrl}api/reports`,
+      reports: `${backendBaseUrl}api/reports/get`,
+      idcard: `${backendBaseUrl}api/idcard/`,
+      clients: `${backendBaseUrl}api/clients/`,
+      attendance: `${backendBaseUrl}api/attendance`,
+      getUrl(type:string) {
+        return `${backendBaseUrl}api/employees/dropdownPhone?dropdownName=${type}`;
+      },
+      getUrlForPayroll(employeeId:string,selectedDate:string){
+        return `${backendBaseUrl}api/payroll/employees/${employeeId}?month=${selectedDate}`;
+      },
       app: {
         aadhar: {
           verify: `${backendBaseUrl}api/aadhaar/generate-otp`,

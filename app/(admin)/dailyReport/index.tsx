@@ -54,7 +54,8 @@ const Index = () => {
   }, [isFocus]);
 
   const getApiUrl = useCallback(() => {
-    const baseUrl = 'https://sdce.lyzooapp.co.in:31313/api/reports/get';
+    const baseUrl = configFile.api.superAdmin.reports;
+    //'https://sdce.lyzooapp.co.in:31313/api/reports/get';   
     const prefixParam = Company === 'sdce' ? '' : `prefix=${Company}`;
     const dateParam = selectedDate ? `date=${formatDate(selectedDate)}` : '';
     const queryParams = [prefixParam, dateParam].filter(Boolean).join('&');

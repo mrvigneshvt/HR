@@ -21,7 +21,9 @@ import RecordModal from 'components/AttenModal';
 import AttendCard from 'components/AttendCard';
 import FilterIcon from 'components/FilterIcon';
 
-const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
+const BASE_URL = configFile.api.superAdmin.admin;
+
+//'https://sdce.lyzooapp.co.in:31313/api';  //toChange
 
 const AttendanceScreen = () => {
   const { empId, role } = useLocalSearchParams();
