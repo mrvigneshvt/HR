@@ -106,7 +106,7 @@ const Index = () => {
         handleEdit(item);
       }}
       key={item.employee_id}
-      style={styles.card}>
+      style={[styles.card, { backgroundColor: Colors.get(company, 'card') }]}>
       <View>
         <Text style={styles.name}>{item?.name || 'Not Assigned'}</Text>
         <Text style={styles.sub}>ID: {item.employee_id}</Text>
@@ -237,7 +237,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   card: {
-    backgroundColor: 'white',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,

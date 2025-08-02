@@ -27,7 +27,7 @@
       ]
     ],
     "orientation": "portrait",
-    "icon": "./assets/APP_LOGO.png",
+    "icon": "./assets/logoAPP.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -46,7 +46,7 @@
       "versionCode": 6,
       "jsEngine": "hermes",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/SDLOGO.png",
+        "foregroundImage": "./assets/logoAPP.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.anonymous.myexpoapp",

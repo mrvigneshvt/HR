@@ -45,30 +45,28 @@ export default function LoginPage() {
     return true;
   };
 
-  const verifyToken = async () => {
-    const localToken = await LocalStore.getTokenLocal();
-    if (localToken) {
-      const res = await Api.handleApi({
-        url: configFile.api.verifyToken,
-        type: 'GET',
-        token: localToken,
-      });
-      if (res.status == 200) {
-        const { employee_id, role } = res.data.data;
-        NavRouter.backOrigin({ role, empId: employee_id, company: 'sdce' });
-        return;
-      }
-      State.deleteToken();
-    }
-  };
-
   useEffect(() => {
-    verifyToken();
+    (async () => {
+      const localToken = await LocalStore.getTokenLocal();
+      if (localToken) {
+        const res = await Api.handleApi({
+          url: configFile.api.verifyToken,
+          type: 'GET',
+          token: localToken,
+        });
+        if (res.status == 200) {
+          const { employee_id, role } = res.data.data;
+          NavRouter.backOrigin({ role, empId: employee_id, company: 'sdce' });
+          return;
+        }
+        console.log('deleting tooken');
+        State.deleteToken();
+      }
+    })();
     NavRouter.stayBack();
-
     // setTimeout(() => {
-    //   NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM101' });
-    //   // router.replace('/admin-plugins');
+    //   // NavRouter.backOrigin({ role: 'superadmin', empId: 'SFM101' });
+    //   router.replace('/webView/payslip');
     // }, 50);
   }, []);
 

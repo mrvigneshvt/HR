@@ -31,6 +31,7 @@ export class State {
     this.storeCompany('sdce');
     return this.getCompany();
   }
+
   public static storeCompany(data: company) {
     if (data) {
       tokenMemory.getState().setCompany(data);

@@ -103,7 +103,6 @@ const ClientsScreen = () => {
   useEffect(() => {
     fetchClients(1);
     const token = State.getToken();
-
     setToken(token);
   }, [isFocus, Company]);
 
@@ -583,10 +582,10 @@ const ClientsScreen = () => {
                 </Pressable>
               </View>
             </View>
-
+            {/* 
             {renderFormField('Check-in Time', 'checkIn', 'HH:MM:SS')}
             {renderFormField('Lunch Time', 'lunch_time', 'HH:MM:SS')}
-            {renderFormField('Check-out Time', 'check_out', 'HH:MM:SS')}
+            {renderFormField('Check-out Time', 'check_out', 'HH:MM:SS')} */}
 
             {/* {showAddModal &&
               formData.latitude &&
