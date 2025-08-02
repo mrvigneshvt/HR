@@ -1,35 +1,20 @@
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export class LocalStore {
   private static tokenKey = 'token';
 
   public static async storeTokenLocal(token: string): Promise<void> {
-    try {
-      console.log('Storing Token:: ', token);
-      await SecureStore.setItemAsync(LocalStore.tokenKey, token, {
-        keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY, // required for persistency on Android
-      });
-    } catch (error) {
-      console.error('Error storing token:', error);
-    }
+    console.log('Storing Token:: ', token);
+    await AsyncStorage.setItem(LocalStore.tokenKey, token);
   }
 
   public static async getTokenLocal(): Promise<string | null> {
-    try {
-      const token = await SecureStore.getItemAsync(LocalStore.tokenKey);
-      console.log('Reteriving token:: ', token);
-      return token;
-    } catch (error) {
-      console.error('Error getting token:', error);
-      return null;
-    }
+    const token = await AsyncStorage.getItem(LocalStore.tokenKey);
+    console.log('Retrieving Token:: ', token);
+    return token;
   }
 
   public static async deleteTokenLocal(): Promise<void> {
-    try {
-      await SecureStore.deleteItemAsync(LocalStore.tokenKey);
-    } catch (error) {
-      console.error('Error deleting token:', error);
-    }
+    await AsyncStorage.removeItem(LocalStore.tokenKey);
   }
 }

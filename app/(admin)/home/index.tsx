@@ -137,6 +137,7 @@ const HomeScreen = () => {
 
   const fetchEmpData = useCallback(async (id: string) => {
     try {
+      await LocalStore.getTokenLocal();
       const response = await Api.getEmpData(id);
       if (response) {
         State.storeEmpData(response);

@@ -188,7 +188,10 @@ const IndexScreen = () => {
     );
 
     return (
-      <View key={idx} className="mb-4 overflow-hidden rounded-2xl bg-white shadow-md">
+      <View
+        key={idx}
+        className="mb-4 overflow-hidden rounded-2xl shadow-md"
+        style={{ backgroundColor: Colors.get(company, 'card') }}>
         <TouchableOpacity
           onPress={onToggleExpand}
           className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3">
@@ -278,6 +281,19 @@ const IndexScreen = () => {
                 </View>
               )}
             </View>
+
+            {req.requestedByName && (
+              <View className="mt-4 flex-row items-center justify-between">
+                <View className="flex-row items-center gap-2">
+                  <Text className="font-semibold text-gray-700">Requested By:</Text>
+                  <View
+                    className="flex-row items-center gap-2 rounded-full px-3 py-1"
+                    style={{ backgroundColor: `${configFile.colorGreen}20` }}>
+                    <Text style={{ color: configFile.colorGreen }}>{req.requestedByName}</Text>
+                  </View>
+                </View>
+              </View>
+            )}
           </View>
         )}
       </View>

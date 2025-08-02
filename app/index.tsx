@@ -36,10 +36,7 @@ export type PopUpTypes =
   | 'Too Late Try Again From First !';
 
 export default function LoginPage() {
-  // const setDashboard = DashMemory((state) => state.setDashboard);
-
   useEffect(() => {
-    State.deleteToken();
     NavRouter.stayBack();
     const onBackPress = () => {
       router.replace({ pathname: '/login' });
@@ -111,7 +108,6 @@ export default function LoginPage() {
   };
 
   ///////////////////////////////////////////////////////////////////////////////////
-
 
   ////////////////////////////////////////////////////////////////////////////////////
 

@@ -1,50 +1,57 @@
-// import React, { useEffect, useState } from 'react';
-// import { View, ActivityIndicator } from 'react-native';
-// import WebView from 'react-native-webview';
-// import CookieManager from '@react-native-cookies/cookies';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
+import { WebView } from 'react-native-webview';
+import CookieManager from '@react-native-cookies/cookies';
 
-// const CookieWebView = ({ url, cookieName, cookieValue }) => {
-//   const [ready, setReady] = useState(false);
+interface CookieWebViewProps {
+  url: string;
+  cookieName: string;
+  cookieValue: string;
+  cookieDomain: string;
+}
 
-//   useEffect(() => {
-//     CookieManager.set(url, {
-//       name: cookieName,
-//       value: cookieValue,
-//       domain: 'sdceweb.lyzooapp.co.in',
-//       path: '/',
-//       version: '1',
-//       secure: true,
-//       httpOnly: false,
-//     }).then(() => setReady(true));
-//   }, []);
+const CookieWebView: React.FC<CookieWebViewProps> = ({
+  url,
+  cookieName,
+  cookieValue,
+  cookieDomain,
+}) => {
+  const [cookieSet, setCookieSet] = useState(false);
 
-//   return (
-//     <View style={{ flex: 1 }}>
-//       {ready ? (
-//         <WebView
-//           source={{ uri: url }}
-//           sharedCookiesEnabled={true}
-//           thirdPartyCookiesEnabled={true}
-//           domStorageEnabled={true}
-//           javaScriptEnabled={true}
-//           startInLoadingState={true}
-//           renderLoading={() => (
-//             <ActivityIndicator
-//               color="#00668a"
-//               size="large"
-//               style={{ flex: 1, justifyContent: 'center' }}
-//             />
-//           )}
-//         />
-//       ) : (
-//         <ActivityIndicator
-//           color="#00668a"
-//           size="large"
-//           style={{ flex: 1, justifyContent: 'center' }}
-//         />
-//       )}
-//     </View>
-//   );
-// };
+  useEffect(() => {
+    const setCookies = async () => {
+      try {
+        // Provide a full URL to CookieManager.set
+        await CookieManager.set(url, {
+          name: cookieName,
+          value: cookieValue,
+          domain: cookieDomain,
+          path: '/',
+          version: '1',
+          secure: true,
+          httpOnly: false,
+        });
 
-// export default CookieWebView;
+        // Retrieve cookies from the same full URL to verify
+        const currentCookies = await CookieManager.get(url);
+        console.log('✅ Cookies after setting:', currentCookies);
+
+        setCookieSet(true);
+      } catch (error) {
+        console.error('❌ Error setting cookie:', error);
+      }
+    };
+
+    setCookies();
+  }, [url, cookieName, cookieValue, cookieDomain]);
+
+  return !cookieSet ? (
+    <View style={{ flex: 1, justifyContent: 'center' }}>
+      <ActivityIndicator size="large" />
+    </View>
+  ) : (
+    <WebView source={{ uri: url }} sharedCookiesEnabled={true} startInLoadingState={true} />
+  );
+};
+
+export default CookieWebView;
