@@ -1,7 +1,9 @@
 import axios from 'axios';
+import { configFile } from 'config';
 
 const api = axios.create({
-  baseURL: 'https://sdce.lyzooapp.co.in:31313/api',
+  baseURL: configFile.api.superAdmin.admin,
+  //mohinth 'https://sdce.lyzooapp.co.in:31313/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

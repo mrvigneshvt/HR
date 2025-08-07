@@ -140,7 +140,8 @@ const PayrollScreen = () => {
     setFilteredPayrolls([]);
     try {
       const response = await fetch(
-        `https://sdceweb.lyzooapp.co.in:31313/api/payroll/payslips/?month=${month}`
+        configFile.api.superAdmin.getPayslipByMonth(month)
+        //`https://sdceweb.lyzooapp.co.in:31313/api/payroll/payslips/?month=${month}`
       );
       const result = await response.json();
       if (result.success) {
@@ -178,7 +179,8 @@ const PayrollScreen = () => {
     setPayslipDetail(null);
     try {
       const response = await fetch(
-        `https://sdce.lyzooapp.co.in:31313/api/payroll/employees/${employeeId}?month=${selectedDate}`
+        configFile.api.superAdmin.getPayrollByIdandMonth(employeeId,selectedDate)
+        //mohinth `https://sdce.lyzooapp.co.in:31313/api/payroll/employees/${employeeId}?month=${selectedDate}`
       );
       const result = await response.json();
       if (result.success) {

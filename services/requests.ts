@@ -1,6 +1,7 @@
 import axios from 'axios';
-
-const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
+import { configFile } from 'config';
+const BASE_URL = configFile.api.superAdmin.admin ;
+//mohinth'https://sdce.lyzooapp.co.in:31313/api';
 
 export interface UniformRequest {
   empId: string;

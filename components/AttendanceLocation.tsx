@@ -38,8 +38,10 @@ type Attendance = {
   // ...other fields as needed
 };
 
-const CLIENT_API_BASE = `https://sdce.lyzooapp.co.in:31313/api/clients/`;
-const API_BASE = 'https://sdce.lyzooapp.co.in:31313/api/attendance';
+const CLIENT_API_BASE = configFile.api.superAdmin.client;
+//mohinth `https://sdce.lyzooapp.co.in:31313/api/clients/`;
+const API_BASE = configFile.api.superAdmin.attendance;
+//mohinth'https://sdce.lyzooapp.co.in:31313/api/attendance';
 
 const AttendanceLocation = ({ Region, Address, isNear, cbLocation, empId, role }: Props) => {
   const [attendance, setAttendance] = useState<Attendance | null>(null);

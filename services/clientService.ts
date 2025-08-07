@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { configFile } from 'config';
 
-const BASE_URL = 'https://sdceweb.lyzooapp.co.in:31313/api';
+const BASE_URL = configFile.api.superAdmin.admin;
+ //'https://sdceweb.lyzooapp.co.in:31313/api';
 
 export interface Client {
   id?: number;

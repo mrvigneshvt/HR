@@ -48,8 +48,8 @@ import { company } from 'Memory/Token';
 import EntityDropdown from 'components/DropDown';
 import { Colors } from 'class/Colors';
 const { width: screenWidth } = Dimensions.get('window');
-const BASE_URL = 'https://sdce.lyzooapp.co.in:31313/api';
-
+const BASE_URL = configFile.api.superAdmin.admin;
+//mohinth 'https://sdce.lyzooapp.co.in:31313/api'
 export interface Employee {
   employee_id: string;
   name: string;

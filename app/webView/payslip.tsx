@@ -1,10 +1,12 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native';
 import CookieWebView from 'components/CookieWebView';
+import { configFile } from 'config';
 
 const PayslipScreen = () => {
   const cookieValue = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // JWT token
-  const url = 'https://sdceweb.lyzooapp.co.in:32323/';
+  const url = configFile.backendBaseUrl;
+  //mohinth 'https://sdceweb.lyzooapp.co.in:32323/';
 
   return (
     <SafeAreaView style={{ flex: 1 }}>

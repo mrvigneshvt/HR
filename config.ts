@@ -1,9 +1,10 @@
 import { longFormatters } from 'date-fns';
+import { appendBaseUrl } from 'expo-router/build/fork/getPathFromState-forks';
 
 const backendConnection = 'https';
-const backendDomain = 'sdce.lyzooapp.co.in';
+const backendDomain = 'backend.hrmslyzoo.in';
 const backendPort = '31313';
-const backendBaseUrl = `${backendConnection}://${backendDomain}:${backendPort}/`;
+const backendBaseUrl = `${backendConnection}://${backendDomain}/`;
 
 export const configFile = {
   colorGreen: '#238c58',
@@ -76,6 +77,24 @@ export const configFile = {
       },
     },
     superAdmin: {
+      // mohinth url start
+      admin: `${backendBaseUrl}api`,
+      reportsonly: `${backendBaseUrl}api/reports`,
+      reports: `${backendBaseUrl}api/reports/get`,
+      idcard: `${backendBaseUrl}api/idcard`,
+      client: `${backendBaseUrl}api/clients`,
+      attendance: `${backendBaseUrl}api/attendance`,
+      getPayslipByMonth(month:string){
+        return `${backendBaseUrl}api/payroll/payslips/?month=${month}`;
+      },
+      getPayrollByIdandMonth(id:string,month:string){
+        return `${backendBaseUrl}api/payroll/employees/${id}?month=${month}`;
+      },
+      getEmployeeDropdown(type:string){
+        return `${backendBaseUrl}api/employees/dropdownPhone?dropdownName=${type}`;
+      },
+      // mohinth url end
+      
       app: {
         aadhar: {
           verify: `${backendBaseUrl}api/aadhaar/generate-otp`,

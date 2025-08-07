@@ -2,6 +2,7 @@ import { useDropdownStore } from 'Memory/Dropdown';
 import { useEmployeeStore } from 'Memory/Employee';
 import { company, tokenMemory } from 'Memory/Token';
 import { LocalStore } from './LocalStore';
+import { configFile } from 'config';
 
 export class State {
   public static storeEmpData(response) {
@@ -55,7 +56,8 @@ export class State {
   }
 
   public static async reloadDropdown(type: 'client' | 'employee') {
-    const url = `https://sdce.lyzooapp.co.in:31313/api/employees/dropdownPhone?dropdownName=${type}`;
+    const url = configFile.api.superAdmin.getEmployeeDropdown(type);
+    //mohinth `https://sdce.lyzooapp.co.in:31313/api/employees/dropdownPhone?dropdownName=${type}`;
     try {
       const res = await fetch(url);
       const json = await res.json();

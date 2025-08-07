@@ -74,7 +74,7 @@ export class Api {
 
   // //   {
   // // "empId":"SMF1",
-  // // "name":"mohinth",
+  // // "name":"sakthi",
   // // "designation":"traveler",
   // // "site":"chennai",
   // // "location":"chennai",

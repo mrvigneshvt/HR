@@ -47,7 +47,7 @@ const IDCardRequest = () => {
     setLoading(true);
     try {
       const response = await Api.handleApi({
-        url: 'https://sdce.lyzooapp.co.in:31313/api/idcard/',
+        url: configFile.api.superAdmin.idcard,
         type: 'POST',
         payload,
       });
