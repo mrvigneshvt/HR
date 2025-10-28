@@ -1,11 +1,17 @@
 import { longFormatters } from 'date-fns';
 import { appendBaseUrl } from 'expo-router/build/fork/getPathFromState-forks';
 
-const backendConnection = 'https';
-const backendDomain = 'backend.hrmslyzoo.in';
-const backendPort = '31313';
-const backendBaseUrl = `${backendConnection}://${backendDomain}/`;
+const product = false;
 
+const backendConnection = 'https';
+const backendDomain = product ? 'backend.hrmslyzoo.in' : 'sdce.lyzooapp.co.in';
+const backendPort = '31313';
+const backendBaseUrl = product
+  ? `${backendConnection}://${backendDomain}/`
+  : `${backendConnection}://${backendDomain}:${backendPort}/`;
+const frontendDomain = 'sdceweb.lyzooapp.co.in';
+const frpntendPort = 32323;
+const frontendBaseUrl = `${backendConnection}://${frontendDomain}:${frpntendPort}/`;
 export const configFile = {
   colorGreen: '#238c58',
   color: {
@@ -25,13 +31,22 @@ export const configFile = {
   backendDomain,
   backendPort,
   backendBaseUrl,
+  frontendBaseUrl,
+
   api: {
+    whatsapp: {
+      api: {
+        baseUrl: 'http://whatsapp.lyzooapp.co.in/send-message',
+        method: 'POST',
+      },
+    },
     credentials: {
       key: 'iaus787sadfsdf837asdsad8223e',
     },
     get baseUrl() {
       return backendBaseUrl;
     },
+    resendOtp: `${backendBaseUrl}api/auth/resend-otp`,
     verifyToken: `${backendBaseUrl}api/verifyToken`,
     attendance: {
       checkIn() {
@@ -45,6 +60,9 @@ export const configFile = {
       },
     },
     common: {
+      idCard(id: string) {
+        return `${backendBaseUrl}/idcard?empId=${id}`;
+      },
       login() {
         return `${backendBaseUrl}api/auth/login`;
       },
@@ -84,17 +102,17 @@ export const configFile = {
       idcard: `${backendBaseUrl}api/idcard`,
       client: `${backendBaseUrl}api/clients`,
       attendance: `${backendBaseUrl}api/attendance`,
-      getPayslipByMonth(month:string){
+      getPayslipByMonth(month: string) {
         return `${backendBaseUrl}api/payroll/payslips/?month=${month}`;
       },
-      getPayrollByIdandMonth(id:string,month:string){
+      getPayrollByIdandMonth(id: string, month: string) {
         return `${backendBaseUrl}api/payroll/employees/${id}?month=${month}`;
       },
-      getEmployeeDropdown(type:string){
+      getEmployeeDropdown(type: string) {
         return `${backendBaseUrl}api/employees/dropdownPhone?dropdownName=${type}`;
       },
       // mohinth url end
-      
+
       app: {
         aadhar: {
           verify: `${backendBaseUrl}api/aadhaar/generate-otp`,

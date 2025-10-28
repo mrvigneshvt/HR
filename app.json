@@ -24,7 +24,8 @@
           "withAndroidManifest": true,
           "withGradleProperties": true
         }
-      ]
+      ],
+      "expo-build-properties"
     ],
     "orientation": "portrait",
     "icon": "./assets/logoAPP.png",
@@ -40,7 +41,8 @@
       "buildNumber": "3",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "This app needs access to your location to verify your attendance."
-      }
+      },
+      "bundleIdentifier": "com.anonymous.myexpoapp"
     },
     "android": {
       "versionCode": 6,

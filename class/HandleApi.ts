@@ -234,6 +234,7 @@ export class Api {
     setOtpHash: React.Dispatch<React.SetStateAction<string>>;
     setOtpToNumber: React.Dispatch<React.SetStateAction<string>>;
     setApiData: React.Dispatch<React.SetStateAction<any>>;
+    setShowWhatsapp: React.Dispatch<React.SetStateAction<boolean>>;
   }) {
     try {
       const apiUrl = configFile.api.common.login();
@@ -271,6 +272,9 @@ export class Api {
             }
             options.setOtpToNumber(api.data.smsResponse.phoneNumber);
             options.setIsOtp(true);
+            setTimeout(() => {
+              options.setShowWhatsapp(true);
+            }, 5000);
             // options.setOtpToNumber(api.data.smsResponse.phoneNumber);
             return;
           } else {
@@ -282,7 +286,7 @@ export class Api {
           }
 
         case 404:
-          options.triggerPopup('EmployeeId not Found');
+          options.triggerPopup(api.data.message || 'EmployeeId not Found');
           return;
 
         case 500:

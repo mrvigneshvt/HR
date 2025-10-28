@@ -10,6 +10,7 @@ import {
   Keyboard,
   BackHandler,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
@@ -27,7 +28,9 @@ import * as SecureStore from 'expo-secure-store';
 import { company } from '../Memory/Token';
 import { State } from 'class/State';
 import { NavRouter } from 'class/Router';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { LocalStore } from 'class/LocalStore';
+import WhatsappModal from 'components/Modals/WhatsappModal';
 // import * as SecureStore from 'expo-secure-store';
 const logo = require('../assets/logo.jpg');
 
@@ -70,6 +73,9 @@ export default function LoginPage() {
     // }, 50);
   }, []);
 
+  const [whatsappUsed, setWhatsappUsed] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [showWhatsapp, setShowWhatsapp] = useState<boolean>(false);
   const router = useRouter();
   const [empId, setEmpId] = useState('');
   const [apiLoading, setApiLoading] = useState(false);
@@ -126,6 +132,7 @@ export default function LoginPage() {
         setOtpHash,
         setOtpToNumber,
         setApiData,
+        setShowWhatsapp,
       });
     } catch (error) {
       console.log('error in loginPage:', error);
@@ -155,6 +162,14 @@ export default function LoginPage() {
             onChangeText={!isOtp ? handleEmpId : handleOtp}
           />
 
+          {showWhatsapp && !whatsappUsed && (
+            <TouchableOpacity className="mb-3  font-extrabold" onPress={() => setShowModal(true)}>
+              <View className="flex-row">
+                <Text className="text-gray-500">Didn't Receive OTP ? </Text>
+              </View>
+            </TouchableOpacity>
+          )}
+
           <Pressable
             style={styles.loginButton}
             className={`${apiLoading ? 'bg-black' : `bg-[${configFile.colorGreen}]`}`}
@@ -173,6 +188,14 @@ export default function LoginPage() {
             )}
           </Pressable>
         </Pressable>
+        {showModal && (
+          <WhatsappModal
+            showModal={showModal}
+            setShowModal={setShowModal}
+            empId={empId}
+            onSuccess={() => setWhatsappUsed(true)}
+          />
+        )}
       </Pressable>
     </>
   );

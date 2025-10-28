@@ -19,7 +19,7 @@ import LoadingScreen from 'components/LoadingScreen';
 import { configFile } from '../../../config';
 import { EsiCard } from 'components/EsiCard';
 import { NavRouter } from 'class/Router';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { company } from '../../../Memory/Token';
 
 export default function ProfileScreen() {
@@ -39,6 +39,15 @@ export default function ProfileScreen() {
         dob: employees.dob || '',
         age: employees.age || '',
         profileImage: employees.profile_image,
+      });
+    }
+    if (role.toLowerCase() == 'employee') {
+      return router.replace({
+        pathname: '/(tabs)/dashboard',
+        params: {
+          role,
+          empId,
+        },
       });
     }
     NavRouter.BackHandler({ role: employees?.role, empId, company });
@@ -99,6 +108,33 @@ export default function ProfileScreen() {
             Profile Details
           </Text>
 
+          <View className="mb-3">
+            {isValidUrl && (
+              <Pressable
+                onPress={() => setShowEsiCard((prev) => !prev)}
+                style={{
+                  borderWidth: 1,
+                  borderColor: configFile.colorGreen,
+                  borderRadius: 6,
+                  padding: 12,
+                  backgroundColor: '#f0f0f0',
+                  marginBottom: 10,
+                }}>
+                <Text style={{ color: configFile.colorGreen, textAlign: 'center' }}>
+                  {showEsiCard ? 'Hide ESI Card' : 'Show ESI Card'}
+                </Text>
+              </Pressable>
+            )}
+            {showEsiCard && isValidUrl && (
+              <EsiCard
+                esiCardUrl={esiCardUrl}
+                isImage={isImage}
+                isValidUrl={isValidUrl}
+                isPdfOrOther={isPdfOrOther}
+              />
+            )}
+          </View>
+
           {/* Render Input Fields */}
           {fields.map((field, index) => (
             <TextInput
@@ -135,22 +171,6 @@ export default function ProfileScreen() {
           </View>
 
           {/* ESI Card Section */}
-          {isValidUrl && (
-            <Pressable
-              onPress={() => setShowEsiCard((prev) => !prev)}
-              style={{
-                borderWidth: 1,
-                borderColor: configFile.colorGreen,
-                borderRadius: 6,
-                padding: 12,
-                backgroundColor: '#f0f0f0',
-                marginBottom: 10,
-              }}>
-              <Text style={{ color: configFile.colorGreen, textAlign: 'center' }}>
-                {showEsiCard ? 'Hide ESI Card' : 'Show ESI Card'}
-              </Text>
-            </Pressable>
-          )}
 
           {showEsiCard && isValidUrl && (
             <>
@@ -181,12 +201,6 @@ export default function ProfileScreen() {
               ) : (
                 <Text style={{ color: 'red', marginTop: 10 }}>Unsupported ESI Card format</Text>
               )} */}
-              <EsiCard
-                esiCardUrl={esiCardUrl}
-                isImage={isImage}
-                isValidUrl={isValidUrl}
-                isPdfOrOther={isPdfOrOther}
-              />
             </>
           )}
         </ScrollView>

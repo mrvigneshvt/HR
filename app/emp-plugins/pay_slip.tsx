@@ -101,7 +101,8 @@ const PaySlip = () => {
   };
 
   const handleOpenExternal = async () => {
-    const url = `${configFile.backendBaseUrl}payslip/${empId}/${dates.year}-${dates.month}`;
+    const url = `${configFile.frontendBaseUrl}payroll/print-payslip/${empId}?month=${dates.month}-${dates.year}`;
+    console.log('payslip URL:: ', url);
     Linking.canOpenURL(url) ? await Linking.openURL(url) : alert('Cannot open URL');
   };
 

@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Keyboard,
   BackHandler,
+  TouchableOpacity,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useEffect, useState } from 'react';
@@ -48,6 +49,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [empId, setEmpId] = useState('');
   const [apiLoading, setApiLoading] = useState(false);
+  const [showWhatsapp, setShowWhatsapp] = useState(false);
   const [popup, setPopUp] = useState(false);
   const [popMsg, setPopMsg] = useState('');
   const [isOtp, setIsOtp] = useState(false);
@@ -101,15 +103,12 @@ export default function LoginPage() {
         setOtpHash,
         setOtpToNumber,
         setApiData,
+        setShowWhatsapp,
       });
     } catch (error) {
       console.log('error in loginPage:', error);
     }
   };
-
-  ///////////////////////////////////////////////////////////////////////////////////
-
-  ////////////////////////////////////////////////////////////////////////////////////
 
   return (
     <>
@@ -135,6 +134,12 @@ export default function LoginPage() {
             value={!isOtp ? empId.toLocaleUpperCase() : otp}
             onChangeText={!isOtp ? handleEmpId : handleOtp}
           />
+
+          {showWhatsapp && (
+            <TouchableOpacity onPress={() => {}}>
+              <Text className="text-black">Didn't Receive Otp Get on Whatsapp</Text>
+            </TouchableOpacity>
+          )}
 
           <Pressable
             style={styles.loginButton}

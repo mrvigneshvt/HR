@@ -29,7 +29,6 @@ export class NavRouter {
 
     const subscription = BackHandler.addEventListener('hardwareBackPress', path);
 
-    // Return cleanup function, optional to use
     return () => subscription.remove();
   }
 
@@ -39,8 +38,9 @@ export class NavRouter {
     company?: 'sdce' | 'sq';
   }) {
     let role = options.role.toLowerCase();
+    console.log(role, '//ROLE');
     let pathname = role == 'employee' ? '/(tabs)/dashboard/' : '/(admin)/home';
-    if (role == 'employee') {
+    if (role == 'employee' || role == '') {
       router.replace({ pathname, params: options });
       return;
     }

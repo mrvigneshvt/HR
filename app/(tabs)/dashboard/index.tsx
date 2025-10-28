@@ -1,8 +1,18 @@
-import { View, Text, Dimensions, ScrollView, StyleSheet, BackHandler } from 'react-native';
+import {
+  View,
+  Text,
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  BackHandler,
+  Pressable,
+  Image,
+} from 'react-native';
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
+import { useLocalSearchParams, Stack, router } from 'expo-router';
 import DashTop from 'components/DashTop';
 import DashBottom from 'components/DashBottom';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import DashLast from 'components/DashLast';
 import ProfileStack from 'Stacks/HeaderStack';
 import { useEmployeeStore } from 'Memory/Employee';
@@ -10,7 +20,11 @@ import { DashMemory } from 'Memory/DashMem';
 import { Api } from 'class/HandleApi';
 import { useIsFocused } from '@react-navigation/native';
 import { NavRouter } from 'class/Router';
-import { EsiCard } from '../../../components/EsiCard';
+import { EsiCard } from 'components/EsiCard';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import { configFile } from 'config';
+import { State } from '../../../class/State';
+import TileButton from 'components/TileButton';
 
 const styles = StyleSheet.create({
   scrollView: {
@@ -37,29 +51,26 @@ const Index = () => {
   const isFocus = useIsFocused();
   const { empId, role } = useLocalSearchParams<{ empId: string; role: string }>();
   const employees = useEmployeeStore((state) => state.employee);
-  console.log(employees, '//////////////////////////////////////////employexz');
   const [gender, setGender] = useState<string | null>(null);
   const [empData, setEmpData] = useState<Record<string, any>>();
-
   const scrollRef = useRef<ScrollView>(null);
 
   const setupEmpData = async () => {
     try {
       console.log('Invoking EMP ID:', empId);
       const response = await Api.getEmpData(String(empId));
-      if (!response) {
-        console.log('Response Failed...');
-      } else {
+      if (response) {
         console.log('Received emp Data:', response);
-        setEmpData(response); // Assuming response has .data
+        setEmpData(response);
         useEmployeeStore.getState().setEmployee(response);
+      } else {
+        console.log('Response Failed...');
       }
     } catch (error) {
       console.error('Error fetching emp data:', error);
     }
   };
 
-  // Initial fetch
   useEffect(() => {
     setupEmpData();
   }, []);
@@ -67,17 +78,12 @@ const Index = () => {
   useEffect(() => {
     NavRouter.BackHandler({ role, empId });
   }, []);
-  // Update gender once empData is available
+
   useEffect(() => {
-    console.log('empData Recoeved', empData, 'typeee', typeof empData);
     if (empData) {
-      console.log('Added emp data:', empData);
       setGender(empData.gender?.toLowerCase());
-      console.log(gender, '///gender');
     }
   }, [empData]);
-
-  // const dashboard = DashMemory((state) => state.dashboard);
 
   const { width, height } = Dimensions.get('window');
   const cardSize = useMemo(() => (width - 16 - 8) / 2, [width]);
@@ -90,10 +96,40 @@ const Index = () => {
   }, []);
 
   const employee = useEmployeeStore((state) => state.employee);
-  console.log(employee, 'newEmployeeeeeeeeeee');
+
   return (
     <>
-      <ProfileStack DashBoard={true} role={'Employee'} />
+      {/* ✅ Dashboard Screen Header */}
+      <Stack.Screen
+        options={{
+          title: 'Dashboard',
+          headerShown: true,
+          headerTintColor: 'white',
+          tabBarHideOnKeyboard: true,
+          headerStyle: {
+            backgroundColor: configFile.colorGreen,
+            elevation: 1,
+            shadowOpacity: 0,
+          },
+          headerRight: () => (
+            <Pressable
+              onPress={() => {
+                console.log('Logo pressed!');
+                State.deleteToken();
+                router.replace('/login');
+              }}
+              style={{ marginRight: 12 }}>
+              <MaterialIcons name="logout" size={24} color="white" />
+              {/* <Image
+                source={require('../../../assets/logo.png')} // ✅ update path if needed
+                style={{ width: 36, height: 36, borderRadius: 8 }}
+                resizeMode="contain"
+              /> */}
+            </Pressable>
+          ),
+        }}
+      />
+
       <ScrollView
         ref={scrollRef}
         style={styles.scrollView}
@@ -106,19 +142,11 @@ const Index = () => {
             name={employee?.name}
           />
 
-          {/* <DashBottom
-            Month={dashboard?.user?.monthlyReports?.month}
-            Days={dashboard?.user.monthlyReports.totalDays}
-            Absent={dashboard?.user.monthlyReports.absent}
-            late={dashboard?.user.monthlyReports.late}
-            Dimensions={{ width: width - 16, height }}
-          /> */}
-
           <DashLast
             role={String(role)}
             cardSize={cardSize}
             empId={String(empId)}
-            isMale={gender === 'male' ? true : false}
+            isMale={gender === 'male'}
           />
         </View>
       </ScrollView>

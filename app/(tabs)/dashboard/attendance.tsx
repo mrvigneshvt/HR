@@ -12,6 +12,7 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import axios from 'axios';
@@ -277,12 +278,20 @@ const AttendanceMapScreen = () => {
               style={[styles.input, { height: 80 }]}
               multiline
             />
-            <TouchableOpacity
+            {/* <TouchableOpacity
               style={styles.modalButton}
               onPress={() => doPunchIn(outTitle, outNotes)}>
+              <FontAwesome name="send-o" size={16} color="white" />
               <Text style={styles.modalButtonText} className="text-white">
                 Submit
               </Text>
+            </TouchableOpacity> */}
+            <TouchableOpacity
+              onPress={() => doPunchIn(outTitle, outNotes)}
+              className="flex flex-row justify-center gap-2 p-3"
+              style={{ backgroundColor: configFile.colorGreen }}>
+              <Text className="font-extrabold text-white">Submit</Text>
+              <FontAwesome name="send-o" size={16} color="white" />
             </TouchableOpacity>
           </View>
         </View>
